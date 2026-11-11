@@ -9,7 +9,7 @@ metaDescription: "Codificar Eternity II como cláusulas SAT/CSP para solucionado
 kind: concept
 order: 80
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: Heule, Solving edge-matching problems with satisfiability solvers (2008)
@@ -20,11 +20,19 @@ sources:
     url: https://link.springer.com/article/10.1007/s10601-012-9128-9
   - label: "Ansótegui, Béjar, Fernàndez & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge (CCIA 2008)"
     url: https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download
+  - label: "Heule, Kullmann, Wieringa & Biere, Cube and Conquer: Guiding CDCL SAT Solvers by Lookaheads (HVC 2011, LNCS 2012)"
+    url: https://doi.org/10.1007/978-3-642-34188-5_8
+  - label: "Heule, Kullmann & Marek, Solving and Verifying the boolean Pythagorean Triples problem via Cube-and-Conquer (SAT 2016, arXiv:1605.00723)"
+    url: https://arxiv.org/abs/1605.00723
+  - label: "Heule, Schur Number Five (AAAI 2018, arXiv:1711.08076)"
+    url: https://arxiv.org/abs/1711.08076
 related:
   - /research/lab/experiments/raphael-anjou/pipelines/mosaic
   - /research/papers
   - /research/why/phase-transition
   - /research/why/rigidity-wall
+  - /research/why/how-hard-is-this-instance
+  - /research/build/analysis/solution-counting
 repro:
   kind: prose
 ---
@@ -64,14 +72,20 @@ ingenua. Aun así, las CNF del puzzle completo 16×16 construidas por la
 comunidad llegan a alrededor de cien mil variables y cientos de millones de
 cláusulas (según se reporta en la
 [lista de correo comunitaria](https://groups.io/g/eternity2)). Se cargan sin
-problema, y permanecen totalmente sin resolver.
+problema, y no se ha informado de ningún solucionador completo que haya
+decidido una. Los intentos reportados son ejecuciones únicas de
+solucionadores de la época, casi siempre sin presupuesto declarado. El
+*cube-and-conquer*, división masivamente paralela seguida de CDCL, con el que
+se resolvieron las ternas pitagóricas booleanas ([2016](https://arxiv.org/abs/1605.00723))
+y el número de Schur cinco ([2017](https://arxiv.org/abs/1711.08076)), no se
+ha probado a gran escala en el puzzle completo, que sepamos (comprobado en
+noviembre de 2026).
 
 ## Tomarle la medida
 
 Los números de catorce dígitos dejan de significar nada en un texto, así que
 más vale medirlos. El explorador de abajo calcula ambas codificaciones en vivo
-a partir de la derivación anterior. Desliza el tamaño del tablero a través del
-techo del SAT puro de la comunidad, en 10×10, y hasta el 16×16 completo, y
+a partir de la derivación anterior. Desliza el tamaño del tablero desde 10×10 hasta el 16×16 completo, y
 observa las barras en escala logarítmica. Debajo, una instancia de seis
 cláusulas muestra la otra mitad de la historia: la cascada de propagación
 unitaria de la que se alimenta el aprendizaje de cláusulas de CDCL, y que este
@@ -109,10 +123,12 @@ Deriva los tamaños una vez a mano; dejan de ser folclore.
    cada emplazamiento *implica* sus cuatro colores de costura (como mucho
    $16n^4$ cláusulas binarias) y la discrepancia queda prohibida una vez por
    costura, no una vez por par: $\binom{c}{2}$ cláusulas por costura, unas
-   $65{,}000$ en total. La maquinaria de conflictos se colapsa en tres órdenes
-   de magnitud. Eso es exactamente por qué las instancias de Heule alcanzaron
-   tamaños que la codificación ingenua nunca rozó, y por qué el techo sigue
-   estando cerca de 10×10 y no de 16×16: el tamaño nunca fue el único problema.
+   $65{,}000$ en total. Contando también las implicaciones, la maquinaria de
+   conflictos baja de unos $4{,}7\times10^8$ cláusulas a unos
+   $1{,}1\times10^6$, unas 400 veces menos. Eso es exactamente por qué las
+   instancias de Heule alcanzaron tamaños que la codificación ingenua nunca
+   rozó, y por qué el tablero completo sigue resistiendo: el tamaño nunca fue
+   el único problema.
 
 ## Lo que cuesta
 
@@ -120,8 +136,10 @@ Deriva los tamaños una vez a mano; dejan de ser folclore.
   CDCL es un procedimiento basado en resolución: en familias con cotas
   inferiores de resolución exponenciales, *ninguna* de sus ejecuciones puede
   ser subexponencial. Su éxito industrial es una afirmación sobre la estructura
-  típica, no sobre el coste en el peor caso, y una instancia construida en el
-  pico de dureza está tan lejos de lo típico como es posible.
+  típica, no sobre el coste en el peor caso. No se conoce ninguna cota
+  inferior de resolución para Eternity II, ni en un sentido ni en otro: es un
+  límite a lo que se puede prometer, no un veredicto medido sobre la
+  instancia.
 - **Propagación unitaria: barata por diseño.** Con dos literales vigilados por
   cláusula, una cláusula solo se examina cuando uno de sus dos vigías queda
   falsificado, y cada visita cuesta $O(\text{longitud de la cláusula})$ para
@@ -142,8 +160,8 @@ Deriva los tamaños una vez a mano; dejan de ser folclore.
   (véase la [página alldifferent](/research/build/reduce/alldiff-regin)).
   Propagación polinómica sobre un árbol de búsqueda exponencial: fuerte
   localmente, impotente globalmente.
-- **Donde el balance cuadra.** En el tablero completo, el comportamiento del
-  peor caso es el comportamiento observado. En subproblemas fijados, la misma
+- **Donde el balance cuadra.** En el tablero completo, ningún solucionador
+  completo ha terminado dentro de los presupuestos reportados. En subproblemas fijados, la misma
   maquinaria devuelve UNSAT en menos de dos segundos: un teorema de
   imposibilidad por consulta, al precio de una búsqueda en base de datos. Los
   costes no cambiaron; la pregunta, sí.
@@ -160,16 +178,22 @@ Su conclusión estrella: los puzzles de emparejamiento de aristas generalizados
 son excelentes benchmarks SAT/CSP precisamente porque la dificultad es
 ajustable: al variar el número de colores, el tiempo de resolución sube hasta
 un pico agudo donde las soluciones son escasas pero reales. Los recuentos de
-colores de Eternity II se sitúan en ese pico, por diseño; la
-[página sobre la transición de fase](/research/why/phase-transition) lo recorre
-en detalle. En la práctica, los solucionadores completos despachan los tableros
-pequeños en segundos y luego chocan con un acantilado exponencial; los
-experimentos comunitarios a lo largo de los años sitúan el techo práctico del
-SAT puro sobre las instancias de estilo Eternity en torno a la escala 10×10,
-muy por debajo de 16×16. Consulta la [página de artículos](/research/papers)
+colores de Eternity II se sitúan cerca de ese pico para puzzles aleatorios
+de su tamaño; la [página sobre la transición de fase](/research/why/phase-transition)
+lo recorre en detalle. El pico es una propiedad del conjunto aleatorio: para
+la instancia real, la estimación de primer momento da unas 14.702 soluciones
+con la pista central ([conteo de soluciones](/research/build/analysis/solution-counting)).
+En la práctica, los solucionadores completos despachan los tableros pequeños
+en segundos y luego chocan con un acantilado exponencial, pero dónde cae ese
+acantilado depende del número de colores, de la densidad de soluciones y de
+la formulación, no solo del tamaño. En tableros plantados, este proyecto midió
+a CP-SAT (un solucionador de generación perezosa de cláusulas) resolviendo
+instancias 12×12 y 13×13 con 22 colores, y un 16×16 con 26 colores en unos
+15 segundos ([¿cuán difícil es esta instancia?](/research/why/how-hard-is-this-instance)).
+Ningún solucionador completo ha decidido el 16×16 real. Consulta la [página de artículos](/research/papers)
 para el rastro completo de la literatura.
 
-## Por qué CDCL se atasca en el tablero completo
+## Por qué CDCL podría atascarse en el tablero completo: una hipótesis
 
 CDCL obtiene su poder del aprendizaje de cláusulas: cuando la propagación se
 topa con un conflicto, el solucionador recorre el grafo de implicación hacia
@@ -177,9 +201,13 @@ atrás hasta un pequeño conjunto de decisiones que lo causaron, y registra esa
 combinación como prohibida. La cláusula aprendida es corta y general cuando los
 conflictos nacen de largas cadenas de propagación unitaria.
 
-Eternity II deja hambriento a ese mecanismo. El análisis por este proyecto de
-su propio motor CSP (matizado en consecuencia: medido aquí, no replicado de
-forma independiente) halló que la estructura de implicación es casi plana (una
+La hipótesis de trabajo es que Eternity II deja hambriento a ese mecanismo.
+Los indicios vienen del motor CSP de este proyecto, no de un solucionador CDCL,
+y las profundidades citadas abajo aún no son un resultado publicado en el
+repositorio. El registro de por qué un motor CSP eliminó un valor no es el
+grafo de implicación de CDCL sobre una CNF con variables de costura, y CDCL
+aprende en cada conflicto, no solo cuando un dominio se vacía. Con esas
+reservas, el análisis CSP halló que la estructura de implicación es casi plana (una
 eliminación de dominio se remonta a un único emplazamiento vecino, no a una
 cadena profunda), de modo que el análisis de conflicto casi no tiene nada que
 comprimir, y los [no-goods](/research/build/reduce/nogood-learning) aprendidos
@@ -187,9 +215,11 @@ salen anchos y específicos en lugar de cortos y generales. Peor aún, los
 conflictos surgen tarde: con una propagación fuerte en marcha, los vaciados de
 dominio prácticamente nunca ocurrían antes de la profundidad 50, con la mediana
 bien adentro del tablero. Una cláusula ancha sobre una configuración profunda y
-específica no poda casi nada más. Añade una instancia deliberadamente ajustada
-al pico de dureza, y el puzzle completo se acerca a un peor caso para la
-búsqueda guiada por conflictos.
+específica no poda casi nada más. Si lo mismo ocurre dentro de un
+solucionador CDCL, el puzzle completo encaja mal con la búsqueda guiada por
+conflictos. Comprobarlo exige lanzar kissat o CaDiCaL sobre la CNF completa con
+un presupuesto fijo y medir la longitud de las cláusulas aprendidas, su LBD y
+la profundidad de los conflictos; esa medición no se ha hecho.
 
 ## Dónde los veredictos exactos siguen pagando
 
@@ -211,4 +241,4 @@ construcción y barata de verificar con literales vigilados al estilo SAT.
 
 Esa es la división del trabajo: como solucionador frontal del puzzle completo,
 CDCL está superado; como generador rápido de certificados de imposibilidad para
-piezas de él, nada más se le acerca.
+piezas de él, es el más barato de los medidos aquí.

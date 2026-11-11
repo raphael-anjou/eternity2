@@ -10,7 +10,7 @@ metaDescription: "Rendez-vous au milieu sur Eternity II : l'astuce de Horowitz-S
 kind: concept
 order: 40
 group: Exact methods
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: 'Horowitz & Sahni 1974, « Computing Partitions with Applications to the Knapsack Problem » (JACM), l''origine classique'
@@ -94,8 +94,10 @@ de fréquences inégales (5 couleurs à 24 demi-arêtes, 5 à 48, 12 à 50), et
 aucune paire de couleurs ne partage à la fois l'offre et la structure
 d'incidence. La seule relaxation licite consiste à projeter la signature de
 couture sur son *multiensemble* de couleurs et à s'en servir comme
-pré-filtre, ce qui réduit les seaux d'environ un facteur $k!$ pour une
-couture de longueur $k$ : un soulagement polynomial, jamais exponentiel. Les
+pré-filtre, ce qui réduit l'espace des clés d'un facteur $k!$ au plus pour une
+couture de longueur $k$ (moins quand des couleurs se répètent), au prix de
+seaux plus gros dont les candidats exigent une vérification exacte en second
+temps : un soulagement polynomial, jamais exponentiel. Les
 grosses clés restent grosses.
 
 ## Sentir la racine carrée
@@ -181,59 +183,74 @@ stockées dont aucune moitié basse n'a jamais sondé le seau avec succès.
 
 Le couplage peut être chiffré, pas seulement évoqué. Un calcul de carnet
 donne le nombre attendu de remplissages valides d'une région d'aire $a$ et
-d'interface de longueur $k$ (pour des régions ne touchant aucun bord du
-plateau) :
+d'interface de longueur $k$ :
 
 $$
-T(a,k)\;=\;\frac{256!}{(256-a)!}\cdot 4^a\cdot p^{\,2a-k/2},
+T(a,k)\;=\;\frac{n!}{(n-a)!}\cdot 4^a\cdot p^{\,2a-k/2},
 $$
 
-où $p = 0{,}048177$ est la probabilité que deux demi-arêtes tirées au hasard
-partagent une couleur sous la distribution réelle des fréquences de
-couleurs : environ 6 % au-dessus du naïf $1/22 \approx 0{,}0455$, une
+où $n$ est le nombre de pièces éligibles et $p$ la probabilité que deux
+demi-arêtes tirées au hasard partagent une couleur. Sur le jeu complet,
+$n = 256$ et $p = 0{,}048177$ sous la distribution réelle des fréquences des
+22 couleurs : environ 6 % au-dessus du naïf $1/22 \approx 0{,}0455$, une
 inflation que les fréquences inégales imposent par Cauchy–Schwarz. La
 factorielle décroissante compte les choix ordonnés de pièces, $4^a$ les
 rotations, et l'exposant $2a - k/2$ est exact : une identité de double
 comptage donne à toute région sans bord d'aire $a$ et de périmètre $k$
 exactement $2a - k/2$ arêtes intérieures, chacune facturée comme une
-concordance indépendante.
+concordance indépendante. Pour une région qui ne touche aucun bord, les bons
+paramètres sont plus étroits : seules les 196 pièces intérieures y entrent,
+leurs côtés n'emploient que les 17 couleurs intérieures, et
+$p \approx 0{,}0588$ (calculé sur les 840 demi-arêtes tournées vers
+l'intérieur, côtés intérieurs des pièces de bord compris). Les valeurs du jeu
+complet sont une moyenne plus grossière ; les chiffres qui suivent les
+emploient sauf mention contraire.
 
 La formule a été validée contre des comptages exhaustifs sur des instances
-plantées de 10×10 à 12×12 : exacte (ratio 1,000) quand la région n'a aucune
-arête intérieure, à 3 à 20 % près pour une ou deux arêtes intérieures, et
+plantées de 10×10 à 12×12 : à 3 à 20 % près pour une ou deux arêtes intérieures, et
 l'erreur diminue quand le nombre de couleurs augmente (ratio 0,806 à 6
 couleurs, remontant à 1,010 à 22), la direction que prédit l'épuisement d'un
 pool fini. Les régions à quatre arêtes intérieures ou plus dépassent déjà la
 vérification par force brute même sur un jouet 12×12 ; le compte prédit pour
 une région de 9 cellules est d'environ $6 \times 10^{11}$. La validation à
 petite échelle est donc une mesure, tandis que l'extrapolation de la formule
-aux grandes régions relève d'un modèle, et tout ce qui suit doit se lire
-avec cette étiquette.
+aux grandes régions relève d'un modèle. Ni le calcul ni les comptages de
+validation ne sont encore publiés comme sujet de recherche du dépôt : chaque
+chiffre de cette section et des deux suivantes est une estimation de modèle
+non publiée.
 
-## Pourquoi aucune taille de découpe ne gagne
+## Ce qu'une découpe économise vraiment
 
-Donnons à la formule l'optimisation complète : choisir l'aire de région $a$,
-lui accorder le périmètre minimal atteignable (une borne classique sur les
-polyominos, due à Harary et Harborth en 1976, donne
-$k_{\min} = 2\lceil 2\sqrt{a}\rceil$), et minimiser la facture totale de la
-taille de table plus la sortie du recollement. Le balayage ne trouve aucun
-point d'équilibre intérieur : le coût croît de façon monotone avec l'aire de
-la région, le coût en $\log_{10}$ passant de 3,0 à $a=1$ à 16,4 à $a=16$,
-48,7 à $a=64$, 61,5 à $a=128$. L'optimum est la « région » dégénérée d'une
-seule cellule, c'est-à-dire la propagation de contraintes ordinaire, cellule
-par cellule.
+Comparons les deux plans pour une même cible. Une recherche unilatérale qui
+fait croître une région cellule par cellule paie à peu près $\sum_d T(d)$ sur
+ses profondeurs, somme dominée par son niveau le plus large. Un plan
+bilatéral paie deux demi-tables plus le recollement, soit environ
+$2\,T(a/2)$ plus le recollement. Donnons à chaque aire son périmètre minimal
+(une borne classique sur les polyominos, due à Harary et Harborth en 1976,
+donne $k_{\min} = 2\lceil 2\sqrt{a}\rceil$) avec les paramètres du jeu
+complet : $\log_{10} T$ vaut 3,0 à $a=1$, 16,3 à $a=16$, 41,4 à $a=64$ et
+61,5 à $a=128$, continue de monter jusque vers 66 autour de $a = 160$, puis
+redescend (64,5 à $a=192$). La table d'un demi-plateau, environ $10^{61,5}$
+entrées, est plus petite que le niveau le plus large de l'arbre unilatéral,
+environ $10^{66}$. Dans ce modèle, la découpe économise environ quatre ordres
+de grandeur sur le terme dominant : un facteur réel mais d'ordre faible, très
+loin de la racine carrée d'une facture de $10^{66}$, et $10^{61}$ entrées
+stockées restent de toute façon hors d'atteinte. (Avec les paramètres
+intérieurs, les régions sans bord culminent plus bas et plus tôt, vers
+$10^{60}$ autour de $a = 148$.)
 
 Le mécanisme mérite d'être énoncé sans détour. Le rendez-vous au milieu
-classique gagne parce que les deux moitiés énumèrent des univers
-*indépendants* dont le produit reconstitue l'espace complet au coût de la
-racine carrée de chaque côté. Ici, les deux moitiés puisent dans un unique
-pool partagé de 256 pièces sous une contrainte globale de disjonction : la
-base combinatoire est une factorielle décroissante dont le coût marginal par
-cellule *augmente* avec l'aire, les deux côtés paient la facture
-super-linéaire simultanément, et l'économie en racine carrée ne se
-matérialise jamais. C'est ce que dit le calcul, validé sur de petits
-plateaux plantés ; c'est un verdict calculé sur un modèle, non une mesure à
-la taille du plateau complet.
+classique gagne parce que les comptes partiels d'un côté croissent comme
+$2^d$ jusqu'aux feuilles : diviser la profondeur par deux prend une racine
+carrée. Ici, les comptes de remplissages partiels forment une bosse : ils
+montent tant que les choix de pièces et de rotations l'emportent sur la
+pénalité de concordance, culminent à mi-profondeur, puis retombent quand les
+pièces restantes s'épuisent. Les deux moitiés d'une découpe se tiennent sur le
+flanc montant de la même bosse, si bien que la découpe n'économise que la
+distance entre le milieu et le sommet. Et le vrai travail se loge dans le
+recollement : deux demi-plateaux doivent aussi employer des jeux de pièces
+disjoints, ce qu'aucune clé de couture ne garantit. C'est un verdict calculé
+sur un modèle d'ensemble, non une mesure à la taille du plateau complet.
 
 Une esquive tentante échoue elle aussi. Ancrer la région dans un coin, pour
 que deux de ses côtés soient du bord libre du plateau, ressemble à du
@@ -254,7 +271,7 @@ données. Quatre quadrants forment une jointure en 4-cycle : chacun partage
 une interface de 8 arêtes avec deux voisins, le cadre de manuel où la
 théorie des jointures optimales au pire cas montre que tout plan qui
 matérialise d'abord une jointure par paires est dominé. Le même calcul de
-carnet facture un plan à quadrants matérialisés à environ $10^{80}$ lignes
+carnet (non publié, sa fonction de coût non consignée) facture un plan à quadrants matérialisés à environ $10^{80}$ lignes
 intermédiaires contre environ $10^{62}$ pour la simple découpe en deux sur
 la même aire, parce que le produit par paires enfle avant que les
 contraintes croisées des deux autres quadrants ne puissent l'élaguer, et
@@ -330,15 +347,19 @@ incumbents différents ; sur un balayage de 40 graines, un tirage a amélioré
 le plateau de 2 arêtes concordantes, à 459 sur 480 sous la même convention,
 vérifié indépendamment de trois façons, en environ 200 secondes. Élargir la
 bande libérée à 64 cellules dépassait la cible : dans le même budget, le
-meilleur incumbent du solveur atterrissait sous le score de départ, à 455.
+meilleur incumbent du solveur atterrissait sous le score de départ, à 455,
+signe que la résolution n'était pas amorcée sur le plateau existant : un
+solveur à qui l'on fournit ce plateau comme indice ne peut pas rendre pire.
 (Ce 459 égalait le meilleur score du carnet avec ce pipeline à l'époque ;
 pour situer de tels scores face aux résultats communautaires obtenus avec
 des budgets de calcul bien plus grands, voir la
 [page des records](/research/records).) Le levier caché là-dedans : quand le
-solveur exact ferme l'écart d'optimalité, la région est serrée et aucune
-méthode n'aidera ; quand il n'y parvient pas, son incumbent est en pratique
-un tirage de loterie et re-tirer est le coup à jouer. « Le solveur a-t-il
-prouvé l'optimalité ? » est une carte gratuite des marges restantes.
+solveur exact ferme l'écart d'optimalité, cette fenêtre est prouvée optimale
+pour ces pièces, même si une fenêtre plus grande ou différente peut encore
+aider ; quand il n'y parvient pas, re-résoudre avec d'autres graines
+échantillonne d'autres incumbents, et ici un tirage sur 40 a amélioré le
+plateau. « Le solveur a-t-il prouvé l'optimalité ? » est une carte bon marché
+des fenêtres épuisées.
 
 ## Limites, et ce qui reste ouvert
 

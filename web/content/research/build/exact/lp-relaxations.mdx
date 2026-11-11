@@ -4,15 +4,16 @@ description: >-
   Write Eternity II as an integer program, drop the integrality, and a linear
   solver reaches zero error in seconds, with 30% of one piece and 20% of
   another sharing a corner. Eighteen years of community campaigns measured
-  where the fractional comfort ends: a plateau at 420–440 edges the moment
-  the pieces must be whole, an ILP wall at 8×8, and an academic best of
-  461-in-an-hour. What the optimizer's road teaches, and where LP still
-  earns its keep.
-metaDescription: "Eternity II as an integer program: relax the integrality and LP hits zero error in seconds on a board of fractional pieces, but whole pieces collapse the score onto a 420-440 edge plateau, with an ILP wall at 8x8. The ~478 LP bound stays too loose to certify; assignment subproblems still pay off."
+  where the fractional comfort ends: one 2009 attempt to force integrality
+  with a quadratic penalty stalled at 420–440 edges, exact integer programs
+  stop near 8×8 (10×10 with few colours), and a heuristic using MILP as a
+  component reached 461 in 2012. What the optimizer's road teaches, and
+  where LP still earns its keep.
+metaDescription: "Eternity II as an integer program: relaxed, the LP hits zero error in seconds on fractional pieces. A 2009 integrality penalty stalled at 420-440 edges, exact ILP stops near 8x8, and conditional LP bounds near 478 are too loose to certify. Assignment subproblems still pay off."
 kind: concept
 order: 160
 group: Exact methods
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: "The max-clique framing: 262,144 placement vertices, find a clique of 256 (groups.io message 627, 2007)"
@@ -51,6 +52,7 @@ related:
   - /research/why/rigidity-wall
   - /research/build/dead-ends
   - /research/build/exact/sat-csp-encodings
+  - /research/why/design-recipe
   - /research/build/reduce/alldiff-regin
   - /research/records
 repro:
@@ -72,9 +74,10 @@ The community walked this road repeatedly between 2007 and 2025, with
 solvers from `glpsol` to CPLEX to hand-rolled Newton–Raphson, and the
 outcome was measured precisely enough to be worth a page: the relaxation
 solves fast and reports a nearly perfect board, one made of fractions of
-pieces. Force the pieces whole and the score collapses onto a plateau around
-420–440 of 480 edges. The gap between the fractional optimum and the integer
-one is not a technicality. It is the exact place where the puzzle lives.
+pieces. One 2009 attempt to force the pieces whole with a quadratic penalty
+stalled at 420–440 of 480 edges, and exact integer programs stop near 8×8.
+The gap between the fractional optimum and the integer one is not a
+technicality: it is where the integrality constraint does its work.
 
 ## The formulation
 
@@ -191,7 +194,7 @@ nothing about the assignment polytope is strained. It is the min-of-sums
 seam objective alone that pulls the optimum off the integral vertices. The
 assignment half of the model was never the problem.
 
-## The measured plateau
+## The measured campaigns
 
 Every few years someone new drove the road, with better solvers and more
 memory, and hit the same three walls: the full ILP is unsolvable past toy
@@ -218,13 +221,14 @@ where you fix only each piece's orientation so the directional edge counts
 balance, fell to `glpsol` in five seconds in 2007 and to CPLEX in milliseconds in
 2012. When the integer structure is genuinely easy, the solver says so
 immediately; the full puzzle's silence is a verdict, not a tooling problem.
-Second, the plateau numbers agree across totally different machinery:
-Benjamin's 420–440 by penalized LP, Munjak's 200–224 pieces placed
-mismatch-free by iterated assignment, the Wauters group's 461 with an hour
-of metaheuristic repair on top. Everything optimizer-shaped lands in the
-same mid-400s band that plain
-[local search](/research/build/local-search/local-search-alns) reaches without
-any LP at all. Third, the 2017 paper, the strongest academic treatment,
+Second, the stopping points are not one band. Benjamin's 420–440 is the
+edge count where one nonconvex penalty system stalled under a local
+Newton-type solver: a property of that solver, not of integrality, since
+whole-piece [local search](/research/build/local-search/local-search-alns)
+reaches the 460s. Munjak's 200–224 counts pieces placed without a mismatch,
+a different unit. The Wauters group's 461 came from a hyper-heuristic, not
+an LP method. What the campaigns share is the exact-solve wall, not a
+score. Third, the 2017 paper, the strongest academic treatment,
 with both a MILP and a Max-Clique formulation, concedes intractability in
 its abstract and pivots to using the formulations *inside* heuristics. The
 road's own builders posted the detour sign.
@@ -239,11 +243,13 @@ One literature fact belongs next to the table. The strongest academic
 treatment, the 2017 MILP and Max-Clique paper, solves integer instances
 only up to roughly 7×7 or 8×8 and never reports an LP-relaxation bound for
 the 16×16 instance ([arXiv:1709.00252](https://arxiv.org/abs/1709.00252)).
-As far as the public record goes, nobody has published a sound LP or MILP
-bound below 480 for full Eternity II. The 477 to 479 numbers measured
-below are *conditional* (they assume a fixed border), so the unconditional
-question stands open: proving any sound bound below 480 by convex
-relaxation would be new.
+No sound unconditional bound below 480 can exist: the puzzle was
+[built from a solution](/research/why/design-recipe), so its integer
+optimum is 480 (with or without the five clues, which come from that
+solution), and every sound relaxation must return at least that. Bounds
+become informative only when conditioned on a fixed border or region, and
+then only for borders that admit no perfect completion. The 477 to 479
+numbers measured below are such conditional bounds.
 
 ## Recasting the puzzle over piece sides
 
@@ -271,12 +277,12 @@ integer rotation. The LP keeps 480 feasible by placing each piece partly in
 all four rotations at once, the side-level twin of the 30%-piece-1 corner
 above.
 
-So the colour ledger balances perfectly at every level of the relaxation we
-could afford to solve, and a bound that pins at the maximum is a negative
-result of a specific, useful kind: it localises the hardness. Nothing in
-which sides can pair with which obstructs a 480. The obstruction lives
-entirely in what these relaxations cannot see, that each piece occupies one
-whole cell and that the pairing must lie flat as a 16×16 grid. Same verdict
+So the colour ledger balances at every level of the relaxation we could
+afford to solve. That is forced rather than informative: the puzzle has a
+solution, so every sound unconditional relaxation must return 480. What
+the runs do show is *how* the relaxations get there, by hedging pairings
+and rotations fractionally, the behaviour that leaves them loose once a
+border is fixed and a perfect completion may no longer exist. Same verdict
 as the cell-side model, reached from the opposite direction.
 
 Three later measurements close the supply question completely. First, the
@@ -306,6 +312,11 @@ supply-level LP is useless; the positional, per-cell LP of the next
 section demonstrably separates them.
 
 ## Conditioning the bound on a border
+
+The conditional-LP numbers in this section and the next are notebook
+measurements; their script and results are not yet committed under
+`research/topics`, so read them as recorded observations, not reproducible
+results.
 
 The unconditional bound pins at the ceiling, so we conditioned it. Fix a
 complete border (all 60 perimeter pieces) and solve the LP relaxation over
@@ -337,9 +348,9 @@ permutations, one RNG seed) lowered the conditional bound, by 2 to 5.5
 points. Thirteen trials from one seed is a sketch, not a theorem. And
 projecting the border of the community 469-edge board into the five-hint
 convention (overlay the five hints, refill the displaced pieces) *drops*
-its conditional ceiling to 477, one point below our 458 board's border: a
-structural hint, not a proof, that the five-hint ceiling may sit below the
-hint-free one.
+its conditional ceiling to 477, one point below our 458 board's border.
+That compares two specific borders; it says nothing about the conventions
+themselves, whose ceilings are both 480.
 
 ### Where the gap lives
 
@@ -349,16 +360,16 @@ seams, and 364 interior-interior seams, for a combinatorial maximum of
 $60 + 56 + 364 = 480$. Many different borders present the same multiset of
 inward-facing colour demands, which is why so many share one LP value. On
 the 458 board's border the split reads $478 = 60 + 54.02 + 363.98$. Read
-it slowly: the interior-interior part is essentially *tight*, the LP
-conceding only 0.02 of 364 interior seams; the entire loss against the
-maximum sits at the border-to-interior seam. The LP's verdict on this
-border is that 2 of its 56 inward-facing seams are structurally
-unmatchable by any interior completion. The board itself leaves 4 of them
-unmatched, so at most 2 are theoretically repairable, a maximum in-border
-lift of +2 to 460. We tested that headroom once: an exact integer re-solve
-freeing 84 cells (the bottom perimeter plus the bottom five interior
-rows; 30 minutes, one solver, one run) returned delta 0. Either the +2 is
-not integer-feasible or it needs a larger window.
+it with care: in this optimal LP solution the interior-interior part is
+essentially full, 0.02 short of 364, and the loss sits at the
+border-to-interior seam. That split belongs to one optimal vertex of a
+large, degenerate LP, not to the bound. Another optimum may spread the same
+loss differently, so it does not identify particular unmatchable seams,
+and the bound caps only the total at 478, leaving up to +20 over the
+458 board. We probed the bottom of that board once: an exact integer
+re-solve freeing 84 cells (the bottom perimeter plus the bottom five
+interior rows; 30 minutes, one solver, one run) returned delta 0. That
+window is optimal for its pieces; whether a larger one helps is open.
 
 A second border trades the other way: its decomposition is
 $477 = 60 + 54.17 + 362.83$, slightly more border-interior headroom but
@@ -380,18 +391,20 @@ and an exact integer re-solve of the union of all its mismatch clusters
 (28 cells freed) proves no local improvement exists: delta 0 in 0.46
 seconds. The three decompositions line up as $478 = 60 + 54.02 + 363.98$,
 $477 = 60 + 54.17 + 362.83$ and $479 = 60 + 55.48 + 363.52$, and the
-LP-to-integer gap per board reads 20, 20 and 22: near-constant across
+LP-to-incumbent gap per board (bound minus the best board found, not minus
+the unknown integer optimum for that border) reads 20, 20 and 22: near-constant across
 every border we tested (479 is also the highest ceiling seen across 18
 conditional-LP runs on diverse borders). So the conditional bound *ranks*
 borders by structure, but it does not predict which border yields the best
-whole-piece board; the 479-ceiling border is integer-locked lower than
-the 478-ceiling one. The mechanism is the page's own: the extra headroom
+whole-piece board: the best board found on the 479-ceiling border sits
+lower than on the 478-ceiling one, and neither 8 one-hour local-search
+seeds nor a 28-cell exact re-solve improved it. The mechanism is the page's own: the extra headroom
 is fractional-hedging slack, and a higher ceiling only means the colour
 ledger is *closer* to balanceable, not that any integral board realizes
-it. One conjecture is worth writing down as a conjecture: a perfect
-board's border must have conditional bound exactly 480, both parts maxed
-at once, and the 479 border shows the LP gets within one of that
-necessary condition.
+it. One necessary condition follows in one line from LP $\ge$ IP: a border
+that admits a perfect board has conditional bound exactly 480. Every
+border measured here fails it, so each is certified to admit no perfect
+completion; the 479 border misses by one.
 
 A last caution about reading these decompositions: per-colour LP
 allocations are **not** per-colour bounds. On the 458 board, one colour's
@@ -475,10 +488,9 @@ on tiny instances with one SDP solver, not theorems.
   object on the page.
 - **The ILP: NP-hard, and not abstractly.** Branch-and-bound is
   backtracking with an LP bound at every node: worst-case exponential, and
-  an instance [built at the hardness peak](/research/why/phase-transition)
-  is engineered to realize the worst case. The measured form of the cost:
-  a solver that handles 8×8 (64 pieces) returns nothing on 16×16, because
-  the tree under the root is squared, not doubled.
+  nothing about Eternity II suggests it escapes that. The measured form of
+  the cost: a solver that handles 8×8 (64 pieces) returns nothing on
+  16×16. The cell count quadruples, so the tree's exponent quadruples.
 - **The integrality gap is the real currency.** The whole method's value is
   the distance between the LP optimum and the best integer solution. Here
   that distance is roughly 478 versus 458-and-stalling: the relaxation
@@ -510,10 +522,12 @@ The fair conclusion is relocation, not dismissal, the same one the
   convention) it converges to 461; from a 456-edge board to 461; from a
   440-edge board all the way to 469. The sound use is as a *room
   indicator*: when the greedy relaxed score equals the board's own score,
-  the board is provably a strict local maximum even with piece-uniqueness
-  relaxed, a stronger dead-end certificate than operator-based tests. On
-  that 457 board the +4 gap was proven unclosable by any permutation
-  chain up to length 11 (40 million permutations, zero improvers). The
+  the board has no improving single-cell replacement, even with reuse
+  allowed. That certifies single-cell local optimality only: changing two
+  adjacent cells at once (a swap, a paired rotation) is not covered. On
+  that 457 board, 40 million permutation chains of length up to 11, drawn
+  from one sampled family, found no improver; a vanishing fraction of all
+  such chains, so a search result rather than a proof. The
   rule: only LP or MIP-derived values are ceilings; greedy relaxed scores
   are diagnostics.
 - **Assignment subproblems, where integrality is free.** Inside repair

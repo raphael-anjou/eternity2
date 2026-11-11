@@ -10,11 +10,13 @@ metaDescription: "Eternity II como cobertura exacta: el algoritmo X de Knuth y l
 kind: concept
 order: 30
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: Knuth 2000, "Dancing Links" (arXiv cs/0011047)
     url: https://arxiv.org/abs/cs/0011047
+  - label: "Knuth, The Art of Computer Programming vol. 4B (2022), §7.2.2.1: cobertura exacta con colores (algoritmo C), multiplicidades y coberturas exactas de coste mínimo"
+    url: https://www-cs-faculty.stanford.edu/~knuth/taocp.html
   - label: El algoritmo X de Knuth (Wikipedia)
     url: https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X
   - label: Cobertura exacta (Wikipedia)
@@ -22,6 +24,7 @@ sources:
 related:
   - /research/build/dead-ends
   - /research/why/no-forced-moves
+  - /research/build/backtracking/fill-order
   - /research/lab/experiments/joshua-blackwood/solver
 repro:
   kind: prose
@@ -48,7 +51,9 @@ cada pieza usada una vez.
 
 Lo que la cobertura exacta pura no sabe expresar es que los bordes en contacto
 deben concordar. La propia extensión de Knuth se encarga de ello: XCC, cobertura
-exacta con colores, donde los elementos secundarios (aquí, uno por cada arista
+exacta con colores (el algoritmo C del
+[volumen 4B de TAOCP, §7.2.2.1](https://www-cs-faculty.stanford.edu/~knuth/taocp.html),
+2022; el artículo de 2000 tiene elementos secundarios, pero no colores), donde los elementos secundarios (aquí, uno por cada arista
 interior de la cuadrícula) llevan un color, y dos opciones solo pueden compartir
 un elemento secundario si le asignan el mismo color. Una solución XCC completa es
 entonces exactamente un tablero Eternity II perfecto. La codificación es fiel:
@@ -139,10 +144,9 @@ A la escala de Eternity II: la propia matriz XCC es perfectamente manejable, con
 512 elementos primarios (256 celdas + 256 piezas), 480 elementos secundarios para
 las aristas interiores y sus 22 colores, y a lo sumo
 $256 \times 256 \times 4 = 262{,}144$ opciones antes de la poda por simetría y por
-borde. Construirla son minutos de trabajo. El árbol que hay encima es el muro: sin
-[ningún movimiento forzado](/research/why/no-forced-moves) la ramificación se
-mantiene ancha hasta el fondo, sobre un espacio habitualmente estimado en torno a
-$10^{100}$, y $O(1)$ por nodo multiplicado por un número astronómico de nodos
+borde. Construirla son minutos de trabajo. El árbol que hay encima es el muro: en el rompecabezas real, un buen árbol de
+backtracking por filas se estima entre unos $10^{40}$ y $10^{43}$ nodos
+([orden de llenado](/research/build/backtracking/fill-order)), y $O(1)$ por nodo multiplicado por un número astronómico de nodos
 sigue siendo astronómico. Ese es el sentido preciso en que DLX es la herramienta
 correcta para tableros pequeños y el arma equivocada para el 16×16.
 
@@ -171,22 +175,28 @@ Dos muros independientes, cualquiera de los cuales bastaría.
 
 **El árbol es el mismo árbol.** La cobertura exacta redescribe la búsqueda; no la
 reduce. La elección de elemento «fallar primero» es un buen orden de variables,
-pero [ningún movimiento está jamás forzado](/research/why/no-forced-moves) en este
-rompecabezas: el elemento menos cubierto sigue ofreciendo docenas de opciones
-vivas muy adentro de la búsqueda, así que la ramificación se mantiene enorme hasta
-el fondo, sobre un espacio habitualmente estimado en torno a $10^{100}$ tableros.
-Un motor DLX recorre ese árbol por completo o no de forma útil en absoluto; y su
-bucle interno de persecución de punteros está limitado por la memoria, un orden de
-magnitud por detrás de los motores de arreglos ajustados a la caché que usan los
+y en lo hondo de la búsqueda sí encuentra elementos con una sola opción viva o
+con ninguna. Lo que no puede es bajar el factor de ramificación efectivo por
+debajo de uno: con el tablero vacío
+[ninguna pieza queda atada a un único vecino](/research/why/no-forced-moves), y
+el número de nodos medido de una búsqueda por filas sigue subiendo hasta unas
+160 piezas colocadas, en un árbol de unos $10^{40}$ a $10^{43}$ nodos
+([orden de llenado](/research/build/backtracking/fill-order)). «Fallar primero»
+reordena ese árbol; no le quita la joroba. Un motor DLX lo recorre por completo
+o no de forma útil en absoluto. Ninguna medición publicada compara el ritmo de
+un motor DLX en este rompecabezas con el de los motores de arreglos que usan los
 [mejores backtrackers con récord](/research/lab/experiments/joshua-blackwood/solver).
 
 **Ningún crédito parcial.** DLX responde una sola pregunta: cubierto exactamente,
 o no. Toda la economía de Eternity II se sustenta en puntuaciones parciales (467,
 469, 470) y en búsquedas que toleran deliberadamente unas cuantas aristas mal
-emparejadas para llegar allí. La cobertura exacta no tiene ningún modo nativo de
-dejar una arista sin emparejar y pagar una penalización; relajarla hasta ese punto
-significa reconstruirla como una ramificación y acotación, momento en que la
-elegancia que la justificaba se ha esfumado.
+emparejadas para llegar allí. XCC puede expresar aristas blandas: cada
+junta pasa a ser un elemento opcional y dejarla sin cubrir cuesta una
+penalización, que es la cobertura exacta de coste mínimo que TAOCP 4B también
+trata. Pero entonces la búsqueda se vuelve ramificación y acotación sobre una
+cota débil (una estimación fraccionaria del coste de los elementos restantes),
+el mismo juego que ya juegan los [backtrackers con récord](/research/lab/experiments/joshua-blackwood/solver)
+con estructuras de datos más ajustadas.
 
 ## Veredicto
 

@@ -4,7 +4,7 @@
 # ///
 """exact-tail-endgame: the bottom band as its own exact optimisation.
 
-    uv run tailforge.py --seeds 24 --rows 2,3 --caps 1,2 --out ../results/tailforge.json
+    uv run tailforge.py --seeds 24 --rows 1,2 --caps 1,db1,none --out ../results/tailforge.json
 
 Reproduces the TAILFORGE / R3-COMB-SQUEEZE core finding (research vault
 vol-228 TAILFORGE.md, vol-234 R3-COMB-SQUEEZE.md): a strong partial's
@@ -23,9 +23,16 @@ frostline topic, for lineage):
   3. Exactly optimise the tail band with OR-Tools CP-SAT: one border-legal
      (piece, rotation) per free cell over the board's own leftover pool,
      AllDifferent, per-side colour channelled by Element, hard rim, MATCH
-     booleans on every tail-touching adjacency, maximise matches; optional
-     per-cell INCOMING-break cap (top+left mismatches <= cap), the producer's
-     <=1-break/cell regime at cap=1.
+     booleans on every tail-touching adjacency, maximise matches. Three
+     break regimes on each free cell's two INCOMING edges (top+left):
+     cap=1 (at most one incoming break per cell), db1 (at most ONE cell in the
+     whole tail with a double incoming break) and none (uncapped; a per-cell
+     cap of 2 would be vacuous, a cell has only two incoming edges).
+     The greedy producer itself enforces none of these: it maximises incoming
+     matches and accepts a double break when nothing better is left.
+     The producer's own tail is passed as a solution hint, and whenever that
+     tail is admissible under the regime the objective is floored at its
+     value, so every reported incumbent dominates it by construction.
   4. Compare: exact-tail full-board score vs the producer's own full-board
      score on the identical frozen top. Positive delta => the producer left
      points in the tail (tail-limited at the margin); zero delta => the
@@ -46,6 +53,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import statistics
 import sys
 import time
 from pathlib import Path
@@ -168,7 +176,8 @@ def exact_tail(pieces, board, hints, rows, cap):
 
     Free cells = the bottom `rows` rows MINUS any canonical hint cell (never
     freed). Free pool = the pieces the producer placed in those free cells.
-    Maximise tail-touching matches; optional per-cell incoming-break cap.
+    Maximise tail-touching matches under break regime `cap`
+    (1 | "db1" | None, see the module docstring).
 
     Returns a dict with the exact full-board score, the producer's own score
     on the same top, and CP-SAT status / timing / verification.
@@ -251,18 +260,36 @@ def exact_tail(pieces, board, hints, rows, cap):
             if mv is not None and (cell + N) in incoming:
                 incoming[cell + N].append(mv)
 
-    # Per-cell incoming-break cap (the producer's <=k-break/cell regime).
-    # A free cell's incoming edges are its TOP (from cell-N) and LEFT (from
-    # cell-1); both always exist (a tail free cell is never on the top or left
-    # rim), so n_in == 2 for every free cell and each produced exactly one
-    # match bool. breaks = 2 - sum(matched) <= cap.
-    if cap is not None:
-        for cell in free_cells:
-            x, y = cell % N, cell // N
-            n_in = (1 if y > 0 else 0) + (1 if x > 0 else 0)
-            mvs = incoming[cell]
-            if len(mvs) == n_in and n_in > 0:
-                model.Add(sum(mvs) >= n_in - cap)
+    # Break regimes on each free cell's incoming edges: its TOP (from cell-N)
+    # and, unless it sits in column 0, its LEFT (from cell-1). Only a cell with
+    # two incoming edges can carry a double break.
+    double_vars = []
+    for cell in free_cells:
+        mvs = incoming[cell]
+        if len(mvs) < 2:
+            continue
+        if cap == 1:
+            model.Add(sum(mvs) >= 1)
+        elif cap == "db1":
+            dv = model.NewBoolVar(f"dbl_{cell}")
+            model.Add(sum(mvs) == 0).OnlyEnforceIf(dv)
+            model.Add(sum(mvs) >= 1).OnlyEnforceIf(dv.Not())
+            double_vars.append(dv)
+    if cap == "db1":
+        model.Add(sum(double_vars) <= 1)
+
+    # The producer's own tail: hint it, and floor the objective at its value
+    # whenever it is admissible under this regime.
+    producer_score = score_board(pieces, board)
+    prod_dbl = producer_tail_double_breaks(pieces, board, free_cells)
+    prod_tail_matches = tail_matches(pieces, board, set(free_cells))
+    for i, cell in enumerate(free_cells):
+        model.AddHint(slot[i], i)
+        model.AddHint(rotv[i], board[cell][1])
+    admissible = (cap is None or (cap == 1 and prod_dbl == 0)
+                  or (cap == "db1" and prod_dbl <= 1))
+    if admissible:
+        model.Add(sum(matches) >= prod_tail_matches)
 
     model.Maximize(sum(matches))
 
@@ -275,7 +302,6 @@ def exact_tail(pieces, board, hints, rows, cap):
     secs = time.monotonic() - t0
     status_name = solver.StatusName(status)
 
-    producer_score = score_board(pieces, board)
     if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         new_board = list(board)
         for i, cell in enumerate(free_cells):
@@ -294,6 +320,8 @@ def exact_tail(pieces, board, hints, rows, cap):
         "rows": rows,
         "cap": cap,
         "free_cells": m,
+        "producer_tail_double_breaks": prod_dbl,
+        "producer_tail_admissible": admissible,
         "status": status_name,
         "secs": round(secs, 3),
         "producer_score": producer_score,
@@ -302,6 +330,31 @@ def exact_tail(pieces, board, hints, rows, cap):
         "verified": verified,
         "url": url,
     }
+
+
+def tail_matches(pieces, board, free):
+    """Matched interior edges with at least one endpoint in `free`."""
+    grid = [rot(pieces[pid], r) for pid, r in board]
+    s = 0
+    for c in range(CELLS):
+        x, y = c % N, c // N
+        if x + 1 < N and (c in free or c + 1 in free) and grid[c][R] == grid[c + 1][L]:
+            s += 1
+        if y + 1 < N and (c in free or c + N in free) and grid[c][D] == grid[c + N][U]:
+            s += 1
+    return s
+
+
+def producer_tail_double_breaks(pieces, board, free_cells):
+    """Free cells whose top AND left edges both mismatch in the producer board."""
+    grid = [rot(pieces[pid], r) for pid, r in board]
+    n = 0
+    for c in free_cells:
+        if c % N == 0:
+            continue
+        if grid[c - N][D] != grid[c][U] and grid[c - 1][R] != grid[c][L]:
+            n += 1
+    return n
 
 
 def verify(pieces, board, hints):
@@ -334,7 +387,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", type=int, default=24, help="producer seeds 1..S")
     ap.add_argument("--rows", default="2,3", help="tail band heights to free")
-    ap.add_argument("--caps", default="1,2", help="incoming-break caps; 'none' = uncapped")
+    ap.add_argument("--caps", default="1,db1,none",
+                    help="break regimes: '1' (<=1 incoming break per cell), "
+                         "'db1' (<=1 double-break cell in the tail), 'none'")
     ap.add_argument("--band-seeds", default="",
                     help="per-band seed cap, e.g. '1:24,2:6' (keeps the wide, "
                          "slow bands to fewer seeds so the run stays in budget). "
@@ -347,7 +402,8 @@ def main():
     TIME_LIMIT = args.time_limit
     WORKERS = args.workers
     rows_list = [int(x) for x in args.rows.split(",")]
-    caps_list = [None if x.strip() == "none" else int(x) for x in args.caps.split(",")]
+    caps_list = [None if x.strip() == "none" else (x.strip() if x.strip() == "db1" else int(x))
+                 for x in args.caps.split(",")]
     band_seed_cap = {}
     for tok in args.band_seeds.split(","):
         if ":" in tok:
@@ -396,18 +452,23 @@ def main():
             "n_optimal": len(opt),
             "n_verified": sum(1 for x in rs if x["verified"]),
             "delta_min": min(deltas) if deltas else None,
-            "delta_median": sorted(deltas)[len(deltas) // 2] if deltas else None,
+            "delta_median": statistics.median(deltas) if deltas else None,
             "delta_max": max(deltas) if deltas else None,
             "delta_mean": round(sum(deltas) / len(deltas), 3) if deltas else None,
-            "n_tail_limited": sum(1 for d in deltas if d > 0),
-            "n_tail_tight": sum(1 for d in deltas if d == 0),
-            "secs_median": round(sorted(x["secs"] for x in rs)[len(rs) // 2], 3),
+            "n_infeasible": sum(1 for x in rs if x["status"] == "INFEASIBLE"),
+            "n_delta_positive": sum(1 for d in deltas if d > 0),
+            "n_delta_zero": sum(1 for d in deltas if d == 0),
+            "n_producer_tail_with_double_break": sum(
+                1 for x in rs if x["producer_tail_double_breaks"] > 0),
+            "secs_median": round(statistics.median(x["secs"] for x in rs), 3),
         }
 
     out = {
         "topic": "exact-tail-endgame",
         "instance": "official-16x16",
-        "producer": "greedy-row-major (frostline producer)",
+        "producer": "greedy-row-major (frostline producer; maximises incoming "
+                    "matches, double breaks allowed)",
+        "warm_start": "producer tail hinted; objective floored at it when admissible",
         "hints": "5 canonical, pinned (never freed)",
         "scoring": "rim-excluding interior matched edges, max 480",
         "time_limit_s": TIME_LIMIT,

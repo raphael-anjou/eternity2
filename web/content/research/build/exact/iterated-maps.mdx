@@ -10,7 +10,7 @@ metaDescription: "The physicist's attack on Eternity II: Veit Elser's difference
 kind: concept
 order: 170
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [exact-methods, learning]
 sources:
   - label: Elser, Rankenburg & Thibault, Searching with iterated maps (PNAS 104:418, 2007)
@@ -21,6 +21,10 @@ sources:
     url: https://arxiv.org/abs/0801.0222
   - label: Aragón Artacho, Borwein & Tam, Recent results on Douglas–Rachford methods for combinatorial optimization problems (arXiv:1305.2657)
     url: https://arxiv.org/abs/1305.2657
+  - label: "Hesse & Luke, Nonconvex notions of regularity and convergence of fundamental algorithms for feasibility problems (SIAM J. Optim. 23, 2013)"
+    url: https://doi.org/10.1137/120902653
+  - label: "Phan, Linear convergence of the Douglas–Rachford method for two closed sets (Optimization 65, 2016)"
+    url: https://doi.org/10.1080/02331934.2015.1051532
   - label: JSA formalizes the dual problem and introduces Elser's work to the list (groups.io message 9347)
     url: https://groups.io/g/eternity2/message/9347
   - label: JSA on the divide-and-concur papers and the open scaling question (groups.io message 9350)
@@ -45,6 +49,7 @@ related:
   - /research/build/dead-ends
   - /research/build/exact/lp-relaxations
   - /research/build/exact/sat-csp-encodings
+  - /research/build/analysis/solution-counting
 repro:
   kind: prose
 ---
@@ -89,11 +94,18 @@ the set:
   Hungarian algorithm solves it exactly in polynomial time, the same
   assignment engine that powers the refill step in
   [local search](/research/build/local-search/local-search-alns).
-- $P_2(x)$, the nearest edge-consistent coloring, decomposes edge by edge:
-  each interior join just averages its two sides toward agreement. Purely
-  local, embarrassingly parallel.
+- $P_2(x)$, the nearest edge-consistent board, is the catch. In this
+  one-hot embedding $C_2$ is the set of 0/1 grids (duplicates allowed) whose
+  touching sides agree: a nonconvex, globally coupled tiling set, and the
+  nearest point in it is not computed seam by seam. Averaging two sides
+  toward agreement is the projection onto a *continuous* agreement set, and
+  it returns blends that are not colours. The fix is to change the
+  embedding, which is what divide-and-concur (below) does: give each seam
+  its own replica of the two sides it joins, so the edge projection becomes
+  one tiny discrete problem per seam (the nearest agreeing colour pair,
+  found by enumeration). Purely local, embarrassingly parallel.
 
-Each projection is a solved problem. The hardness of Eternity II lives
+With replicas, each projection is cheap. The hardness of Eternity II lives
 entirely in the *intersection*, and the naive scheme, alternating
 projections $x \mapsto P_1(P_2(x))$, fails exactly the way you'd guess: it
 converges to a pair of points, one in each set, locally as close as possible
@@ -145,8 +157,13 @@ all the work:
 
 For $\beta = 1$ the difference map coincides with the **Douglas–Rachford
 iteration**, a projection method convex analysts have studied since the
-1950s; convergence is provable when both sets are convex, and entirely
-unguaranteed here, where $C_1$ is a scatter of permutation points. The
+1950s. Global convergence is provable when both sets are convex; here,
+where $C_1$ is a scatter of permutation points, there is no global
+guarantee. Local convergence results do exist for nonconvex feasibility
+problems ([Hesse & Luke 2013](https://doi.org/10.1137/120902653);
+[Phan 2016](https://doi.org/10.1080/02331934.2015.1051532)), but none has
+been applied to an edge-matching instance of Eternity II's size, as far as
+a literature check found (checked 2026-11). The
 Eternity II list only learned the family name in 2025, when Wyatt Carpenter
 found Wikipedia crediting "the Douglas–Rachford algorithm" for TetraVex
 solving and flagged it as a possibly promising avenue no one had raised
@@ -196,9 +213,10 @@ The record, in full, because it is short.
 - **2008, a dismissal in passing.** The first mention of the method on the
   list is Don Milne listing "difference map" among the optimization
   techniques he judged unable to solve complex CSPs: they shine only when
-  solutions are dense, and Eternity II was
-  [designed to have almost exactly one](/research/why/complex-theory)
-  ([message 5479](https://groups.io/g/eternity2/message/5479)).
+  solutions are dense, and in his reading Eternity II was built to have
+  very few ([message 5479](https://groups.io/g/eternity2/message/5479)).
+  The first-moment estimate is about 14,702 with the centre clue
+  ([solution counting](/research/build/analysis/solution-counting)).
 - **2014, the real introduction.** A member's diagram of the puzzle's edge
   lattice prompted JSA to state the dual problem and introduce Elser's work:
   the difference map "moves back and forth between the two dual problems"
@@ -215,7 +233,8 @@ The record, in full, because it is short.
   "So this makes me wonder whether it is really all that it is hyped up to
   be" ([message 9351](https://groups.io/g/eternity2/message/9351)), while
   still calling the two-sided tiles-versus-edges idea worth exploring for
-  E2.
+  E2. It is one instance, timed on 2014 hardware against a 2007 table: an
+  anecdote, not a benchmark.
 - **2015, code and a promise.** Someone obtained source code from Elser
   himself, with a worked 5×5 edge-matching example, and shared it in the
   group files ([message 9362](https://groups.io/g/eternity2/message/9362)).
@@ -252,13 +271,14 @@ published a difference-map result on the full puzzle, positive or negative.
 
 <Callout kind="note" title="Why so little uptake?">
   Partly timing (the 2014 thread landed in the archive's quietest years)
-  and partly Dima's data point, which took the shine off fast. But the deeper
-  reason is the one Don Milne gave in 2008 and JSA repeated in 2025:
-  stochastic continuous methods pay off when solutions are plentiful relative
-  to the space, and Eternity II sits at the
-  [designed hardness peak](/research/why/complex-theory) where they are not.
-  The method is famous *because* edge matching illustrates it beautifully,
-  not because it solves edge matching at scale.
+  and partly Dima's data point, which took the shine off fast. Don Milne in
+  2008 and JSA in 2025 offered a further reason, as opinion: stochastic
+  continuous methods pay off when solutions are plentiful relative to the
+  space, and Eternity II has few. The literature does not settle that:
+  Elser's group benchmarked deliberately hard instances, 3-SAT near its
+  threshold among them. The method is famous *because* edge matching
+  illustrates it beautifully; whether it solves edge matching at scale is
+  unmeasured.
 </Callout>
 
 ## What an attempt today would look like
@@ -271,7 +291,8 @@ could close it. A modern attempt would:
    This is the step Juraj asked for in 2015 and nobody wrote down for E2;
    Elser's shared 5x5 code ([message 9362](https://groups.io/g/eternity2/message/9362))
    is the natural starting template.
-2. **Implement the two projections.** Edge-agreement is a local average;
+2. **Implement the two projections.** Edge agreement is local once each
+   seam carries its own replicas (nearest agreeing colour pair);
    piece-validity is one Hungarian solve per iteration (256 cells x 1,024
    candidates), or pure replica-averaging in the divide-and-concur form.
 3. **Climb the benchmark ladder.** Run against
@@ -301,8 +322,9 @@ which would be news, or a clean negative entry for the
   second](/research/build/faster/solver-engineering). Divide-and-concur
   trades this for pure local averaging, at the price of a much larger
   replicated state.
-- **No convergence guarantee.** Douglas–Rachford convergence theory is
-  convex; both Eternity II sets are combinatorial scatter. On feasible
+- **No global convergence guarantee.** Global Douglas–Rachford theory is
+  convex; both Eternity II sets are combinatorial scatter, and only local
+  results cover nonconvex sets. On feasible
   instances the map usually finds fixed points in practice (that is the
   papers' empirical content), but nothing bounds the iteration count, and on
   this puzzle JSA's expectation is that it matches backtracking's node count
@@ -312,8 +334,9 @@ which would be news, or a clean negative entry for the
   fractional space, not a scored board. There is no 460-edge consolation
   prize along the way, which matters on the only puzzle where the
   [record ladder](/research/records) is denominated in partial scores.
-- **The scoreboard.** One community test, lost to a hill-climber on
-  the method's own benchmark ([message 9351](https://groups.io/g/eternity2/message/9351));
+- **The scoreboard.** One community anecdote, a hill-climber beating the
+  paper's reported time on one graph-colouring instance, on different
+  hardware ([message 9351](https://groups.io/g/eternity2/message/9351));
   small edge-matching models solved in Elser's materials; the full puzzle
   untouched. Elegant, principled, unproven here, and, unusually for this
   wiki, still unmeasured rather than measured-and-buried.
