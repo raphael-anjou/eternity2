@@ -4,11 +4,11 @@ description: >-
   Approaches we tried that look promising and don't move the needle on
   Eternity II, written down with what we found so you can spend your time
   elsewhere.
-metaDescription: "Eternity II approaches that look promising but don't move the score, documented so you don't repeat them: pattern databases with zero information, lattice reduction that solves the easy half, ant colonies that learn noise, and two dozen more, each with its mechanism of failure."
+metaDescription: "Eternity II approaches that look promising but don't move the score, documented so you don't repeat them: pattern databases that are trivial at the root, lattice reduction that solves the easy half, ant colonies that learn noise, and two dozen more, each with its mechanism of failure."
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "eternity2.net shuts down: 1.6 TFlops, 10^19 CPU operations, no solution (groups.io message 3511)"
@@ -23,6 +23,8 @@ sources:
     url: https://arxiv.org/abs/2012.10658
   - label: "Rethinking Heatmap and MCTS for TSP (2024)"
     url: https://arxiv.org/abs/2411.09238
+  - label: "Mena, Belanger, Linderman, Snoek: Learning Latent Permutations with Gumbel-Sinkhorn Networks (ICLR 2018)"
+    url: https://arxiv.org/abs/1802.08665
 related:
   - /research/build/run-it-yourself
   - /research/records
@@ -55,12 +57,13 @@ free, choice. [Why this is a wall →](/research/why/rare-color-geography)
 The absence runs deeper than rotations and duplicates. We also checked for
 color-relabeling symmetry: an exhaustive enumeration of every color permutation
 that could map the piece set to itself (up to rotation) finds only the
-identity, because each of the 22 interior colors has a unique adjacency
+identity, because each of the 22 non-grey colors has a unique adjacency
 profile across the pieces. The symmetry group has size one; the generator broke
-every color swap too. (The interior colors do carry one piece of structure
-worth knowing: they fall into exactly three frequency classes, 5 colors
-appearing 24 times each, 5 appearing 48, and 12 appearing 50, totalling 960
-half-edges, twice the 480 edges.)
+every color swap too. (The colors do carry one piece of structure worth
+knowing: they fall into exactly three frequency classes. The 5 frame colors,
+confined to the border band, appear 24 times each; the 17 interior colors split
+into 5 appearing 48 times and 12 appearing 50, totalling 960 half-edges, twice
+the 480 edges.)
 
 ## Check invariants on the cells you already placed
 
@@ -108,11 +111,14 @@ SAT solvers, GPUs and pre-solved 2×2 caches did not help him past it
 *The message-passing method that cracked huge random SAT problems by finding
 solution clusters.*
 
-**Proven.** It assumes the problem looks locally like a tree. Eternity II is a
-grid with a short cycle in every 2×2, which breaks that assumption. In
+**Measured** (one 4×4 instance, three settings) plus a heuristic argument. It
+assumes the problem looks locally like a tree. Eternity II is a grid with a
+short cycle in every 2×2, which breaks that assumption, although loopy message
+passing does work on some grid problems (LDPC decoding, vision models), so the
+cycles alone prove nothing. In
 practice the messages flatten out instead of sharpening, the opposite of what
-makes it work on random SAT. There are no published successes for it on grid
-puzzles. The community noticed the flattening early: in 2008, experiments with
+makes it work on random SAT. We know of no published success for it on grid
+edge-matching puzzles. The community noticed the flattening early: in 2008, experiments with
 propagating piece probabilities found that constraint influence from the clues
 and corners seems to “fade out” about two cells away
 ([msg 6208](https://groups.io/g/eternity2/message/6208)). Instead: the pruning
@@ -172,9 +178,10 @@ orderings do not beat the defaults here.
 boundary-consistent colorings.*
 
 **Proven.** It can only enforce that touching edges match, not that every
-piece is used exactly once. That blind spot is enormous: it counts on the
-order of $10^{90}$ boundary-consistent colorings against the puzzle's roughly
-one real solution. Local message passing simply can't see the global
+piece is used exactly once. That blind spot is enormous: the boundary-consistent colorings it counts
+vastly outnumber real solutions, of which the first-moment estimate expects
+about 14,702 with the starter clue and about one with all five
+([solution counting](/research/build/analysis/solution-counting)). Local message passing simply can't see the global
 one-piece-per-cell rule. [Why this is a wall →](/research/why/entropy-area-law)
 
 One amendment from later notebook work: the blind spot can be patched, at
@@ -217,9 +224,11 @@ inner-color permutations. [Why this is a wall →](/research/why/entropy-area-la
 edges a board can match.*
 
 **Measured.** The relaxation lets pieces be fractional and spread across
-cells, which fakes matches that no real board can have. The result is a
-ceiling around 478 while the best real boards sit near 458, a gap too large to
-certify anything. The binding constraint is global piece-uniqueness, which the
+cells, which fakes matches that no real board can have. The result, for the
+matched-edge LP with a strong board's border fixed (formulation on the
+[LP page](/research/build/exact/lp-relaxations)), is a ceiling around 478,
+still several edges above the best real boards on the
+[records page](/research/records): a gap that certifies nothing. The binding constraint is global piece-uniqueness, which the
 relaxation throws away. LP formulations were on the community's table in the
 first summer, and already there a 4×4 took over an hour to solve
 ([msg 1678](https://groups.io/g/eternity2/message/1678)). Instead: the
@@ -248,20 +257,24 @@ corrections any completion needs, and sum those per-patch costs into an
 admissible heuristic: the technique that cracked Rubik's Cube and the
 15-puzzle.*
 
-**Proven.** On Eternity II the heuristic carries exactly zero information, by
-direct computation rather than sampling. The official set has 22 distinct
-interior colors and, across the 256 pieces with rotation, every one of the 22
-is available on every side, so every potential interior edge is individually
-matchable. The per-edge upper bound therefore comes out at 480, the maximum,
-and the per-2×2-patch bound (225 patches × 4 internal edges, corrected for
-overcounting) is also exactly 480. Both collapse to the trivial statement that
-all 480 edges could match. Pattern databases earn their keep when the
-objective is non-additive, when a patch's joint cost exceeds the sum of its
-parts, as Rubik's move counts do. This puzzle's matched-edge count is exactly
-additive per edge, and the only joint structure, each piece used once, couples
-cells globally, which no local patch can see. Instead:
-[LP and ILP relaxations](/research/build/exact/lp-relaxations), which do
-encode the global piece-once constraint, strictly dominate any patch table.
+**Measured (root only).** At the empty board, by direct computation, the bound
+carries no information. Every potential edge can be matched on its own, so the
+per-edge upper bound comes out at 480, the maximum, and the per-2×2-patch bound
+(225 patches × 4 internal edges, corrected for overcounting) is also exactly
+480. That is what any admissible bound must return on a puzzle that has a
+solution by construction, so the root result is trivially true and says nothing
+about search. The 22 non-grey colors split into 5 frame colors, confined to the
+border band, and 17 interior colors, so the 60 border joins and the 420
+interior joins draw on separate palettes; the root bound is 480 either way.
+Pattern databases earn their keep at interior search nodes, given a placed
+frontier and a depleted piece pool, where a patch bound over the remaining
+pieces can fall below the trivial one and captures real interactions (each piece
+once inside the patch, joint four-edge consistency). Patch databases indexed by
+frontier colors and remaining pieces are untested here. Instead: the bounds
+that already prune at interior nodes, such as the
+[all-different matching filter](/research/build/reduce/alldiff-regin) and the
+[LP and ILP relaxations](/research/build/exact/lp-relaxations), which encode
+the global piece-once constraint.
 
 ## Lattice reduction on the placement equations
 
@@ -300,11 +313,11 @@ is already polynomial.
 *Train a neural network on small puzzles, then transfer it to the full 16×16
 to guide the search.*
 
-**Measured.** We trained a model that nailed small boards and watched it
+**Measured**, one model architecture. We trained a model that nailed small boards and watched it
 collapse on the real one. It learns from candidate moves filtered one way and
 is then asked about moves filtered very differently, and the full puzzle's
-colors never appeared in training. The skill doesn't carry across the size and
-color gap. [Why this is a wall →](/research/why/rigidity-wall)
+colors never appeared in training. In this architecture the skill did not carry
+across the size and color gap; other architectures are untested. [Why this is a wall →](/research/why/rigidity-wall)
 
 ## Gradient descent on a soft board
 
@@ -313,10 +326,14 @@ Sinkhorn normalization plus per-cell rotation softmaxes, maximize expected
 matched edges by gradient descent with temperature annealing, then round to a
 real board.*
 
-**Measured.** The relaxation gap is intrinsic. The soft score climbs to
+**Measured**, four seeds of one Sinkhorn schedule. The relaxation gap was large
+in every run. The soft score climbs to
 367/480, but the best rounded board scores 336 matched edges (other seeds 324
 and 325, best of 4), and rounding gets worse as the temperature sharpens; a
-straight-through hard-forward variant is worse still at 280. The strongest
+straight-through hard-forward variant is worse still at 280. The relaxation is
+the Gumbel-Sinkhorn construction that
+[Mena et al. (2018)](https://arxiv.org/abs/1802.08665) applied to jigsaw and
+permutation learning; this is one schedule of it, not the whole family. The strongest
 test was also the smallest: restricted to the last two or three rows of a
 459-out-of-480 board of ours (strict scoring, all five clues placed) with the
 rest frozen, exactly where exact re-solving reliably earns one to three edges,
@@ -400,12 +417,13 @@ the Pythagorean triples problem.*
 not clear the board. On 16×16 the cubing phase does not partition the instance
 into anything tractable without heavy preprocessing, and the conquer step (a
 lookahead solver on each cube) was itself slower than running kissat straight.
-The clean result was a firm boundary: the method works up to about 8×8 and
-stops there. It joins the long line of exact methods that meet the same wall as
+In that setup (one implementation, a lookahead cuber with kissat, one encoding
+and one budget) the method worked up to about 8×8 and did not scale past it;
+other cubers, encodings and budgets are untested. It joins the long line of exact methods that meet the same wall as
 integer programming and SAT decision, without a foothold past it. Instead:
 [which wall stops which method](/research/why/walls-and-methods) lines up every
-exact attack against the barrier it dies on, so you can see why this one was
-always going to stop there.
+exact attack against the barrier it dies on, so you can see why this one
+is likely to stop there.
 
 ## Generate boards with a transformer
 
@@ -444,10 +462,10 @@ control held about 265 and reached 289; that control was a direct
 head-to-head. And the learned field carries no information about what good
 boards actually do: checked against a 455-scoring board of ours (matched
 edges, all five clues placed), the field ranked the good board's choice first
-in 1.2 percent of cells against a chance rate of 0.9 percent, with a mean
-percentile of 0.502, statistically indistinguishable from a coin flip, so it
+in 1.2 percent of cells, and its mean percentile for that choice was 0.502
+against 0.5 for a random ranking, statistically indistinguishable from chance, so it
 cannot even serve as guidance for a better search. The mechanism is credit
-assignment: with about 600 legal candidates per cell and good final scores
+assignment: with many legal candidates per cell and good final scores
 arising from vast, interchangeable sets of early choices, "this decision was
 on a good path" is noise. The pheromone amplifies an arbitrary early lottery
 winner and the colony converges prematurely on a mediocre basin.

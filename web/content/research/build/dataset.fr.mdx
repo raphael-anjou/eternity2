@@ -10,7 +10,7 @@ metaDescription: "Un jeu de données public CC0 pour Eternity II, en deux volets
 kind: reference
 order: 55
 group: Check your code
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [structure, learning]
 related:
   - /research/build/known-facts
@@ -36,18 +36,25 @@ volets, tous deux hébergés dans le
 
 Quatorze instances sur lesquelles un solveur s'exécute, chacune sous la forme
 d'un fichier JSON autonome contenant le jeu de pièces, les indices épinglés
-éventuels et le score maximal atteignable.
+éventuels et la borne supérieure de 480 sur le score.
 
-- **Dix instances 16×16** (`e2-16x16-v00` … `v09`) : le jeu de pièces officiel
-  d'Eternity II avec trois coins épinglés, selon dix dispositions de coins
-  différentes. Épingler les coins produit dix instances distinctes mais d'égale
-  difficulté à partir d'un seul jeu de pièces, ce qui permet à une étude de
-  comparer les moteurs sur un axe de diversité plutôt que sur un plateau unique.
+- **Dix instances 16×16** (`e2-16x16-v00` … `v09`) : le puzzle officiel à cinq
+  indices, chaque variante épinglant en plus trois coins selon une disposition
+  différente. Les variantes donnent aux moteurs des contraintes de départ
+  différentes sur un seul jeu de pièces, ce qui permet à une étude de comparer
+  les moteurs sur un axe de diversité plutôt que sur un plateau unique. Leur
+  difficulté relative n'a pas été mesurée. Avec les cinq indices, le nombre
+  attendu de solutions est d'environ une
+  ([comptage des solutions](/research/build/analysis/solution-counting)) : selon
+  toute vraisemblance, une disposition de coins au plus admet un plateau
+  parfait, peut-être aucune.
   Les trois études de moteurs de ce projet (l'
   [étude DFS](/research/lab/experiments/raphael-anjou/dfs-study), l'
   [étude de réparation](/research/lab/experiments/raphael-anjou/repair-study) et le
   [banc d'essai mono-cœur](/research/lab/experiments/single-core-benchmark)) résolvent
-  exactement ces dix-là. Score maximal : 480.
+  exactement ces dix-là. `maxScore` vaut 480, une borne supérieure (tous les
+  bords appariés), et non un score dont on sait qu'il est atteignable sur une
+  variante donnée.
 - **Quatre sous-puzzles d'indices** (`e2-clue-clue1` … `clue4`) : les plateaux
   6×6 et 12×6 plus petits, issus du jeu d'indices officiel du puzzle. Chacun est
   connu pour admettre une solution complète, ce qui en fait un fixture de
@@ -89,11 +96,19 @@ côtés, en balayage par lignes, dans l'ordre haut-droite-bas-gauche, `a` pour l
 liseré gris. C'est exactement la chaîne que lit le visualiseur
 [e2.bucas.name](https://e2.bucas.name), de sorte que n'importe quel plateau se
 colle directement dans le visualiseur. La `family` correspond aux quatre pièces
-de coin du plateau, un indicateur du bassin dans lequel il se situe ; il existe
-28 familles distinctes. La distribution des scores culmine nettement dans les
-450 et quelques, là où se concentre une large récolte par faisceau mono-cœur,
-puis s'amincit en une longue traîne, avec 38 plateaux à 460 ou plus et le
+de coin du plateau ; il existe 28 familles distinctes. Qu'une famille dise quoi
+que ce soit de plus profond sur un plateau n'a pas été testé. La distribution des
+scores culmine nettement dans les 450 et quelques : une seule récolte par
+faisceau mono-cœur domine, et 86 % du corpus marque entre 451 et 455. Elle
+s'amincit ensuite en une longue traîne, avec 38 plateaux à 460 ou plus et le
 meilleur à 470.
+
+L'unique colonne `score` compte les bords appariés sans regarder les indices, et
+mélange donc deux conventions. 90,6 % des plateaux posent les cinq indices
+officiels et comptent donc aussi au sens strict à cinq indices, mais aucun des
+plateaux entre 460 et 463 ni entre 466 et 470 ne le fait ; le meilleur plateau à
+cinq indices du corpus marque 464. Lisez le haut de la plage comme un score
+ouvert (la page des [records](/research/records) explique les deux conventions).
 
 <CorpusScoreDistribution />
 
@@ -107,27 +122,36 @@ ses arêtes en valent en réalité 456, et le recalcul à partir des arêtes cor
 cela automatiquement. Redérivez vous-même les scores à partir des chaînes
 d'arêtes et vous retrouverez exactement les nombres publiés.
 
-## Le corpus est varié, non redondant
+## Quelle diversité dans le corpus
 
 Un tas de plusieurs milliers de plateaux ne mérite d'être publié que si les
-plateaux sont réellement différents. Avant de diffuser celui-ci, nous avons
-vérifié qu'il ne s'agit pas de simples perturbations d'un même plateau, et ce
-n'est pas le cas :
+plateaux sont réellement différents. Ce ne sont pas des copies d'un même plateau,
+mais la diversité est plus étroite que ne le suggère le simple compte des
+placements :
 
 - Seuls 13 des 7 671 plateaux source étaient des doublons exacts ; les autres
   sont distincts, ce qui en laisse 7 658.
-- Le plateau *médian* diffère de son plus proche voisin par 235 de ses 256
-  placements de pièces. Presque aucun plateau ne se trouve à moins de 10
-  placements d'un autre, et seulement 1 % à moins de 25. Bien que la plupart des
-  plateaux partagent une bande de scores étroite, ils sont structurellement
-  presque entièrement différents.
+- Le plateau *médian* diffère de son plus proche voisin par 236 de ses 256
+  placements (pièce et rotation). Ce chiffre demande un point de comparaison :
+  deux plateaux aléatoires diffèrent sur pratiquement les 256, et une copie
+  décalée d'un plateau paraît presque entièrement différente selon cette mesure.
+  Moins de 1 % des plateaux se trouvent à moins de 10 placements d'un autre,
+  7,5 % à moins de 60 et 11,4 % à moins de 100.
+- Une mesure insensible aux décalages et aux rotations en dit davantage : le
+  nombre de paires de pièces adjacentes que deux plateaux ont en commun, sur 480.
+  Deux plateaux aléatoires en partagent environ 7. Le plateau médian en partage
+  41 avec son plus proche voisin, et 12,6 % des plateaux ont un voisin qui en
+  partage au moins 240, la moitié de leurs adjacences.
 - Les plateaux se répartissent entre 28 familles de coins distinctes plutôt que
   de s'entasser dans une seule.
 
-Le corpus est donc un échantillon réellement varié du paysage des plateaux
-forts. C'est ce qui importe pour tout ce qui l'exploite : un a priori appris à
-partir de milliers de copies d'un même plateau encoderait ce plateau-là, et non
-la structure des bons plateaux en général.
+Le corpus réunit donc des milliers de plateaux distincts, dominés par une méthode
+et une bande de scores, avec une minorité de proches parents. C'est ce qui
+importe pour tout ce qui l'exploite : un a priori appris sur ce corpus encode ce
+que trouve la récolte par faisceau, pas forcément la structure des bons plateaux
+en général. Ces statistiques sont recalculées par
+[`corpus_diversity.py`](https://github.com/raphael-anjou/eternity2/blob/main/research/datasets/build/corpus_diversity.py)
+dans `research/datasets/corpus/diversity.json`.
 
 ## Le régénérer
 

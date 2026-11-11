@@ -3,13 +3,13 @@ title: Un mapa de todos los enfoques conocidos
 description: >-
   La síntesis que la comunidad reclama sin encontrarla nunca: cada familia de
   ataque probada en Eternity II, lo que cada una alcanzó realmente, dónde se
-  estrella, y un enlace a la página de fondo. Una misma idea rectora las
-  atraviesa todas.
-metaDescription: "Un panorama de cada familia de ataque probada en Eternity II: backtracking sistemático, codificaciones SAT/CSP e ILP, búsqueda local y ALNS, aprendizaje de tableros fuertes, vías de hardware. Lo que cada una alcanza en el tablero 16×16, dónde se estrella, y la única idea que las atraviesa todas."
+  estrella, y un enlace a la página de fondo, con una hipótesis de trabajo sobre por
+  qué cuesta tanto superar la meseta superior.
+metaDescription: "Un panorama de cada familia de ataque probada en Eternity II: backtracking sistemático, codificaciones SAT/CSP e ILP, búsqueda local y ALNS, aprendizaje de tableros fuertes, vías de hardware. Lo que cada una alcanza en el tablero 16×16, dónde se estrella y una hipótesis sobre la meseta superior."
 kind: page
 order: 5
 group: Start here
-updated: 2026-07-21
+updated: 2026-11-11
 sources:
   - label: "El balance que la propia comunidad hace de dos décadas de esfuerzo: 1,6 TFlops, 10^19 operaciones de CPU, ninguna solución (groups.io, mensaje 3511)"
     url: https://groups.io/g/eternity2/message/3511
@@ -43,34 +43,36 @@ puzzle concreto, con las mediciones propias del proyecto allí donde existen y u
 simple «no medido» allí donde faltan. El
 [estante de técnicas](/research/build/techniques) es el índice de esas páginas.
 
-## La única idea que organiza todo el mapa
+## Lo que el mapa muestra de una familia a otra
 
-Cada una de las familias siguientes se atasca en el mismo punto: el techo
-comunitario de 470 aristas casadas de 480, con
+Las familias no se atascan todas a la misma altura. Un solo linaje ha llegado a
+467–470 aristas casadas de 480: el backtracking en profundidad con desajustes
+tardíos programados (el 467 de Verhaard y después el 470 de Blackwood; consulta
+los [récords](/research/records)). Los demás se estancan más abajo: la
+programación entera en 420–440, la hiperheurística académica en 461,
 [los propios experimentos de este proyecto](/research/lab/experiments/raphael-anjou)
-agrupados en torno a [460–463](/research/records). Se atascan ahí por la misma
-razón, y vale la pena
-enunciarla antes del catálogo para que el resto se lea como otras tantas
-variaciones sobre un mismo tema.
+en [460–463](/research/records), y varias construcciones de la página de
+[callejones sin salida](/research/build/dead-ends) muy por debajo.
 
-La razón radica en un problema de evaluación. La única señal barata de la que
-dispone un solucionador es el número de aristas casadas, y ese número no dice a
-qué distancia de la solución te encuentras. Un tablero de 470 aristas y uno de
-460 pueden estar igual de lejos de terminarse, porque las diez últimas aristas no
-son una tarea de acabado: se sitúan al otro lado de un muro global que ninguna
-puntuación local percibe. Así, los buscadores sistemáticos y los buscadores
-estocásticos, que no se parecen en nada, convergen hacia la misma altura. Es el
-**[muro de rigidez](/research/why/rigidity-wall)**: los tableros récord están
-localmente congelados, y el paso de un tablero excelente a uno perfecto es un
-único intercambio indivisible, sin gradiente que seguir. Su contrapartida es
+Por qué esa meseta superior se resiste tanto sigue siendo una pregunta abierta.
+Una hipótesis vertebra la mayoría de las páginas de fondo. La única señal barata
+de la que dispone un solucionador es el número de aristas casadas, y ese número no
+dice a qué distancia de la solución te encuentras: un tablero de 470 aristas y uno
+de 460 pueden estar igual de lejos de terminarse. Es el
+**[muro de rigidez](/research/why/rigidity-wall)**: en los tableros récord donde se
+midió, el tablero está localmente congelado y ningún reajuste pequeño sube la
+puntuación. Su contrapartida es
 **[por qué un ordenador más rápido no ayuda](/research/why/prune-vs-speed)**:
-cuando no puedes reducir la búsqueda, la velocidad bruta apenas compra nada. La
-sección **[por qué es difícil](/research/why)** demuestra ambos, y
+ninguna mejora por un factor constante vuelve factible la búsqueda exhaustiva del
+tablero completo, mientras que en la caza de récords más velocidad compra más
+intentos, con rendimientos decrecientes. La sección
+**[por qué es difícil](/research/why)** argumenta ambas cosas, y
 **[qué muro detiene a qué método](/research/why/walls-and-methods)** confronta
-cada ataque con el muro en el que muere.
+cada ataque con el muro en el que se cree que se detiene.
 
 Ten esto presente y el mapa de abajo se lee sin esfuerzo: las familias difieren
-en el *cómo* trepan, no en la *altura* que alcanzan.
+en el *cómo* trepan y también en la *altura* que han alcanzado, y el linaje del
+backtracking es el que hay que batir.
 
 ## Búsqueda sistemática
 
@@ -117,8 +119,8 @@ que ostenta un récord vive aquí.
   No un algoritmo, sino el oficio que lo sostiene: tablas de consulta, funciones
   de hash perfectas, structs dimensionados al caché, código generado. Decide si un
   nodo cuesta 26 ciclos o 2600, y es la razón de que los motores récord funcionen
-  siquiera. Compra velocidad, y la velocidad es precisamente lo que no mueve el
-  muro.
+  siquiera. Compra velocidad: ninguna aceleración vuelve factible el árbol
+  exhaustivo del 16×16, aunque en la caza de récords compra más intentos.
 
 El **[catálogo de solucionadores](/research/build/solvers)** muestra cómo los
 motores récord (el 467 de Verhaard, el 470 de Blackwood) ensamblan estas piezas.
@@ -138,23 +140,27 @@ búsqueda.
   como un programa entero y abandonar la integralidad: un solucionador lineal
   alcanza error cero en segundos colocando fracciones de piezas. La comodidad
   termina en el instante en que las piezas deben ser enteras: una meseta en
-  420–440 aristas, un muro ILP ya en el 8×8, y un mejor resultado académico de 461
-  en una hora.
+  420–440 aristas y un muro ILP ya en el 8×8. Ningún programa entero ha producido
+  un tablero completo competitivo.
 
 ## Búsqueda local y estocástica
 
 Partir de un tablero completo (imperfecto) y mejorarlo mediante movimientos,
-guiado por un objetivo. Estos métodos no se parecen en nada al backtracking, y se
-detienen a la misma altura.
+guiado por un objetivo. Estos métodos no se parecen en nada al backtracking, y en el tablero
+oficial se han detenido hasta ahora por debajo de los backtrackers récord.
 
 - **[Búsqueda local y ALNS](/research/build/local-search/local-search-alns)**.
   Destruir una parte de un tablero, reconstruirla mejor, y aprender qué
   demoliciones rinden. El pulidor más fiable aquí, y la demostración más nítida de
-  dónde termina el pulido.
+  dónde termina el pulido. El mejor resultado académico de esta familia es 461/480
+  en una hora (Wauters, Vancroonenburg y Vanden Berghe, una hiperheurística).
 - **[Recocido simulado y parallel tempering](/research/build/local-search/parallel-tempering)**.
   Tratar los desajustes como energía y la temperatura como tolerancia a empeorar.
-  El recocido ostenta el récord más longevo de esta familia; el tempering cruza
-  barreras que el recocido no puede cruzar. Ambos se detienen en el mismo muro.
+  El recocido nunca ha ostentado un récord en el juego oficial: el 467 de Verhaard
+  salió de su backtracker, y su recocido sobre la composición de un subconjunto de
+  piezas es solo un paso preparatorio (reimplementado aquí, llega a 438). El
+  tempering cruza barreras que el recocido no puede cruzar; ninguno de los dos ha
+  superado la meseta de los backtrackers.
 - **[Búsqueda por haz](/research/build/construct/beam-search)**. Mantener con vida
   los K tableros parciales más prometedores y hacerlos crecer celda a celda. El
   caballo de tiro tras los constructores desde cero de este proyecto, y una
@@ -176,7 +182,7 @@ Cada uno de los métodos anteriores razona únicamente a partir de las reglas de
 puzzle. Esta familia razona a partir de los tableros ya encontrados: explotar el
 corpus de tableros fuertes para extraerle estructura y reinyectarla en una
 búsqueda como sesgo. Alcanza rápida y fiablemente la cima del rango de una
-búsqueda, y no eleva el techo.
+búsqueda, y hasta ahora no ha elevado el techo.
 
 - **[Aprender de los tableros fuertes](/research/build/learning)**. El nudo de la
   familia: [priors](/research/build/learning/corpus-priors) de posición y de
@@ -187,9 +193,9 @@ búsqueda, y no eleva el techo.
   el movimiento que una búsqueda ordinaria pasaba por alto. La
   [síntesis del colapso](/research/build/learning/when-learning-collapses) es donde
   la familia se detiene: concede demasiada confianza a una señal aprendida y la
-  búsqueda se desmorona, y aun aprovechada a la perfección, ninguno de estos
-  métodos franquea el muro de rigidez, porque el corpus del que aprenden está hecho
-  de tableros bloqueados en ese mismo muro.
+  búsqueda se desmorona, y aun bien aprovechada, ninguno de estos métodos ha
+  superado todavía la meseta, probablemente porque el corpus del que aprenden está
+  hecho de tableros bloqueados en ella.
 
 ## Vías exóticas y de hardware
 
@@ -227,14 +233,17 @@ dónde están los muros.
   coincidir, lo que aporta pruebas de imposibilidad para una pasada. La historia
   del 479 muestra a la vez la potencia y la trampa.
 - **[Conteo de soluciones](/research/build/analysis/solution-counting)**. Nadie ha
-  visto jamás una solución completa, y sin embargo la comunidad sabe, hasta un
-  factor de dos, cuántas existen: censos exactos en los tableros pequeños y una
-  fórmula de esperanza que convergió en torno a 14 702.
+  visto jamás una solución completa. Lo que hay son censos exactos en los tableros
+  pequeños y una estimación del número esperado (primer momento) de unas 14 702
+  con la pieza de inicio, calibrada dentro de un factor de dos en los tableros
+  pequeños donde existen conteos exhaustivos. Estima la media sobre puzzles
+  aleatorios con las mismas estadísticas de piezas, no el número de soluciones de
+  este puzzle concreto.
 
 ## Callejones sin salida
 
-Algunas ideas suenan tan bien como cualquiera de las anteriores y, de forma
-demostrable, no mueven la puntuación. La página **[callejones sin salida](/research/build/dead-ends)**
+Algunas ideas suenan tan bien como cualquiera de las anteriores y no movieron la
+puntuación cuando se probaron. La página **[callejones sin salida](/research/build/dead-ends)**
 las reúne con la razón por la que cada una falla, para ahorrarte un mes de
 trabajo: ruptura de simetría (no hay ninguna simetría global que romper),
 propagación de probabilidades que se desvanece a dos celdas de distancia, y
@@ -243,14 +252,15 @@ otras.
 ## Lo que el mapa te dice
 
 Léelo de arriba abajo y la forma es clara. Las familias sistemáticas ostentan los
-récords porque pueden demostrar cosas y podar con fuerza en los tableros
-pequeños, pero no consiguen reducir lo suficiente la búsqueda completa para llegar
-al final. Las familias estocásticas pulen de maravilla y alcanzan tableros
-realmente distintos, y luego se atascan a la misma altura. Las vías de hardware
-cambian la velocidad y nunca el techo. Y las páginas de análisis explican por qué:
-las diez últimas aristas no son cuestión de esfuerzo ni de ingenio en ninguna
-familia concreta, sino un muro global que cada familia encuentra desde su propia
-dirección.
+récords: solo el backtracking en profundidad con desajustes tardíos programados
+ha llegado a 467–470, y ni siquiera él reduce lo bastante la búsqueda completa
+para llegar al final. Las familias estocásticas pulen bien y alcanzan tableros
+realmente distintos, pero hasta ahora se han estancado más abajo. Un hardware más
+rápido no vuelve factible la búsqueda exhaustiva del tablero completo; en la caza
+de récords compra más intentos, y nadie ha comprobado aún si una campaña larga y
+bien afinada en GPU movería el techo. Las páginas de análisis proponen una
+explicación de por qué resiste la meseta superior, el muro de rigidez, medido en
+tableros récord concretos y no demostrado para todo método.
 
 Si estás eligiendo dónde invertir tu tiempo, la pregunta útil no es qué familia
 es la mejor. Es qué muro crees que puedes franquear, porque eso es lo que decide
