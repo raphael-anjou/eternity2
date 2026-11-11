@@ -2392,3 +2392,14 @@ baseline, a kill criterion and a budget. Added `.claude/commands/research-lead.m
 the round procedure for a lead session, and an AGENTS.md pointer. No results;
 reproducibility kind: prose. Files: research/program/{EXPLORED,AGENDA}.md,
 .claude/commands/research-lead.md, AGENTS.md, research/LEDGER.md.
+
+## 2026-11-11 · Research program: GPU agenda item
+
+Added agenda item A8 (a measured CUDA port of the break-tolerant DFS against
+the single-core benchmark engine at equal convention and wall clock, kill
+below 10x one core) and moved the GPU backtracker out of the parked list.
+The lead procedure now routes GPU work to AWS g4dn / g5 instances after
+correctness checks on the VM, and checks the G and VT vCPU quotas at the start
+of each round. No results; reproducibility kind: prose. Files:
+research/program/AGENDA.md, .claude/commands/research-lead.md,
+research/LEDGER.md.
