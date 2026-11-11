@@ -1,0 +1,30 @@
+[package]
+name = "cut-multiset-pruning"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Hall (frontier matching) check on top of the hard-ladder best baseline (gacolor + AC-3, random value order)."
+
+# Standalone workspace so the crate builds from a clean checkout on its own.
+[workspace]
+members = ["engine-fork"]
+
+[[bin]]
+name = "cut_multiset"
+path = "src/main.rs"
+
+[dependencies]
+hard-ladder = { path = "../../hard-ladder/compute" }
+cmp-solver-engine = { path = "engine-fork" }
+eternity2-solver-trait = { path = "../../single-core-benchmark/engine/crates/solver-trait" }
+serde = "1"
+serde_json = "1"
+
+[dev-dependencies]
+eternity2-core = { path = "../../single-core-benchmark/engine/crates/core" }
+eternity2-propagators = { path = "../../single-core-benchmark/engine/crates/propagators" }
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
