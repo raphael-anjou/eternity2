@@ -54,3 +54,5 @@ default four for a research/experiment deliverable are:
 The value is in the fan-out (independent lenses catch more than one pass) and in
 the verify step (skepticism about the reviewers themselves). Scale the number and
 kind of lenses to the work — a quick check needs two, a publication needs four-plus.
+
+For the single-reviewer scientific checklist (null models, title vs body, currency, cross-page consistency) see `/rigor-check`; run it first and fold its findings into the design and scope lenses.
