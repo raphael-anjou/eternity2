@@ -110,7 +110,7 @@ test, scheduled at larger scale), `published`.
   state space does not fit in memory.
 - **Budget.** One session. Small, closes a stated open problem.
 
-- **Result (round 1, [PR #17](https://github.com/raphael-anjou/eternity2/pull/17)).** Kept by an independent judge. Exact count N = 40519056449429419697492635191544381440 (log10 N = 37.6077); fraction of the BEST count 2.913e-5 against the Monte Carlo 2.775e-5 (SE 1.32e-6, z -1.04). Matches brute force on 34 reduced rings and an independent method on 45. Next: an independent cross-check on the official ring. Experiment: `research/experiments/frame-count-corners/`.
+- **Result (round 1, [PR #17](https://github.com/raphael-anjou/eternity2/pull/17)).** Kept by an independent judge. Exact count N = 40519056449429419697492635191544381440 (log10 N = 37.6077); f = N_cyc / EC = 2.913e-5 (N_cyc = N/4, EC the BEST-theorem Euler-circuit count), the quantity the Monte Carlo estimate measured, against its 2.775e-5 (SE 1.32e-6, z -1.04). Matches brute force on 34 reduced rings and an independent method on 45. Next: an independent cross-check on the official ring. Experiment: `research/experiments/frame-count-corners/`.
 
 ## A6. Non-spatial repair neighbourhoods · proposed
 

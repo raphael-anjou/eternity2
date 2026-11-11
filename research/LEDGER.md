@@ -2451,8 +2451,9 @@ quality-diversity-basins` (full grid takes hours). Source commit 3f96c0f
 Preregistered cheap test of agenda A5, judged by a separate session that also
 wrote its own brute-force checker. Transfer-matrix count of frame placements
 with the corner constraint: N = 40519056449429419697492635191544381440
-(log10 N = 37.6077), a fraction 2.913e-5 of the BEST count, against the
-existing Monte Carlo estimate 2.775e-5 (SE 1.32e-6, z -1.04). Validation:
+(log10 N = 37.6077). The fraction f = N_cyc / EC = 2.913e-5 (N_cyc = N/4,
+EC the BEST-theorem Euler-circuit count) is the quantity the existing Monte
+Carlo estimate measured, 2.775e-5 (SE 1.32e-6, z -1.04). Validation:
 exact agreement with brute force on all 34 reduced rings where it finishes and
 with an independent method on all 45. Limit: the official-ring number comes
 from one implementation; an independent cross-check on the full ring is open.
