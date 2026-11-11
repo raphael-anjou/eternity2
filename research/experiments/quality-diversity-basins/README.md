@@ -67,6 +67,11 @@ pre-registered):
 python3 quality-diversity-basins/scripts/exploratory_own_best.py quality-diversity-basins/results/runs 2 0.25
 ```
 
+Reproduction check: `just experiments quality-diversity-basins` on a fresh
+clone of the branch (commit `0a31297`) finished in 28 min 52 s wall clock and
+produced a `basins.jsonl` identical to the committed one in all 240 rows
+(every field except `wall_s` and `cpu_s`), so the summary statistics match.
+
 ## Hardware and compute
 
 8-vCPU VM, `Intel(R) Xeon(R) Processor`, 31 GB RAM, no GPU. Rust 1.99.1.
