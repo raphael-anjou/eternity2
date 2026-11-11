@@ -105,7 +105,9 @@ bandsaw rung_ms="15000" label_ms="1500":
 # colour-compatible candidates by the rarity-weighted compatibility matrix and
 # by its leading eigenvectors, and score the rank of the planted neighbour.
 # Deterministic given the seeds; single core, a few minutes. See PREREG.md.
-spectral-planted-recovery seeds="200":
+# Only the preregistered 200-seed run writes the committed results/; any other
+# seed count writes to spectral-planted-recovery/rerun-<seeds>/ unless out= is given.
+spectral-planted-recovery seeds="200" out="":
     cargo test --release --manifest-path spectral-planted-recovery/Cargo.toml
     cargo run --release --manifest-path spectral-planted-recovery/Cargo.toml -- \
-        --out spectral-planted-recovery/results --seeds {{seeds}}
+        --out {{ if out != "" { out } else if seeds == "200" { "spectral-planted-recovery/results" } else { "spectral-planted-recovery/rerun-" + seeds } }} --seeds {{seeds}}
