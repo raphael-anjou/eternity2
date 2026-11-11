@@ -2523,8 +2523,9 @@ research/experiments/cut-multiset-pruning/.
 Added after the A5 count: exact per-slot and per-adjacency frequencies over
 all valid frames, tested for whether planted placements rank above colour
 rarity on generated boards before any use as a border ordering. Nearest
-dead ends: belief and survey propagation, A1 spectral statistics. Files:
-research/program/AGENDA.md.
+dead ends: belief and survey propagation, A1 spectral statistics.
+Reproducibility: none yet (proposal only, no computation). Source commit
+c54478d. Files: research/program/AGENDA.md.
 
 ## 2026-11-11 · Round 3, A15 non-chronological bond-weighted unassignment: killed
 
