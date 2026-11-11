@@ -106,6 +106,12 @@ bandsaw rung_ms="15000" label_ms="1500":
 hard-ladder stage="all":
     hard-ladder/run.sh {{stage}}
 
+# PROBCUT: calibrated statistical cutoffs (ProbCut) on the hard ladder.
+# Stage 1 on calibration seeds, then all solvers on R6 (6x6 c=5), R7 (7x7 c=6),
+# R8 (8x8 c=10) test seeds. About 5 min on 8 vCPU. See probcut/README.md.
+probcut:
+    probcut/run.sh
+
 # A5: exact count of official frame placements with the corner constraint.
 # M1 = transfer matrix over edge-type multisets (Rust), validated on 45
 # generated reduced rings against M3 = brute force (Rust, node-capped) and
