@@ -1,12 +1,13 @@
 ---
-title: "Hacer un productor beam 10x mejor: la respuesta es la anchura"
+title: "Productores beam: la anchura vence a las dos señales por nodo probadas"
 description: >-
-  Un repaso verificado más mediciones apareadas: ninguna astucia por nodo
-  supera la anchura bruta del haz a igual tiempo de reloj. Los dos únicos
-  aditivos que sobreviven son aleatorizar las claves de truncado empatadas
-  exactamente (gratis) y el remuestreo SMC de los supervivientes (pequeño pero
-  significativo).
-metaDescription: "Mediciones apareadas sobre escaleras de instancias plantadas tipo Eternity II muestran que la anchura bruta del haz domina toda señal por nodo a igual tiempo; los desempates aleatorizados son una ganancia gratis y el remuestreo SMC añade entre uno y seis por ciento según la dureza del banco."
+  En las escaleras plantadas del kit, un haz más ancho puntúa siempre más alto
+  (alrededor de +5 % de la anchura 32 a 2048 en N=12, medido en saturación).
+  Dos señales por nodo más costosas perdieron a igual tiempo de reloj en el
+  estudio original (no reconstruidas aquí). Aleatorizar las claves de truncado
+  empatadas exactamente y remuestrear los supervivientes al estilo SMC dan
+  ganancias pequeñas pero significativas.
+metaDescription: "En escaleras plantadas al estilo de Eternity II, un haz más ancho puntúa más alto y las dos señales por nodo probadas en el estudio original perdieron a igual tiempo de reloj; aleatorizar los empates es una ganancia gratuita y el remuestreo SMC de supervivientes añade de uno a seis por ciento según la dureza del banco."
 kind: finding
 hardware:
   cores: 1
@@ -34,7 +35,7 @@ repro:
     (oráculo de completabilidad, fusión por dominancia) se citan del estudio
     fuente y el comando no los reconstruye.
 order: 82
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, speed, search-space]
 related:
@@ -49,16 +50,23 @@ sources:
     url: https://arxiv.org/html/2502.01618v3
   - label: "Dirección por Monte Carlo secuencial"
     url: https://arxiv.org/pdf/2306.03081
+  - label: "Kool, van Hoof & Welling (2019), Stochastic Beams and Where to Find Them, ICML: muestreo de supervivientes sin reemplazo"
+    url: https://arxiv.org/abs/1903.06059
+  - label: "Vijayakumar et al. (2018), Diverse Beam Search, AAAI: selección del haz que favorece la diversidad"
+    url: https://arxiv.org/abs/1610.02424
+  - label: "Blum (2005), Beam-ACO, Computers & Operations Research 32(6): construcción probabilística en haz para optimización combinatoria"
+    url: https://doi.org/10.1016/j.cor.2003.11.018
 ---
 
-Buscaba la palanca que hiciera a un constructor de haz ancho diez veces mejor
+Buscaba una palanca que hiciera a un constructor de haz ancho claramente mejor
 por unidad de cómputo: una puntuación por nodo más lista, un oráculo de
-completabilidad, una regla de dominancia, lo que fuera. Tras un repaso de la
-literatura y una campaña de mediciones A/B apareadas, la respuesta es
-decepcionante y útil a la vez: la palanca es la anchura bruta. Todo lo
-ingenioso pierde frente a un haz simplemente más ancho a igual tiempo de
-reloj, con exactamente dos excepciones baratas, ambas cambios en la regla de
-supervivencia, no en cómo se puntúan los nodos.
+completabilidad, una regla de dominancia. Tras un repaso de la literatura y
+una campaña de mediciones A/B apareadas, la palanca que resistió es la
+anchura. En el estudio original, las dos señales más costosas probadas, un
+oráculo de completabilidad y una fusión por dominancia, perdieron frente a un
+haz simplemente más ancho a igual tiempo de reloj. Son dos alternativas, no
+todas las señales por nodo posibles. Las dos ganancias halladas cambian
+*qué* supervivientes se conservan, no cómo se puntúan los nodos.
 
 ## Qué se midió
 
@@ -86,7 +94,7 @@ tema propio; véase
 
 ## El resultado
 
-La anchura es la palanca dominante, y no por poco. En el banco más duro del
+La anchura es la palanca más fuerte medida. En el banco más duro del
 estudio original, la puntuación media sobre el óptimo sube de forma monótona
 de 0,210 a anchura 32 hasta 0,346 (anchura 128), 0,527 (anchura 512) y 0,743
 (anchura 2048) con un presupuesto fijo de 3 segundos. Las alternativas caras
@@ -98,7 +106,12 @@ dominancia al estilo de diagramas de decisión baja la puntuación de 0,679 a
 profundidad más escasea: el tiempo que queman compra menos que la anchura que
 podría haber pagado.
 
-La reproducción versionada confirma cada signo en el banco del kit:
+La reproducción versionada confirma los signos en el banco del kit, pero el
+oráculo de Hall y la fusión por dominancia no se reconstruyeron aquí. En los
+peldaños del kit, pasar de anchura 32 a 2048 (64 veces más nodos) sube la
+razón en N=12 de 0,836 a 0,878, alrededor de +5 %, y esa ley de anchura se
+mide en saturación y no a igual tiempo de reloj (véase más abajo), régimen en
+el que se espera que un haz más ancho rinda más:
 
 <Figure collapsible title="Esperado (banco fuente) vs medido (banco del kit)">
 
@@ -111,7 +124,11 @@ La reproducción versionada confirma cada signo en el banco del kit:
 
 </Figure>
 
-Los dos aditivos de la regla de supervivencia son significativos por
+La selección estocástica de supervivientes no es nueva: la búsqueda en haz
+estocástica (Kool, van Hoof y Welling 2019), la búsqueda en haz diversa
+(Vijayakumar et al. 2018) y Beam-ACO (Blum 2005) conservan supervivientes por
+muestreo o por diversidad, y predicen este resultado. Lo que se mide aquí es
+ese efecto conocido en bancos de emparejamiento de aristas. \1
 separado. Aleatorizar las claves de truncado empatadas exactamente no cuesta
 nada y gana +2,06 aristas a anchura 128. El remuestreo SMC gana +1,75 aristas
 en N=10 (t = 3,30) y +1,92 en N=12 (t = 5,41), con recuentos de nodos

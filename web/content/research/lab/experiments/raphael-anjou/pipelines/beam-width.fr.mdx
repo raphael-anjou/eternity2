@@ -1,12 +1,13 @@
 ---
-title: "Rendre un producteur beam 10x meilleur : la réponse est la largeur"
+title: "Producteurs beam : la largeur bat les deux signaux par nœud essayés"
 description: >-
-  Une revue vérifiée plus des mesures appariées : aucune astuce par nœud ne bat
-  la largeur brute du faisceau à temps de calcul égal. Les deux seuls additifs
-  qui survivent sont la randomisation des clés de troncature exactement à
-  égalité (gratuite) et le rééchantillonnage SMC des survivants (petit mais
-  significatif).
-metaDescription: "Des mesures appariées sur des échelles d'instances plantées de type Eternity II montrent que la largeur brute du faisceau domine tout signal par nœud à temps égal ; les égalités randomisées sont un gain gratuit et le rééchantillonnage SMC ajoute un à six pour cent selon la dureté du banc."
+  Sur les échelles plantées du kit, un faisceau plus large score toujours plus
+  haut (environ +5 % de la largeur 32 à 2048 à N=12, mesuré à saturation).
+  Deux signaux par nœud plus coûteux ont perdu à temps égal dans l'étude
+  d'origine (non reconstruits ici). Randomiser les clés de troncature
+  exactement à égalité et rééchantillonner les survivants façon SMC apportent
+  des gains petits mais significatifs.
+metaDescription: "Sur des échelles plantées de type Eternity II, un faisceau plus large score plus haut et les deux signaux par nœud testés dans l'étude d'origine ont perdu à temps égal ; randomiser les égalités est un gain gratuit et le rééchantillonnage SMC des survivants ajoute un à six pour cent selon la difficulté du banc."
 kind: finding
 hardware:
   cores: 1
@@ -34,7 +35,7 @@ repro:
     (oracle de complétabilité, fusion par dominance) sont cités de l'étude
     source et ne sont pas reconstruits par la commande.
 order: 82
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, speed, search-space]
 related:
@@ -49,16 +50,23 @@ sources:
     url: https://arxiv.org/html/2502.01618v3
   - label: "Pilotage par Monte-Carlo séquentiel"
     url: https://arxiv.org/pdf/2306.03081
+  - label: "Kool, van Hoof & Welling (2019), Stochastic Beams and Where to Find Them, ICML: tirage des survivants sans remise"
+    url: https://arxiv.org/abs/1903.06059
+  - label: "Vijayakumar et al. (2018), Diverse Beam Search, AAAI: sélection du faisceau favorisant la diversité"
+    url: https://arxiv.org/abs/1610.02424
+  - label: "Blum (2005), Beam-ACO, Computers & Operations Research 32(6): construction probabiliste en faisceau pour l'optimisation combinatoire"
+    url: https://doi.org/10.1016/j.cor.2003.11.018
 ---
 
-Je cherchais le levier qui rendrait un constructeur à large faisceau dix fois
+Je cherchais un levier qui rendrait un constructeur à large faisceau nettement
 meilleur par unité de calcul : un score par nœud plus malin, un oracle de
-complétabilité, une règle de dominance, n'importe quoi. Après une revue de la
-littérature et une campagne de mesures A/B appariées, la réponse est
-décevante et utile à la fois : le levier, c'est la largeur brute. Tout ce qui
-est astucieux perd face à un faisceau simplement plus large à temps égal, avec
-exactement deux exceptions bon marché, toutes deux des changements de la règle
-de survie, pas du score des nœuds.
+complétabilité, une règle de dominance. Après une revue de la littérature et
+une campagne de mesures A/B appariées, c'est la largeur qui a tenu. Dans
+l'étude d'origine, les deux signaux plus coûteux essayés, un oracle de
+complétabilité et une fusion par dominance, ont perdu face à un faisceau
+simplement plus large à temps égal. Cela fait deux alternatives, pas tous les
+signaux par nœud imaginables. Les deux gains trouvés changent *quels*
+survivants on garde, pas la façon de noter les nœuds.
 
 ## Ce qui a été mesuré
 
@@ -85,7 +93,7 @@ voir [la dureté d'une instance](/research/why/how-hard-is-this-instance).
 
 ## Le résultat
 
-La largeur est le levier dominant, et de loin. Sur le banc plus dur de l'étude
+La largeur est le levier le plus fort mesuré. Sur le banc plus dur de l'étude
 d'origine, le score moyen sur l'optimum monte de façon monotone de 0,210 à la
 largeur 32 jusqu'à 0,346 (largeur 128), 0,527 (largeur 512) et 0,743 (largeur
 2048) à budget fixe de 3 secondes. Les alternatives coûteuses perdent à temps
@@ -97,7 +105,12 @@ nœud croît avec la taille du plateau exactement là où la profondeur est la
 plus rare : le temps qu'ils brûlent achète moins que la largeur qu'il aurait
 pu payer.
 
-La reproduction versionnée confirme chaque signe sur le banc du kit :
+La reproduction versionnée confirme les signes sur le banc du kit, mais
+l'oracle de Hall et la fusion par dominance n'y ont pas été reconstruits. Sur
+les barreaux du kit, passer de la largeur 32 à 2048 (64 fois plus de nœuds)
+fait monter le ratio à N=12 de 0,836 à 0,878, soit environ +5 %, et cette loi
+de largeur est mesurée à saturation plutôt qu'à temps égal (voir plus bas),
+régime où l'on s'attend à ce qu'un faisceau plus large fasse mieux :
 
 <Figure collapsible title="Attendu (banc source) vs mesuré (banc du kit)">
 
@@ -110,7 +123,12 @@ La reproduction versionnée confirme chaque signe sur le banc du kit :
 
 </Figure>
 
-Les deux additifs de la règle de survie sont significatifs chacun de leur
+La sélection stochastique des survivants n'a rien de neuf : la recherche en
+faisceau stochastique (Kool, van Hoof et Welling 2019), la recherche en
+faisceau diversifiée (Vijayakumar et al. 2018) et Beam-ACO (Blum 2005)
+gardent toutes des survivants par tirage ou pour la diversité, et elles
+prédisent ce résultat. Ce qui est mesuré ici, c'est cet effet connu sur des
+bancs d'appariement d'arêtes. \1
 côté. Randomiser les clés de troncature exactement à égalité ne coûte rien et
 gagne +2,06 arêtes à largeur 128. Le rééchantillonnage SMC gagne +1,75 arête à
 N=10 (t = 3,30) et +1,92 à N=12 (t = 5,41), avec des comptes de nœuds
