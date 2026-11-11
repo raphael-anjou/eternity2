@@ -5,11 +5,11 @@ description: >-
   cell. Beam search is the workhorse behind this project's from-scratch
   builders, and a clean illustration of why breadth alone stalls in the deep
   interior.
-metaDescription: "Beam search keeps the K best partial Eternity II boards alive and grows them cell by cell; this project's from-scratch builder. Linear in K, it climbs to boards in the mid-450s of 480, then stalls at the piece-theft depth wall that only destroy-and-repair polish can pass."
+metaDescription: "Beam search keeps the K best partial Eternity II boards alive and grows them cell by cell; this project's from-scratch builder. Linear in K, its best raw boards so far score 455 to 457 of 480, then it stalls at the piece-theft depth wall that polish has moved past."
 kind: concept
 order: 50
 group: Build boards up
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [construction]
 sources:
   - label: "Zhou & Hansen, Beam-Stack Search: Integrating Backtracking with Beam Search (ICAPS 2005)"
@@ -27,6 +27,7 @@ related:
   - /research/lab/experiments/raphael-anjou/learning/lodestone
   - /research/why/piece-theft
   - /research/build/local-search/local-search-alns
+  - /research/lab/experiments/raphael-anjou/pipelines/beam-width
 repro:
   kind: prose
 ---
@@ -180,8 +181,8 @@ the three boards agree pairwise on only about 6 to 10 of 256 piece
 placements: the agreement level of unrelated random arrangements sharing
 the clues. Thirteen percent of seeds hit 452 exactly and about half land
 within two of it. Unrelated boards converging on one number says the
-ceiling belongs to the producer class, not to any single board family; and
-the wider runs above show the ceiling of this class is really 455, the 452
+plateau belongs to the producer class, not to any single board family; and
+the wider runs above put this class's best observed score at 455, the 452
 pile-up being itself a width artifact.
 
 There is a structural reason a plain beam cannot be much more than "greedy,
@@ -191,8 +192,8 @@ relaxes nothing, and no scoring function is known for Eternity II that
 reliably predicts which depth-100 prefixes still complete well. This page
 used to conclude from that argument that the beam's extra breadth mostly
 duplicates what randomized restarts of a backtracker already provide. A
-head-to-head measurement, next, showed that conclusion wrong: breadth pays
-exactly when the failure is seeded far above the depth where it surfaces.
+head-to-head measurement, next, contradicts it on a simple harness at small
+node budgets, though not in the regime where records are made.
 
 ## Beam against depth-first at equal cost
 
@@ -210,15 +211,16 @@ the beam completed the board at 450 of 480 with all five clues in place, in
 about eight seconds on a single thread. Nor is this a seed lottery: eight
 permutations of the tie order returned byte-identical output.
 
-The mechanism is the correction promised above. A depth-first search that
-went wrong forty cells above where it fails must unwind every intervening
-level before it can touch the early mistake, and the nodes in that gap are
-exponentially many. The beam's $K$ survivors already encode different
-shallow choices, retained side by side, so a shallow correction is
-available at linear cost per level. Breadth relaxes no constraint; what it
-buys is a substitute for the deep backtracking a depth-first search cannot
-afford. On this puzzle the fatal commitments are made far above the depth
-where they surface, which is exactly the regime where that substitute pays.
+A plausible mechanism, not measured here (the depth of the fatal
+commitment was never located): a depth-first search that went wrong forty
+cells above where it fails must unwind every intervening level before it
+can touch the early mistake, and the nodes in that gap are exponentially
+many. The beam's $K$ survivors already encode different shallow choices,
+retained side by side, so a shallow correction is available at linear cost
+per level. Breadth relaxes no constraint; what it buys is a substitute for
+deep backtracking. If the fatal commitments on this puzzle are made far
+above the depth where they surface, that is the regime where the substitute
+pays.
 
 Limited-discrepancy search earns a separate negative.
 [Harvey and Ginsberg's LDS](https://www.ijcai.org/Proceedings/95-1/Papers/080.pdf)
@@ -233,10 +235,13 @@ piece-budget failure is diffuse, many scattered early cells must all have
 gone right, so every low-discrepancy shell around the greedy path is doomed
 together.
 
-One scoping note. The absolute scores in this comparison come from a
-deliberately simple harness; the producers elsewhere on this page exceed
-them. The claim is the relative order at equal node cost (beam over
-depth-first over LDS), not the numbers.
+One scoping note. This comparison ran on a deliberately simple harness with
+a budget of about $2 \times 10^7$ nodes, well under a second for a tuned
+backtracker. Against an untuned depth-first search with a flat mismatch
+allowance, the beam completed boards while depth-first stalled near depth
+213. The record-producing backtrackers (edge-slip schedules, tuned fill
+orders, $10^{12}$ nodes and more) were not compared, so this does not rank
+beam against depth-first search in general.
 
 ## Diversity is the real dial
 
@@ -267,7 +272,7 @@ at lower raw score.
 The other productive dial is the tiebreak.
 [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) breaks score ties toward pieces that
 are frequent at that position in a corpus of strong boards, lifting the
-from-scratch ceiling by a few edges and reaching 460 after refinement (a
+best from-scratch score by a few edges and reaching 460 after refinement (a
 from-scratch notebook figure, matched edges of 480; see the
 [records](/research/records) page for how it sits against community results).
 [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) breaks ties toward pieces
@@ -316,8 +321,18 @@ being a single-board builder: it is a factory of unrelated strong boards.
 better had pairwise-distinct first thirteen rows, distinct board families
 rather than variations on one. That is about 1160 boards per hour on a
 modest four-way parallel run, with roughly one seed in eight reaching the
-455 ceiling and none reaching 456. Mass-produced diversity is exactly the
-input the downstream polish wants.
+best observed score of 455 and none reaching 456. Mass-produced diversity
+is exactly the input the downstream polish wants. (These 16×16 figures are
+notebook runs, not committed results.)
+
+The one survivor-rule change with committed paired statistics is sequential
+Monte Carlo resampling: instead of keeping the top $K$, draw survivors in
+proportion to a softmax of their scores. On planted 10×10 and 12×12
+instances, the [beam-width study](/research/lab/experiments/raphael-anjou/pipelines/beam-width)
+finds width the dominant lever at fixed wall-clock, and resampling a small
+real gain over 96 paired seeds at width 1024: +1.83 edges (about 1%) on the
+committed bed, +8.6 edges (about 6%) on the harder source bed it was
+designed on. Neither figure has been measured on the real 16×16 board.
 
 ## The depth wall
 
@@ -326,8 +341,8 @@ interior fill almost perfectly; the mismatches concentrate in the last rows,
 where the pieces a cell needs were already spent serving easier cells long
 ago: the [piece theft](/research/why/piece-theft) problem. A greedy local
 objective cannot see that global budget, and doubling $K$ pushes the wall
-back by only an edge or two. From-scratch beams on this engine ceiling in
-the mid-450s; the remaining distance is bought by
+back by only an edge or two. From-scratch beams on this engine have topped out at 455 to 457 raw so far
+(see [records](/research/records)); the remaining distance is bought by
 [destroy-and-repair polish](/research/build/local-search/local-search-alns), not
 by more width. Beam search, on this puzzle, is a fine way to reach the
 plateau quickly, and no way at all to leave it.
@@ -339,20 +354,22 @@ to 15 held 21 of the 30 mismatches. A spiral order spreads its mismatches
 across the middle rows instead, because its last cells are the board
 center; border-first spikes them at the innermost ring. The wall's location
 is a property of the visit order, not of the puzzle. Choosing the order can
-even lift the ceiling by an edge: a comb-shaped scan order, whose
+even raise the best observed score: a comb-shaped scan order, whose
 mismatches land in vertical strips rather than bottom rows, produced six
 raw boards at 456 matched edges over 120 seeds and about twice the usual
-rate of 455s, where row-major produced no 456 in 160 seeds. (Raw builder
-scores, matched-edges convention; the [records](/research/records) page
-places them in context.)
+rate of 455s, where row-major produced no 456 in 160 seeds, and a later
+comb-order producer run reached 457 raw. (Raw builder scores,
+matched-edges convention; the [records](/research/records) page places them
+in context.)
 
 Two notebook observations sharpen what the wall is made of. First, the
 beam reaches completions that a backtracker allowing at most one mismatch
 per cell structurally cannot build: the 450 board above carries one cell
 with two mismatched edges, and a child with a double mismatch can survive
 into the top $K$ even though no single-mismatch depth-first path leads
-there. Second, on the beam's own 240-cell prefix, an exact
-branch-and-bound finisher for the tail did worse (433 or 420 matched
-edges, depending on how much of the prefix was pinned) than the beam's own
-completion at 450: breadth had already explored the tail better than a
-depth-limited exact search could, double-mismatch completions included.
+there. Second, on the beam's own 240-cell prefix, a restricted branch-and-bound
+tail finisher (at most one mismatch per cell, depth-limited) scored 433 or
+420 matched edges, depending on how much of the prefix was pinned, below
+the beam's own completion at 450, because the restriction excluded the
+beam's double-mismatch completion. A truly exact tail solve on the same
+prefix would score at least 450.

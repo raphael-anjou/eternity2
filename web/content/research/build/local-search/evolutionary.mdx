@@ -2,14 +2,15 @@
 title: Evolutionary and genetic approaches
 description: >-
   Breed a population of boards, keep the fittest, recombine the survivors.
-  The most natural metaphor in the toolbox, and the one method whose central
-  operator, crossover, fights the structure of Eternity II head-on. The
-  complete record of what the community bred, measured, and abandoned.
-metaDescription: "Evolutionary and genetic approaches to Eternity II: why crossover fights the puzzle's permutation structure head-on, and every one stalls in the low 400s. The complete record of what the community bred, measured and abandoned, from Chapple's launch-week GA to antminder's 462/480 hybrid."
+  The most natural metaphor in the toolbox, and a method whose central
+  operator, position-wise crossover, fails on Eternity II because good boards
+  share almost no placements. The record of what the community bred,
+  measured, and abandoned.
+metaDescription: "Evolutionary and genetic approaches to Eternity II: why position-wise crossover fails when good boards share almost no placements. Pure GAs stalled around 400 to 410 of 480; the strongest hybrid, a backtracker plus exact assignment repair, reached 462 to 463 in 2008."
 kind: concept
 order: 200
 group: Local search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [local-search, learning]
 sources:
   - label: "simon.chapple's full GA blueprint: spiral genome, class-constrained genes, fitness (groups.io message 302)"
@@ -44,8 +45,17 @@ sources:
     url: https://spectrum.library.concordia.ca/id/eprint/7487/1/Niang_MASc_S2011.pdf
   - label: Wauters, Vancroonenburg & Vanden Berghe, A guide-and-observe hyper-heuristic approach to the Eternity II puzzle (JMMA 11, 2012)
     url: https://link.springer.com/article/10.1007/s10852-012-9178-4
+  - label: "Muñoz, Gutierrez & Sanchis, Evolutionary Genetic Algorithms in a Constraint Satisfaction Problem: Puzzle Eternity II (IWANN 2009)"
+    url: https://doi.org/10.1007/978-3-642-02478-8_90
+  - label: "Muñoz, Gutierrez & Sanchis, Evolutionary techniques in a constraint satisfaction problem: Puzzle Eternity II (IEEE CEC 2009)"
+    url: https://doi.org/10.1109/CEC.2009.4983319
+  - label: "Galinier & Hao, Hybrid Evolutionary Algorithms for Graph Coloring (J. Combinatorial Optimization, 1999)"
+    url: https://doi.org/10.1023/A:1009823419804
+  - label: "Benlic & Hao, Memetic search for the quadratic assignment problem (Expert Systems with Applications, 2015)"
+    url: https://doi.org/10.1016/j.eswa.2014.08.011
 related:
   - /research/build/local-search/local-search-alns
+  - /research/lab/experiments/raphael-anjou/repair-study
   - /research/build/dead-ends
   - /research/why/sigma-cycles
 repro:
@@ -61,11 +71,12 @@ onto a spiral genome starting at the clue piece, score connectivity, breed
 the most natural metaphor in the toolbox: a population of boards, survival
 of the best-matched, children that inherit good fragments from two good
 parents. Over the following years the community built these solvers, measured
-them carefully, and watched every one of them stall in the low 400s while
-plain backtrackers cruised past. This page teaches the recipe, then the
-reason it fails. That reason is worth understanding properly, because it is
-not "GAs are weak" but a precise structural clash between crossover and
-permutation problems. From there, the page follows the ideas that survived
+them carefully. Pure board-breeding GAs stalled around 400 to 410 of 480.
+The strongest hybrid, which wrapped a backtracker and an exact assignment
+repair in a GA, reached 462 to 463 in 2008 before a backtracker overtook it.
+This page teaches the recipe, then the reason it fails. That reason is worth
+understanding properly, because it is not "GAs are weak" but a specific clash
+between position-wise crossover and boards that share almost no placements. From there, the page follows the ideas that survived
 to the pages where they live now.
 
 ## The recipe on a board
@@ -151,10 +162,19 @@ parallel mutation hill-climbers paying crossover's overhead.
 The deepest version of this argument was measured on this site years later:
 two high-scoring boards are related by large interlocking
 [σ-cycles](/research/why/sigma-cycles), and every *partial* application of a
-cycle scores worse than either endpoint. Crossover is exactly a partial
-application of the permutation connecting the parents. The valley between
-two good parents is not an accident of the operator: it is the structure of
-the landscape.
+cycle scores worse than either endpoint. Position-wise crossover is exactly a partial
+application of the permutation connecting the parents, and a direct test
+agrees: of 56 row-interleaved children of boards scoring 458 or better,
+each given a five-minute repair, those from unrelated parents landed between
+371 and 436, and the few that scored 461 merely reproduced a known board (see
+[σ-cycles](/research/why/sigma-cycles)). That refutes this crossover with
+this repair budget. Problem-aware recombination, such as inheriting the
+matched regions two parents share, path relinking between basins, or the
+memetic hybrids that lead on graph colouring
+([Galinier and Hao 1999](https://doi.org/10.1023/A:1009823419804)) and the
+quadratic assignment problem
+([Benlic and Hao 2015](https://doi.org/10.1016/j.eswa.2014.08.011)), has not
+been tested on Eternity II by this project.
 
 ## What the community measured
 
@@ -221,19 +241,22 @@ The record, in chronological order, is remarkably consistent.
   contrast is the lesson: evolution handles the relaxation fine; the
   relaxation just turned out to prune nothing.
 
-The academic record matches the list's. The one thesis-length treatment of
-evolutionary computing on Eternity II
+The academic record is close to the list's. Muñoz, Gutierrez and Sanchis
+published two GA studies of Eternity II in 2009
+([IWANN](https://doi.org/10.1007/978-3-642-02478-8_90);
+[IEEE CEC](https://doi.org/10.1109/CEC.2009.4983319)), and a master's thesis
+on evolutionary computing for the puzzle
 ([Niang 2011](https://spectrum.library.concordia.ca/id/eprint/7487/1/Niang_MASc_S2011.pdf))
 surveys the GA design space without dethroning the metaheuristics of the
-2008–2012 literature, and the strongest published heuristics from that line
+2008 to 2012 literature. The strongest published heuristics from that line
 (tabu search, VLNS,
 [hyper-heuristics](https://link.springer.com/article/10.1007/s10852-012-9178-4))
 all abandoned recombination of boards.
 
 ## Where the surviving ideas went
 
-Nothing on this wiki is deader than board-breeding, but three ideas from the
-GA era survived by moving out:
+Board-breeding with position-wise crossover did not pay here, but three
+ideas from the GA era survived by moving out:
 
 - **The population became restarts.** Once crossover contributes nothing, a
   population of mutating boards is exactly a portfolio of independent
@@ -242,11 +265,13 @@ GA era survived by moving out:
   not compounding evolution. The measured case for restart portfolios is on
   the [restarts page](/research/build/backtracking/restarts).
 - **Mutation + selection + smart repair became ALNS.** antminder's
-  Munkres-repair operator inside a destroy/rebuild loop *is* the
-  assignment-based refill of
-  [local search and ALNS](/research/build/local-search/local-search-alns), where
-  it remains the most reliable polisher this project has. The winning part
-  of the 2008 hybrid was never the genetics; it was the neighborhood.
+  Munkres repair is an exact destroy-and-repair neighbourhood, close kin of
+  [local search and ALNS](/research/build/local-search/local-search-alns).
+  This project's ALNS refills greedily instead, and in its
+  [repair study](/research/lab/experiments/raphael-anjou/repair-study) a
+  bounded exact refill did not beat greedy refill at equal time. The winning
+  part of the 2008 hybrid was never the genetics; it was the backtracker and
+  the neighbourhood.
 - **Evolution moved up a level.** The hyper-heuristic line
   ([Wauters et al. 2012](https://link.springer.com/article/10.1007/s10852-012-9178-4))
   keeps selection-and-adaptation but applies it to *operators*, not boards:
@@ -274,8 +299,8 @@ GA era survived by moving out:
   demoting the GA to a management layer over a backtracker and an exact
   repair ([message 5589](https://groups.io/g/eternity2/message/5589)), and
   its author shelved it the week a pure backtracking solver appeared
-  ([message 5950](https://groups.io/g/eternity2/message/5950)). Crossover,
-  the one idea evolution brings that nothing else in this catalogue has,
-  is structurally wrong for a puzzle whose good solutions
-  [share almost nothing transplantable](/research/why/sigma-cycles). What
-  survived of the GA era is real, and none of it is genetic.
+  ([message 5950](https://groups.io/g/eternity2/message/5950)). Position-wise
+  crossover, the one idea evolution brings that nothing else in this
+  catalogue has, fails on a puzzle whose good solutions
+  [share almost nothing transplantable](/research/why/sigma-cycles). Whether
+  a problem-aware recombination could do better is open.
