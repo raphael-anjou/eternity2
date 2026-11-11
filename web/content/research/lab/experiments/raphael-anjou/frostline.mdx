@@ -25,7 +25,7 @@ repro:
   cmd: "just research-frostline"
   scope: "Regenerates the 120 greedy tops, the exact last-row labels, and the full correlation table (qualitative tier: the source study's beam-top ensemble is not regenerated)"
 order: 45
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, structure, search-space]
 related:
@@ -69,8 +69,11 @@ forbidden, so the graph is a finite-beta soft model rather than a
 satisfiability instance. And the seam against the frozen rows must be a soft
 factor; the source study measured that a hard seam filter contradicts itself
 on 5 of 16 cells of real near-optimal tops. At one row the residual graph is a
-chain, so belief propagation is exact there and the free energy is the true
-log partition function.
+chain, so belief propagation is exact there for the chain model, in which each
+cell draws its piece from the pool independently and a piece may be reused. The
+real tail adds a permutation constraint (each of the sixteen pieces used once), so
+even at one row the free energy is an approximation to the quantity of interest,
+not its exact log partition function.
 
 ## The result
 
@@ -118,6 +121,9 @@ The lower-raw board has the better ending.
   cells to -0.19 at 32 and -0.12 at 48, as the mean per-cell domain grows from
   12.5 to 32.6 to 72.2. FROSTLINE is a last-row finishability oracle, not a
   mid-construction steering signal.
+- **Where it works, the exact answer is cheap.** At 16 cells the exact label costs
+  milliseconds, so the predictor saves nothing there; it would matter only where
+  exact solving is out of reach, and that is exactly where its signal fades.
 - **It does not (yet) buy better boards.** In the source study, using it to
   select which partials get exact-solve compute does not beat selecting by raw
   score: the realized full score is dominated by the raw-score spread, while

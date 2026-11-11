@@ -12,7 +12,7 @@ contribution: method
 author: raphael-anjou
 rigor: measured
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, structure, search-space]
 related:
@@ -106,8 +106,14 @@ i(n) \;=\; \operatorname{round}\!\Big(\tfrac{E(n) - F(n)}{24}\Big),
 $$
 
 en visant les multiplicités qu'Eternity II utilise lui-même à $n=16$ (bord
-$\approx 12$, intérieur $\approx 24$). À $n=16$ cela restitue exactement la recette
-officielle, cinq couleurs de bord et dix-sept intérieures.
+$\approx 12$, intérieur $\approx 24$). Deux ajustements suivent l'arrondi : le nombre
+de couleurs intérieures est relevé à au moins trois fois celui du bord (dans la
+limite d'un quart des coutures intérieures), et la palette est plafonnée à 22
+couleurs au total, le nombre de motifs que le site sait dessiner. À $n=16$, $F=60$ et
+$E-F=420$ : l'arrondi donne cinq couleurs de bord et dix-huit intérieures, et le
+plafond de 22 ramène l'intérieur à dix-sept, soit la recette officielle. À $n=8$,
+$F=28$ et $E-F=84$ : l'arrondi donne deux couleurs de bord et quatre intérieures, et
+la règle du trois pour un porte l'intérieur à six.
 
 Réussir cela sur les petits plateaux a demandé une correction du générateur. La
 palette d'Eternity II est *à dominante intérieure*, cinq couleurs de bord contre
@@ -201,28 +207,26 @@ Le moteur est le [backtracker DFS](/research/lab/experiments/raphael-anjou/dfs-s
 frère de cette étude, exécuté en strict (pas de ruptures, pas de propagation) afin
 que **l'ordre de remplissage soit la seule chose qui change**. Les ordres testés
 sont ligne par ligne, son miroir de bas en haut, la spirale entrante, la spirale
-sortante, bord d'abord, le peigne de Verhaard, un contrôle lignes-des-indices
-d'abord, et l'ordre propre à l'étude qui cherche les indices,
-`connect-hints-first`.
+sortante, le peigne de Verhaard, un contrôle lignes-des-indices d'abord,
+`trace-hints` (qui dessine un squelette entre les indices avant de remplir), et
+l'ordre propre à l'étude qui cherche les indices, `connect-hints-first`.
 
-Pourquoi l'ordre compte-t-il autant ? Le coût d'un backtracker est gouverné par la
+Pourquoi l'ordre compte-t-il autant ? La réponse de travail de l'étude est la
 **frontière ouverte** : l'ensemble des cases déjà remplies encore adjacentes à une
-case vide. Quand la case suivante est placée contre une frontière de taille $f$, le
-nombre de plateaux partiels que la recherche peut avoir à considérer croît
-multiplicativement en $f$, le branchement est exponentiel en la frontière, pas en le
-plateau. Un unique balayage compact maintient $f$ à environ une ligne
+case vide. Un unique balayage compact maintient la frontière à environ une ligne
 ($\approx n$) ; un ordre qui ouvre des taches autour de $k$ indices éparpillés mène
-$k$ frontières de front, et
-
-$$
-\text{travail} \;\sim\; \prod_{j} b^{\,f_j} \;=\; b^{\sum_j f_j},
-$$
-
-de sorte que fragmenter le remplissage en régions déconnectées multiplie le coût,
-il ne l'additionne pas. C'est exactement pourquoi `connect-hints-first`, l'ordre
-qui *cherche* les indices, est le pire performeur : atteindre les indices tôt vaut
-bien moins que garder la frontière petite, et relier des ancres éparpillées fait
-l'exact contraire de la garder petite.
+$k$ frontières de front. La frontière est une corrélation descriptive, pas un modèle
+de coût : les résultats montrent qu'elle suit le score médian à travers les huit
+ordres, mais qu'elle ne classe pas les ordres fragmentants entre eux. Le compte rendu
+classique du coût d'un backtracker porte sur le degré de contrainte de chaque
+placement au moment où il est fait (le principe « échouer d'abord » de
+[Haralick et Elliott, 1980](https://doi.org/10.1016/0004-3702%2880%2990051-X)) : l'ordre ligne par ligne pose presque chaque
+case intérieure contre deux voisines déjà posées, alors qu'un remplissage fragmenté
+en pose beaucoup contre une seule, puis paie plus tard la fermeture des cycles, là
+où un échec coûte cher à défaire. Ce compte rendu cadre avec le fait que
+`connect-hints-first`, l'ordre qui *cherche* les indices, est celui qui s'en sort le
+plus mal avec eux, mais l'étude ne l'a pas testé (par exemple en reliant les nœuds
+dépensés à chaque profondeur au nombre de voisines déjà posées).
 
 ## Comment lire les chiffres
 

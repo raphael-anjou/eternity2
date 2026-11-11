@@ -1,10 +1,10 @@
 ---
 title: PRIOR
 description: >-
-  Build a board from nothing, breaking ties by where pieces tend to sit in the
-  strong boards we already have. It reaches a high score with no starting
-  board to copy.
-metaDescription: "PRIOR builds an Eternity II board from nothing, breaking ties by where pieces tend to sit in the strong boards we already have. It reaches 460 of 480 with no starting board to copy — a test of whether a positional corpus prior alone can steer construction."
+  Build a board from an empty grid, breaking ties by where pieces tend to sit in
+  the strong boards we already have: a positional prior that acts as a soft
+  template of those boards.
+metaDescription: "PRIOR builds an Eternity II board from an empty grid, breaking ties by where pieces tend to sit in strong boards. Steered by that positional prior and a refinement tail, it reaches 460 of 480; how much is construction and how much is recall of the corpus is open."
 kind: experiment
 hardware:
   cores: 8
@@ -42,7 +42,7 @@ stages:
     does: "A short local-refinement tail lifts the mid-450s construction to the committed 460"
     published: false
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, learning]
 related:
@@ -92,16 +92,19 @@ is statistical.
 
 ## The result
 
-From scratch, PRIOR reaches the mid-450s, and with a sharper prior built from
-only the very best boards it climbs higher. Followed by local refinement it
-reaches 460, the board shown here. That a from-nothing build lands this close
-to the records is the point: the structure of good boards is partly
-learnable, and you don't need to start from one to get there.
+From an empty grid, PRIOR reaches the mid-450s, and with a sharper prior built
+from only the very best boards it climbs higher. Followed by local refinement it
+reaches 460, the board shown here. The build starts with no board, but its
+tie-break is a 256×256 piece-in-cell frequency matrix mined from strong boards, so
+a sharpened prior acts as a soft template of them. The page records neither the
+Hamming distance from this 460 to its nearest corpus board nor the same beam's
+score without the prior at equal budget, so how much of the result is construction
+and how much is recall of the corpus is open.
 
-It is not the project's top score (463), and the final lift here leans on a
-refinement step, which the board's label notes. But as a clean-slate result
-it's the strongest the project has, and it's the foundation the later
-multi-signal builders grew from.
+It is not the project's top score (see [records](/research/records)), and the
+final lift here leans on a refinement step, which the board's label notes. As an
+empty-grid build it is the strongest the project has, with that caveat, and it is
+the foundation the later multi-signal builders grew from.
 
 ## Method
 

@@ -11,7 +11,7 @@ contribution: method
 author: raphael-anjou
 rigor: measured
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, structure, search-space]
 related:
@@ -96,8 +96,13 @@ i(n) \;=\; \operatorname{round}\!\Big(\tfrac{E(n) - F(n)}{24}\Big),
 $$
 
 targeting the multiplicities Eternity II itself uses at $n=16$ (border $\approx 12$,
-interior $\approx 24$). At $n=16$ this returns exactly the official recipe, five
-border colours and seventeen interior.
+interior $\approx 24$). Two adjustments follow the rounding: the interior count is
+raised to at least three times the border count (capped at a quarter of the interior
+seams), and the palette is capped at 22 colours in total, the number of renderable
+motifs. At $n=16$, $F=60$ and $E-F=420$, so the rounding gives five border and
+eighteen interior colours; the 22-colour cap brings the interior to seventeen, which
+is the official recipe. At $n=8$, $F=28$ and $E-F=84$, so the rounding gives two
+border and four interior; the three-to-one rule raises the interior to six.
 
 Getting this right on small boards took one fix to the generator. Eternity II's
 palette is *interior-dominant*, five border colours to seventeen interior, but the
@@ -178,25 +183,24 @@ so every path and layout is aggregated over the identical instances.
 The engine is the study's sibling [DFS backtracker](/research/lab/experiments/raphael-anjou/dfs-study),
 run strict (no breaks, no propagation) so that the **fill order is the only thing
 changing**. The orders tested are row-major, its bottom-up mirror, spiral-in,
-spiral-out, border-first, Verhaard's comb, a clue-rows-first control, and the
-study's own hint-seeking order, `connect-hints-first`.
+spiral-out, Verhaard's comb, a clue-rows-first control, `trace-hints` (which draws a
+skeleton between the clues before filling), and the study's own hint-seeking order,
+`connect-hints-first`.
 
-Why does the order matter so much? A backtracker's cost is governed by the **open
-frontier**: the set of already-filled cells still adjacent to an empty one. When the
-next cell is placed against a frontier of size $f$, the number of partial boards the
-search may have to consider grows multiplicatively in $f$, branching is exponential
-in the frontier, not in the board. A single compact sweep keeps $f$ to about one row
-($\approx n$); an order that opens blobs around $k$ scattered hints runs $k$ frontiers
-at once, and
-
-$$
-\text{work} \;\sim\; \prod_{j} b^{\,f_j} \;=\; b^{\sum_j f_j},
-$$
-
-so fragmenting the fill into disconnected regions multiplies, not adds, the cost.
-This is exactly why `connect-hints-first`, the order that *seeks* the hints, is the
-worst performer: reaching the hints early is worth far less than keeping the frontier
-small, and connecting scattered anchors does the opposite of keeping it small.
+Why does the order matter so much? The study's working answer is the **open
+frontier**: the set of already-filled cells still adjacent to an empty one. A single
+compact sweep keeps the frontier to about one row ($\approx n$); an order that opens
+blobs around $k$ scattered hints runs $k$ frontiers at once. The frontier is a
+descriptive correlate, not a cost model: the findings show that it tracks the median
+score across the eight orders but fails to rank the fragmenting orders among
+themselves. The standard account of backtracking cost is about how constrained each
+placement is when it is made (the fail-first view of
+[Haralick and Elliott, 1980](https://doi.org/10.1016/0004-3702%2880%2990051-X)): row-major places nearly every interior cell
+against two already-placed neighbours, while a fragmented fill places many cells
+against only one, and later pays for closing cycles, where a failure is expensive to
+undo. That account fits the observation that `connect-hints-first`, the order that
+*seeks* the hints, does worst with them, but this study has not tested it (for
+example by relating nodes spent at each depth to the number of placed neighbours).
 
 ## How to read the numbers
 

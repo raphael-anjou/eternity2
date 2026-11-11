@@ -11,7 +11,7 @@ contribution: method
 author: raphael-anjou
 rigor: measured
 order: 10
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, speed]
 related:
@@ -94,8 +94,7 @@ la page :
   franchement : le moteur MRV choisit la case la plus contrainte en parcourant la
   liste de candidats de chaque case vide à chaque nœud, ce qui est intrinsèquement
   plus lourd qu'un ordre de remplissage fixe. Deux optimisations préservant le
-  comportement le ramènent à quelques fois le coût des moteurs rapides, plutôt qu'aux
-  milliers de fois qu'il valait autrefois : la recherche de la case la plus
+  comportement réduisent ce coût : la recherche de la case la plus
   contrainte cesse de compter les candidats d'une case dès qu'ils dépassent la
   meilleure case trouvée jusqu'ici (une recherche de minimum n'a jamais besoin du
   décompte exact d'une case qui ne peut pas l'emporter), et elle évite de revérifier
@@ -104,9 +103,12 @@ la page :
   pleinement incrémentale d'un placement à l'autre, ce que ferait un solveur CSP de
   production ; cette dernière étape devrait suivre comment une pièce nouvellement
   utilisée affecte le décompte de chaque case, et elle est laissée de côté ici pour
-  garder le moteur lisible. Le classement par score ne dépend d'aucun de ces points,
-  puisque le débit est un axe distinct, mais le débit de nœuds MRV doit se lire comme
-  celui de ce moteur propre plutôt que comme le meilleur possible de MRV.
+  garder le moteur lisible. Malgré cela, la grille versée fait tourner les variantes
+  MRV à 6 000 à 8 000 nœuds par seconde, soit environ 4 000 à 7 000 fois plus
+  lentement par nœud que le balayage par lignes : les scores et profondeurs de la
+  famille heuristique à soixante secondes sont ceux de cette implémentation, pas ceux
+  de MRV au mieux de sa forme, et un MRV plus rapide pourrait aller plus loin dans le
+  même budget.
 - **profondeur maximale atteinte** : le placement le plus profond effectué par la
   recherche, sur 256, la mesure par l'étude de la distance parcourue par une variante.
   Le backtracking strict heurte un mur dans les bas 200 (par lignes 208, la variante
@@ -133,8 +135,13 @@ chaud, et aucune allocation à l'intérieur de la recherche. Sa jumelle, `NAIVE-
 est le *même algorithme* réexprimé sous forme de boucle chaude spécialisée à la main,
 16×16 uniquement, par lignes, gardée comme programme séparé pour que le moteur général
 reste propre. Les faire tourner face à face chiffre le prix du génie de bas niveau :
-sur ce puzzle, il achète un gain de débit modeste et dépendant de l'instance et,
-notamment, aucun meilleur score. Les chiffres sont sur la
+sur ce puzzle, il achète un débit médian plus élevé (44,9 contre 32,4 millions de nœuds
+par seconde) et, notamment, aucun meilleur score : la jumelle en codegen obtient un score
+légèrement inférieur sur neuf des dix instances. L'ampleur du gain instance par instance
+n'est pas fiable, car la grille a fait tourner six tâches à un seul fil à la fois sur un
+M1, qui compte quatre cœurs de performance et quatre cœurs d'efficacité, et les débits du
+codegen se répartissent en deux groupes (environ 37 et 46 millions) sans cause liée à
+l'instance. Les chiffres sont sur la
 [page des résultats](/research/lab/experiments/raphael-anjou/dfs-study/findings).
 
 ## Correction des propagateurs
