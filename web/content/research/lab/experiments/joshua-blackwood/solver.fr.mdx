@@ -3,10 +3,13 @@ title: "Le solveur de Blackwood, décodé et exécuté ici"
 description: >-
   Le backtracker record de Joshua Blackwood, décodé grâce aux notes de Jef Bucas
   (un échéancier de quotas de couleurs et une tolérance aux mismatchs en fin de
-  partie, réglés presque optimalement), puis construit et exécuté sur mon M1 : tel
-  que publié, il file jusqu'à 248 des 256 pièces en ignorant les indices ; épinglez
-  les cinq indices officiels et le même moteur cale autour de 45.
-metaDescription: "Le backtracker C# record de Blackwood, décodé grâce à Jef Bucas et exécuté sur un seul cœur d'un Apple M1 : tel que publié il atteint 248/256 pièces (454/480 arêtes), mais cale vers 45/256 dès les cinq indices officiels épinglés. On y voit l'échéancier de quotas et un réglage manuel presque optimal."
+  partie, qu'un petit balayage a trouvés déjà bien réglés), puis construit et
+  exécuté sur un cœur de M1. Tel que publié, il atteint 248 des 256 pièces en
+  ignorant les indices. Avec un épinglage grossier des cinq indices ajouté à son
+  balayage inchangé, il ne dépasse pas la profondeur ~45 en 120 s : un artefact de
+  l'épinglage, car une réimplémentation de la même méthode qui tient compte des
+  indices atteint en moyenne 436/480.
+metaDescription: "Le backtracker C# record de Blackwood, décodé grâce à Jef Bucas et exécuté sur un cœur d'Apple M1 : tel que publié il place 248/256 pièces ; un épinglage grossier des cinq indices le fait caler vers la profondeur 45, artefact de l'épinglage et non de la méthode. Avec l'échéancier de quotas."
 kind: experiment
 contribution: measurement
 author: joshua-blackwood
@@ -14,8 +17,6 @@ contributors:
   - { slug: jef-bucas, role: parameter study }
   - { slug: raphael-anjou, role: write-up }
 rigor: measured
-score: 454
-scoringConvention: matched-edges
 hardware:
   cores: 1
   cpu: "Apple M1"
@@ -29,8 +30,9 @@ hardware:
 repro:
   kind: heavy
   cmd: "git clone github.com/jblackwood345/EternityII_Solver; dotnet build -c Release"
+  scope: "Compile son code source inchangé. Les trois modifications utilisées pour les exécutions ci-dessous (nombre de threads, ligne de progression, seuil de sauvegarde et épinglage des indices) sont décrites dans le texte mais pas publiées sous forme de patch : cette commande ne reproduit donc ni l'exécution à 248 pièces ni celle à profondeur 45."
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, speed]
 related:
@@ -87,8 +89,8 @@ quotas par profondeur qui élague les branches prenant du retard, un
 [ordre de remplissage](/research/build/backtracking/fill-order) réglé pour être
 « ni trop serré, ni trop lâche », et une tolérance aux mismatchs en fin de partie.
 Chacun de ces choix comporte des nombres, et l'étude de Jef Bucas a posé la question
-évidente : les nombres de Blackwood valent-ils quelque chose ? Oui, et c'en est
-gênant. Comme le code est un vrai programme C# compilable, on peut alors l'exécuter
+évidente : les nombres de Blackwood valent-ils quelque chose ? Dans un petit
+balayage, ils se situent dans la bande la plus performante. Comme le code est un vrai programme C# compilable, on peut alors l'exécuter
 exactement tel que son auteur l'a écrit, ce que fait la dernière section ici.
 
 ## Noter les pièces selon trois couleurs
@@ -292,13 +294,15 @@ Deux paramètres ont eu droit au traitement :
 
 ## Ce que le réglage manuel a réussi
 
-Ce dernier résultat mérite qu'on insiste. Blackwood a rempli son échéancier à la main :
-cinq segments linéaires, des coefficients estimés à l'œil. Lorsqu'un balayage
-aléatoire a exploré le voisinage autour de lui, la ligne réglée à la main se situait
-franchement dans la zone la plus performante. La conclusion de Jef, et la nôtre : les
-paramètres d'origine étaient presque optimaux. Le vieux conseil tient toujours. Avant
-de refondre les heuristiques d'un solveur record, vérifiez si son auteur n'a pas déjà
-trouvé l'optimum local à la main.
+Ce dernier résultat demande une lecture prudente. Blackwood a rempli son échéancier
+à la main : cinq segments linéaires, des coefficients estimés à l'œil. Dans le
+balayage de Jef, la ligne faite main se situait dans la bande la plus performante des
+perturbations aléatoires. Le critère mesuré était la profondeur atteinte par chaque
+exécution, pas la fréquence des grilles record, et les échantillons étaient peu
+nombreux et non répliqués (la réserve de Jef lui-même, plus bas). Cela suggère que le
+réglage manuel était déjà bon ; cela n'établit pas un optimum local. Le conseil
+pratique tient toujours : avant de refondre les heuristiques d'un solveur record,
+regardez à quel point son auteur les a déjà réglées à la main.
 
 <Callout kind="note" title="Les propres résultats négatifs de Blackwood">
   Blackwood a mené le même audit sur lui-même. Après le 469, il a catalogué ses
@@ -363,8 +367,10 @@ ont été faites, chacune invitée par son propre README (« changez le nombre d
 Exécuté tel que son code se présente, sur un seul cœur pendant 60 secondes, il est
 rapide et va loin :
 
-- **248 / 256 pièces placées**, une grille qui se recote à **454 / 480** arêtes
-  appariées.
+- **248 / 256 pièces placées**, une grille partielle à huit cellules vides que le
+  scoreur canonique note **454 / 480** arêtes appariées. Le décompte d'une grille
+  partielle ne se compare pas au score d'une grille complète de 256 pièces : cette
+  exécution ne porte donc aucun score de classement.
 - **~18,9 millions de nœuds par seconde** (un nœud est une tentative de placement).
 
 Son programme publié n'a aucune notion d'indice : il traite chaque pièce, y compris
@@ -393,15 +399,15 @@ lieu de les placer là où elles s'ajustent. Le même code, les cinq indices off
 
 - **Placement le plus profond : environ 45 / 256.**
 
-Son heuristique d'ordre de balayage n'a rien à quoi s'accrocher dès que les pièces
-spéciales sont fixées en milieu de grille : elle patauge près des lignes du bas et ne
-remonte jamais. Épingler les cinq est plus strict que le puzzle ne l'exige à
-proprement parler (seul l'indice central est obligatoire), mais c'est la même
-contrainte à laquelle sont soumis les autres moteurs ici, et Blackwood atterrit bien
-en dessous du
-[438 de la réimplémentation Verhaard](/research/lab/experiments/louis-verhaard/verhaard-reimpl)
-ou du [204 de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) sous la
-même contrainte.
+C'est une profondeur de placement, pas un score d'arêtes appariées, et c'est très
+probablement un artefact de l'épinglage plutôt que de l'algorithme. Notre
+réimplémentation de la même méthode, qui tient compte des indices, atteint sur le
+[benchmark mono-cœur](/research/lab/experiments/single-core-benchmark) une moyenne
+de 436,4 / 480 arêtes appariées avec les cinq indices (et trois coins) épinglés, en
+60 secondes sur un thread. Épingler les cinq est plus strict que le puzzle ne l'exige
+(seul l'indice central est obligatoire). Pour comparer sur le même axe de profondeur,
+[le moteur de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) atteint
+environ 204 pièces sur 256 avec les cinq indices.
 
 <Callout kind="note" title="Une réserve fidèle">
   Cet épinglage d'indices est grossier : il interdit toute autre pièce aux cinq

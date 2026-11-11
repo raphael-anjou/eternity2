@@ -81,5 +81,5 @@ python3 scripts/run_grid.py --variants variants \
 python3 scripts/make_report.py --run results/rerun
 ```
 
-The two standalone backtrackers (`blackwood`, `verhaard`) are built from a separate engine checkout and are not reproducible from this repo alone; their committed rows above are the published result.
+The two standalone backtrackers (`blackwood`, `verhaard`) are the `blackwood_bt` and `verhaard_faithful_v2` binaries of this repo's `engine/` workspace (crate `bench-audit`). Build them with the full `cargo build --release --manifest-path engine/Cargo.toml` (the command above builds `run_algo` only); `run_grid.py` drives them through `scripts/run_standalone.sh`.
 

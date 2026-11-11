@@ -6,7 +6,7 @@ description: >-
   esquinas fijadas que el ranking. Un estudio de lo que aporta cada ajuste,
   mantenido fuera del ranking principal porque el mejor preset alcanza menos de
   la mitad de la puntuación de un contendiente.
-metaDescription: "Un motor CSP arco-consistente bajo una docena de presets de ordenación y propagación sobre diez variantes de Eternity II con esquinas fijadas: cuánto vale cada ajuste clásico en puntos, por qué el borde primero domina cerca de 183 y por qué ninguno alcanza la mitad del score de un contendiente."
+metaDescription: "Un motor CSP arco-consistente bajo una docena de presets sobre diez variantes de Eternity II con esquinas fijadas: cuánto vale cada ajuste activo, qué presets dan la misma búsqueda y por qué el MRV borde primero domina cerca de 183, bajo la mitad de un contendiente."
 kind: experiment
 contribution: measurement
 author: raphael-anjou
@@ -17,7 +17,7 @@ hardware:
   ramGb: 16
   gpus: 0
   accelerator: none # none | gpu | quantum | fpga | tpu
-  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  machine: "MacBook (Apple M1, 4P+4E cores), 6 single-thread runs at a time, core assignment not controlled"
   wallClock: "60 s" # presupuesto por ejecución
   runs: 120 # 12 algoritmos preset/variante × 10 variantes con esquinas
   seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
@@ -26,7 +26,7 @@ repro:
   kind: seeded
   cmd: just experiments single-core-benchmark
 order: 11
-updated: 2026-07-15
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, search-space]
 related:
@@ -55,35 +55,51 @@ discutirse.
 ## Lo que aporta cada ajuste
 
 Los presets varían dos cosas: el orden en que el motor asigna las celdas, y con
-cuánta fuerza propaga antes de comprometerse. Manteniendo fijos el puzzle y el
-presupuesto, la diferencia de puntuación entre dos presets es el valor de ese
-único ajuste.
+cuánta fuerza propaga antes de comprometerse. Cuando dos presets difieren en un
+solo ajuste, y ese ajuste actúa de verdad, la diferencia de puntuación se lee
+como su valor con este presupuesto, en estas diez instancias, con una semilla.
 
 - **La ordenación por el valor menos restrictivo ayuda.** `anjou-gacolor_ac3_lcv`
-  alcanza una media de 114 frente al simple `anjou-gacolor_ac3` en 76: elegir el
-  valor que descarta la menor cantidad de vecinos vale aquí unos 38 puntos.
-- **Algunos ajustes son inertes a esta profundidad.** Tres presets
-  (`anjou-gacolor_ac3`, `anjou-gacolor_ac3_ns1`, `anjou-verhaard_preferred`)
-  produjeron tableros idénticos al byte en este puzzle. NS-1 y la ordenación
-  preferida no añaden nada en 60 segundos: el motor nunca busca lo bastante hondo
-  para que muerdan.
-- **La ordenación borde primero es el preset más fuerte.** `anjou-border_first_lcv`
-  y `anjou-rare_color_first` encabezan el barrido en torno a 183, al fijar el
-  marco sobre-restringido antes que el interior libre. Aun así es menos de la
-  mitad de la puntuación de un contendiente.
+  alcanza una media de 114 frente al simple `anjou-gacolor_ac3` en 76, y el orden
+  de valores es su única diferencia: elegir el valor que descarta la menor
+  cantidad de vecinos vale aquí unos 38 puntos.
+- **Tres grupos de presets desembocan en la misma búsqueda.**
+  `anjou-border_first_lcv` y `anjou-rare_color_first`; `anjou-gacolor_ac3`,
+  `anjou-gacolor_ac3_ns1` y `anjou-verhaard_preferred`; `anjou-joe_depth150` y
+  `anjou-joe_depth150_bp`: cada grupo produjo el mismo tablero en las diez
+  variantes
+  ([`contender_stats.py`](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark/scripts)
+  lo comprueba). El código del motor explica tres de los cuatro ajustes: el orden
+  de celdas «color raro» sigue siendo un sustituto que ordena las celdas
+  exactamente como el MRV borde primero, y los órdenes de valores «piezas
+  preferidas» y «marginales BP» solo actúan si quien llama aporta una lista de
+  piezas preferidas o marginales BP, y la cuadrícula no lo hace. La igualdad de
+  multiconjuntos NS-1 sí está conectada, pero no cambió la búsqueda en ninguna de
+  estas ejecuciones. Así que aquí no se puede leer ningún valor de esos ajustes:
+  no se pusieron a prueba, que no es lo mismo que ser inertes.
+- **El MRV borde primero con propagación ligera es el preset más fuerte.** Pese a
+  su nombre, `anjou-border_first_lcv` usa el orden de inserción de valores, no
+  LCV; promedia unos 183. El borde primero por sí solo no lo explica.
+  `anjou-border_first_full`, el mismo orden de celdas más los propagadores de
+  paridad y de islas, promedia 124 a 11 mil nodos por segundo en lugar de 279
+  mil, y `anjou-border_first_random`, borde primero con desempate aleatorio en
+  lugar de MRV, promedia 39. El desempate MRV y la ausencia de propagadores
+  costosos son los que sostienen la puntuación. Aun así es menos de la mitad de
+  la puntuación de un contendiente.
 
 ## Por qué ninguno compite
 
-Cada preset es bimodal. En una disposición de esquinas favorable, la búsqueda por
-arco-consistencia alcanza de 340 a 349; en una hostil, se desploma hasta unos 55,
-atrapada en una cuenca mala de la que no puede salir en 60 segundos. La media se
-mantiene baja porque las esquinas malas la arrastran hacia abajo, y ningún ajuste
-de ordenación corrige el problema de la cuenca. Esa es la verdadera historia de
-esta familia: la propagación hace que cada nodo esté bien podado pero sea costoso,
-de modo que la búsqueda es fuerte donde la instancia es indulgente e impotente
-donde no lo es. Los motores constructivos del ranking nunca caen en esa trampa,
-razón por la cual un preset en 183 está en una página distinta de la de los
-contendientes del ranking, que llegan hasta 451.
+Los presets de borde primero y de profundidad 150 son bimodales.
+`anjou-border_first_lcv` alcanza de 341 a 349 en cuatro disposiciones de
+esquinas y se desploma a entre 54 y 68 en cinco; `anjou-joe_depth150` se queda en
+243 a 249 en seis y en 53 a 55 en cuatro. En las disposiciones hostiles la
+búsqueda se queda en una región mala de la que no sale en 60 segundos, y esas
+variantes arrastran la media hacia abajo. La familia `anjou-gacolor_ac3` no es
+bimodal: se reparte de 56 a 160 sin un segundo modo claro, frenada por la
+arco-consistencia completa en cada nodo. Ningún ajuste de ordenación probado
+aquí corrige el desplome. Los backtrackers del ranking nunca bajan de 431 en
+ninguna variante, razón por la cual un preset en 183 está en una página distinta
+de la de los contendientes del ranking, que llegan hasta 451.
 
 ## El DFS ingenuo también está aquí, por una sola razón
 

@@ -1,7 +1,8 @@
 ---
 title: "McGavin's C backtracker: the throughput story, built here"
 description: >-
-  Peter McGavin's own C backtracker, the community's fastest: a 2007 optimization
+  Peter McGavin's own C backtracker, the fastest single-core CPU backtracker
+  measured on the list: a 2007 optimization
   recipe compounded for two decades through generated code, lookup tables and
   counter tricks, then built on my M1 and pointed at the real 256-piece puzzle,
   where single core it drives past 200 of 256 pieces at ~109M placements/s.
@@ -26,7 +27,7 @@ repro:
   kind: heavy
   cmd: "fetch genbody71.zip from groups.io msg 11749; gcc -Ofast -DG then without -DG"
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [speed, backtracking]
 related:
@@ -190,12 +191,15 @@ same machine, and the best speed he had seen mentioned on the list was 70–90M/
 best figure is the Orange Pi's ~225M/s on small puzzles
 ([message 11751](https://groups.io/g/eternity2/message/11751)).
 
-Second, the quieter and more instructive reading: single-core speed barely moved
-for fifteen years. McGavin said so himself when he posted the 2025 table: speeds
-on the latest CPUs "are only a little faster" than on his 2010 Phenom II
-([message 11643](https://groups.io/g/eternity2/message/11643)). The engine was
-already near the memory wall Field described in 2011. What actually grew was the
-number of cores he could point at a problem.
+Second, the quieter and more instructive reading: single-core speed rose far
+less than core counts did. McGavin said so himself when he posted the 2025 table:
+speeds on the latest CPUs "are only a little faster" than on his 2010 Phenom II
+([message 11643](https://groups.io/g/eternity2/message/11643)). The table puts a
+number on "a little": the identical 2.12-trillion-node tree ran 2.4× faster on a
+2021 Ryzen than on the 2010 Phenom II, and the best single-core figures went from
+about 75M/s in 2011 to about 295M/s in 2026, roughly 2.5 to 4× over fifteen years,
+mostly from newer cores. What grew far more was the number of cores he could
+point at a problem.
 
 ## Hundreds of cores on a hobby budget
 
@@ -242,9 +246,12 @@ one-in-70,000, after nearly 2 × 10¹⁷ nodes, about **180 core-years**, less t
 [message 9688](https://groups.io/g/eternity2/message/9688)), spread over about
 four years ([message 9804](https://groups.io/g/eternity2/message/9804)). His
 summary: "no new methods, just systematic persistence and the law of large
-numbers." The [benchmarks page](/research/build/benchmarks) tells that story as
-complex theory's strongest validation; here it stands as the throughput story's
-high-water mark.
+numbers." One success at row ~92,907 against a predicted 1 in 70,000 is
+consistent with the theory, but it constrains the predicted rate only loosely: at
+that rate the central 95% range for the first success runs from about 1,800 to
+258,000 rows. The stronger checks of complex theory are exact counts like the 5×5
+corner blocks above, within 6% of the estimate. Here the 10×10 stands as the
+throughput story's high-water mark.
 
 **And one record, on someone else's engine.** In September 2020, days after
 Joshua Blackwood open-sourced his solver, McGavin ran it "for a few days on about
@@ -265,10 +272,13 @@ own numbers make the case. With scan-row order, complex theory puts E2's full
 search tree at about 1.6 × 10⁴⁷ placements
 ([message 9710](https://groups.io/g/eternity2/message/9710)), some 9.3 × 10⁴² per
 expected solution ([message 9713](https://groups.io/g/eternity2/message/9713)).
-Even on his best 5-hint placement path (a far smaller tree, about 3.1 × 10⁴⁰
-nodes) he computed 4.9 × 10³² years at 100 million nodes per second, and adding
-billions of cores still leaves you "orders of magnitude longer than the age of
-the Universe" ([message 11201](https://groups.io/g/eternity2/message/11201)). He
+Even on his best 5-hint placement path, a far smaller tree, the estimate stays
+astronomical: the thread quotes about 3.1 × 10⁴⁰ nodes and 4.9 × 10³² years at
+100 million nodes per second. Those two figures do not match each other (3.1 ×
+10⁴⁰ nodes at that rate is about 10²⁵ years), so one of them belongs to a
+different count; either is far out of reach, and adding billions of cores still
+leaves you "orders of magnitude longer than the age of the Universe"
+([message 11201](https://groups.io/g/eternity2/message/11201)). He
 had drawn the conclusion long before, in 2013: "It seems clear to me that E2 will
 not be solved by brute force. If it is to be solved at all, it will be by deep
 analysis and/or clever insight, in my opinion"
@@ -282,8 +292,11 @@ of about 25 by depth 81 ([message 9751](https://groups.io/g/eternity2/message/97
 No compiler flag ever gave him 25×. Shaping the tree beat shrinking the
 nanoseconds. That is this site's [core lesson](/research/why/prune-vs-speed),
 reported here as one practitioner's twenty-year experiment: he built the fastest
-engine in the community's history, measured everything, and concluded the gap to
-480 was never on the clock.
+single-core CPU backtracker on the list, measured everything, and concluded that
+speed alone will not reach 480. Throughput still moves records, though: his farm
+running Blackwood's heuristics found the 469, and every record since, up to the
+standing ones on the [records page](/research/records), came from good
+heuristics multiplied by many cores.
 
 ## Running it here
 
@@ -347,8 +360,9 @@ has placed:
 Two things are worth saying plainly. First, this is a **depth** (how far the
 search reached before backtracking), not an edge score out of 480: his program
 does not emit a partial board to re-score. Second, the rate on the real puzzle is
-about 109 million placements a second, roughly 40% of its speed on Joe's puzzle,
-because the real puzzle's constraints prune harder. The clue count barely moves
+about 109 million placements a second, roughly 40% of its speed on Joe's puzzle.
+Why is not measured here: placements per second is not a pruning measure, and
+the two puzzles differ in size of search front and in hint count. The clue count barely moves
 it: 205 with one clue, 204 with five. This is the same lesson his own posts
 reach, now on my own hardware: the raw engine is superb at walking a tree and
 says nothing, on its own, about where a high-scoring board hides.
@@ -366,9 +380,9 @@ put this engine next to
 The three are not measuring the same axis (McGavin's number is a placement depth,
 not a matched-edge score), so read the comparison with care.
 
-One first-party postscript on the throughput itself. Rebuilt headless (its live
-terminal display, it turns out, costs it ~2.7×) and pointed at both an easy and a
-hard board, this C engine sets the bar a
+One first-party postscript on the throughput itself. Rebuilt headless (the
+headless rates below match the display-on rates above to within a few percent)
+and pointed at both an easy and a hard board, this C engine sets the bar a
 [portable-Rust codegen backtracker](/research/lab/experiments/raphael-anjou/jit-backtracker)
 was then measured against on the same M1: the Rust ties it on hard, deep boards like
 the real puzzle (~105–110M each) and trails by ~2.3× on easy low-branching ones
