@@ -106,6 +106,12 @@ bandsaw rung_ms="15000" label_ms="1500":
 hard-ladder stage="all":
     hard-ladder/run.sh {{stage}}
 
+# CUT-MULTISET-PRUNING: Hall matching of frontier cells against unused pieces
+# on top of the hard-ladder best baseline, rungs 6x6 c=5, 7x7 c=6, 8x8 c=10.
+# stage: all (about 15 min on 8 vCPU) | check | calibrate | test | analyze.
+cut-multiset-pruning stage="all":
+    cut-multiset-pruning/run.sh {{stage}}
+
 # PROBCUT: calibrated statistical cutoffs (ProbCut) on the hard ladder.
 # Stage 1 on calibration seeds, then all solvers on R6 (6x6 c=5), R7 (7x7 c=6),
 # R8 (8x8 c=10) test seeds. About 5 min on 8 vCPU. See probcut/README.md.
