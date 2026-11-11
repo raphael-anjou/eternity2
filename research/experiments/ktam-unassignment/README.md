@@ -153,6 +153,19 @@ compute/target/release/ktam gen                       # R8 instances (once)
 python3 analysis/analyze.py summary
 ```
 
+Clean-checkout check: a fresh `git clone --depth 1` of the branch ran
+`just experiments ktam-unassignment` end to end in 2 min 19 s (build, 5 tests,
+clippy, instance check, calibration, test, analysis) and reproduced all 1,380
+raw rows (calibration and test) and `summary.json` exactly, apart from wall
+clock fields.
+
+Context for the effort metric: B1 runs AC-3 and GAColor propagation after
+every placement and only placements count as nodes or events, so its
+propagation work is free under E. The native propagation counters are in
+`results/summary.json` but measure different things per arm. Per run wall
+clock (tables above) is the cross-arm cost check: at R6 B1 is still far
+faster (median 6 ms vs 88 ms for V2).
+
 Hardware: Devin VM, 8 vCPU Intel Xeon, 31 GB RAM, Rust 1.99.1, Python 3.12,
 8 runs in parallel. Wall clock: calibration about 90 s for 54 configs x 20
 runs; test stage 48 s for 5 arms x 60 runs; total session compute well under
