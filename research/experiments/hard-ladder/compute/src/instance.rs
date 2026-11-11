@@ -18,6 +18,11 @@ pub enum Ladder {
     Secondary,
     /// 8x8 only at c = 10 (above critical; round-2 rung R8, file `8-c10`).
     EightC10,
+    /// 8x8 only at c = 10, fresh test seeds 31..50 (A22, amendment A4).
+    EightC10Fresh,
+    /// Fixed above-critical track c = primary + 2 at n = 6, 7, 9, 10 (A22,
+    /// amendment A4; the 8x8 member is `8-c10`).
+    PlusTwo,
 }
 
 impl Ladder {
@@ -27,6 +32,8 @@ impl Ladder {
             Self::Primary => "primary",
             Self::Secondary => "secondary",
             Self::EightC10 => "8-c10",
+            Self::EightC10Fresh => "8-c10-fresh",
+            Self::PlusTwo => "plus2",
         }
     }
 
@@ -36,6 +43,8 @@ impl Ladder {
             "primary" => Some(Self::Primary),
             "secondary" => Some(Self::Secondary),
             "8-c10" => Some(Self::EightC10),
+            "8-c10-fresh" => Some(Self::EightC10Fresh),
+            "plus2" => Some(Self::PlusTwo),
             _ => None,
         }
     }
@@ -87,14 +96,16 @@ pub fn owen_criterion(n: u8) -> f64 {
 /// Preregistered interior colour count for `ladder` at size `n`.
 #[must_use]
 pub fn colours(ladder: Ladder, n: u8) -> u8 {
-    if ladder == Ladder::EightC10 {
-        return 10;
+    match ladder {
+        Ladder::EightC10 | Ladder::EightC10Fresh => return 10,
+        Ladder::PlusTwo => return colours(Ladder::Primary, n) + 2,
+        _ => {}
     }
     let i = owen_criterion(n);
     let nearest = (i + 0.5).floor();
     let pick = match ladder {
         Ladder::Primary => nearest,
-        Ladder::EightC10 => unreachable!(),
+        Ladder::EightC10 | Ladder::EightC10Fresh | Ladder::PlusTwo => unreachable!(),
         Ladder::Secondary => {
             if nearest > i {
                 i.floor()
@@ -171,9 +182,17 @@ pub fn make_instance(ladder: Ladder, role: Role, n: u8, seed: u32) -> LadderInst
 #[must_use]
 pub fn ladder_instances(ladder: Ladder, role: Role) -> Vec<LadderInstance> {
     let mut v = Vec::new();
-    let sizes: &[u8] = if ladder == Ladder::EightC10 { &[8] } else { &SIZES };
+    let sizes: &[u8] = match ladder {
+        Ladder::EightC10 | Ladder::EightC10Fresh => &[8],
+        Ladder::PlusTwo => &[6, 7, 9, 10],
+        _ => &SIZES,
+    };
+    let seeds: Vec<u32> = match (ladder, role) {
+        (Ladder::EightC10Fresh, Role::Test) => (31..=50).collect(),
+        _ => role.seeds(),
+    };
     for &n in sizes {
-        for seed in role.seeds() {
+        for &seed in &seeds {
             v.push(make_instance(ladder, role, n, seed));
         }
     }
