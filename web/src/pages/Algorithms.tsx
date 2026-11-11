@@ -170,8 +170,8 @@ const T = {
         <Link className="underline" to="/research/why/phase-transition">
           the hardness peak
         </Link>
-        . A direct 16×16 sweep has not located the peak yet: under a 20-million-node budget
-        it solved no board at any interior count from 8 to 17.
+        . A direct 16×16 sweep has not located the peak yet: under a budget of 20 million DFS steps
+        (placements plus backtracks) it solved no board at any interior count from 8 to 17.
       </>
     ),
     workChartTitle: "Work to solve (median nodes, log scale) vs number of colors",
@@ -339,7 +339,7 @@ const T = {
           le pic de difficulté
         </Link>
         . Un balayage direct en 16×16 n'a pas encore localisé le pic : avec un budget de
-        20 millions de nœuds, il n'a résolu aucun plateau, quel que soit le nombre de couleurs
+        20 millions de pas de DFS (placements et retours arrière), il n'a résolu aucun plateau, quel que soit le nombre de couleurs
         intérieures entre 8 et 17.
       </>
     ),
@@ -511,7 +511,7 @@ const T = {
           el pico de dificultad
         </Link>
         . Un barrido directo en 16×16 aún no ha localizado el pico: con un presupuesto de 20
-        millones de nodos no resolvió ningún tablero con ningún número de colores interiores
+        millones de pasos de DFS (colocaciones y retrocesos) no resolvió ningún tablero con ningún número de colores interiores
         entre 8 y 17.
       </>
     ),
