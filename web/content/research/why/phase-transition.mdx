@@ -1,16 +1,18 @@
 ---
-title: Tuned to the hardness peak
+title: Near the hardness peak
 description: >-
   Eternity II uses 22 colors. They split 17 interior to 5 frame-only, and
-  that count of around 17 lands near where this kind of puzzle is hardest to
-  solve (the transition is a band, not a single integer).
-metaDescription: "Eternity II's 22 colors split 17 interior to 5 frame-only, and that count of around 17 sits near the phase transition where edge-matching puzzles are hardest (a band, not a single integer). Brendan Owen derived the 17+5 design to be maximally hard; later SAT/CSP research places the peak nearby."
+  17 sits near the colour count where the expected number of solutions of a
+  random puzzle this size drops to about one. Hard instances cluster near such
+  thresholds, so the choice is consistent with deliberate tuning, though not
+  proof of a worst case for every search.
+metaDescription: "Eternity II's 22 colors split 17 interior to 5 frame-only. Owen's 2007 first-moment criterion puts the expected-one-solution point at 17.14 interior colours, and SAT/CSP benchmarks find a hardness peak nearby: consistent with deliberate tuning, not a proven worst case."
 kind: finding
 contribution: measurement
 rigor: measured
 tier: 1
 order: 40
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Brendan Owen, Design the hardest puzzle: the 17+5 derivation (eternity2 mailing list, August 2007)"
@@ -19,16 +21,23 @@ sources:
     url: https://link.springer.com/article/10.1007/s10601-012-9128-9
   - label: "Ansótegui, Béjar, Fernández & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge"
     url: https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content
+  - label: "Mézard, Parisi & Zecchina, Analytic and algorithmic solution of random satisfiability problems (Science 297, 2002)"
+    url: https://doi.org/10.1126/science.1073287
+  - label: "Krzakala, Montanari, Ricci-Tersenghi, Semerjian & Zdeborová, Gibbs states and the set of solutions of random constraint satisfaction problems (PNAS 104, 2007)"
+    url: https://doi.org/10.1073/pnas.0703685104
+  - label: "Achlioptas & Coja-Oghlan, Algorithmic barriers from phase transitions (FOCS 2008)"
+    url: https://arxiv.org/abs/0803.2122
 related:
   - /research/why/design-recipe
   - /research/why/prune-vs-speed
   - /research/why/entropy-area-law
   - /research/why/no-forced-moves
+  - /research/build/analysis/solution-counting
 repro:
   kind: exact
   cmd: just research-phase-transition
   topic: phase-transition
-  scope: "Reproduces the 17/5 interior/frame color split. The hardness-peak location is separately measured in-repo by the hardness-peak experiment (an 8x8 solver-effort sweep plus Owen's criterion recomputed to 17.14 at size 16); the 'one expected solution' claim for the full 16x16 board still rests on the cited external sources (Owen msg 1947, Ansótegui/Mateu)."
+  scope: "Reproduces the 17/5 interior/frame color split. The hardness-peak location is separately measured in-repo by the hardness-peak experiment (an 8x8 solver-effort sweep plus Owen's criterion recomputed to 17.14 at size 16); the expected-solution estimates for the full 16x16 board rest on the cited external sources (Owen msg 1947, Ansótegui/Mateu) and the solution-counting page."
 ---
 
 import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
@@ -45,28 +54,48 @@ are scarce but real, and that's where search blows up. People call it a phase
 transition, like water freezing.
 
 For edge-matching puzzles the knob is the number of colors. Too few and pieces
-fit together countless ways; too many and they barely fit at all. The
+fit together countless ways; too many and they barely fit at all. For a
+196-piece interior, the colour count at which the expected number of
+solutions of a random piece set drops to about one is close to 17. For random
+constraint problems the hardest instances for known algorithms cluster near
+such thresholds, but where exactly depends on the algorithm, and this
+first-moment point is only an estimate: it overestimates the true
+satisfiability threshold, and the transitions tied to algorithmic hardness
+(clustering, condensation, freezing) sit below it
+([Mézard, Parisi & Zecchina 2002](https://doi.org/10.1126/science.1073287);
+[Krzakala et al. 2007](https://doi.org/10.1073/pnas.0703685104);
+[Achlioptas & Coja-Oghlan 2008](https://arxiv.org/abs/0803.2122)). The
 [published analysis](https://link.springer.com/article/10.1007/s10601-012-9128-9)
-puts the peak at around 17 interior colors, the setting where a puzzle this
-size has about one solution. Eternity II uses 17.
+measured an empirical peak for specific SAT and CSP solvers on generated
+edge-matching puzzles near this setting. Eternity II uses 17.
 
 The community had that number within weeks of launch: in August 2007,
 Brendan Owen derived $I = (196! \cdot 4^{196})^{1/392} \approx 17.14$
 interior colours from the "about one expected solution" criterion, exactly
 the published parameters, years before the academic analyses
 ([Design the hardest puzzle, msg 1947](https://groups.io/g/eternity2/message/1947)).
+That is a simplified heuristic aimed at roughly one solution. The refined
+estimates are different: about 14,702 expected solutions with the mandatory
+centre clue, and about one with all five clues, both ensemble averages over
+random puzzles with the same piece statistics, not counts of this puzzle's
+solutions (see [solution counting](/research/build/analysis/solution-counting)).
 
 We measured this here. Owen's criterion was only ever stated for the full board,
 so we ran it through a second size to see whether it holds. The same formula
 predicts $(36! \cdot 4^{36})^{1/72} \approx 7.56$ interior colours for an 8x8, and
 an 8x8 is small enough that a plain backtracker actually solves random instances,
 so its difficulty curve can be swept directly. Sweeping solver effort against
-interior-colour count on generated 8x8 boards (the site's own generator and DFS)
-puts the hard band, where the search stops finding a solution within budget, right
-where the size-8 criterion predicts. The full 16x16 sweep is the other half of the
-picture: a plain backtracker never completes it at any colour count, and the depth
-it reaches falls steadily as colours rise, so the real board sits past the point
-where the curve has already gone vertical. The
+interior-colour count on generated 8x8 boards (the site's own generator and DFS,
+30 seeds per colour count, a 30-million-node budget), the search never solves a
+board at 6, 7 or 8 interior colours, close to the size-8 criterion of 7.56. The
+curve is not a clean single peak, though: the same DFS also fails on more than
+half of the boards at 1 to 3 and at 5 interior colours (11 to 14 solved out of
+30), solves 27 of 30 at 4 and 23 of 30 at 9, and every board from 10 colours
+up. So the sweep shows a hard band near the prediction, located to within a
+colour or two, rather than a sharp peak. On 16x16, with a 20-million-node
+budget, the DFS solves nothing at any colour count from 8 to 17, so this sweep
+cannot locate a peak; it only shows the median depth reached falling from 238
+to about 200 of 256 cells as colours rise. The
 [hardness-peak experiment](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/hardness-peak)
 holds the code, both sweeps, and the criterion recomputed in-repo (it reproduces
 Owen's 17.14 at size 16).
@@ -105,9 +134,14 @@ tiles the rectangle at any length: solutions are so scarce they effectively do
 not exist. And then they come back. At length 16 one set in four hundred works,
 by 19 it is 8.5%, by 21 it is 57%, and by 22 nearly nine in ten. The region
 where solutions are vanishingly rare but not yet impossible is exactly the hard
-band, and it is not a story or a model here, it is a count. It is also why a
-14-cell-wide interior is so punishing: it sits in the steep part of that climb,
-where a solution exists but almost no random arrangement is one.
+band, here seen as a count rather than a model. What the count measures is
+satisfiability: how often a random set of 2L pieces can tile a 2-by-L strip at
+all. It follows the first-moment estimate closely: the expected number of
+tilings, $(2L)! \cdot 4^{2L} / 17^{3L-2}$, crosses one between L = 19 and
+L = 20, against an observed 50% point near L = 21. It is a satisfiability
+threshold, not a measurement of search effort (no solver work was recorded),
+and the strip length of a 2-row rectangle does not map directly onto the
+14x14 interior.
 
 ## The split, straight from the pieces
 
@@ -159,21 +193,25 @@ plainly.
 
 ## Why it matters
 
-This is the clearest single sign that Eternity II was made hard on purpose.
-Board size, piece count and color split all aim at the same target: a puzzle
-with about one solution, placed at the worst possible spot for any search to
-find it. The difficulty was chosen, the way a good exam is neither trivial nor
-impossible.
+This is the clearest single sign that Eternity II's parameters were chosen
+with difficulty in mind. Board size, piece count and color split sit near the
+point where a random puzzle of this size is expected to have about one
+solution, which is where hard instances for known algorithms tend to cluster.
+That is consistent with deliberate tuning; it is not proof that the puzzle sits
+at the worst case for every search, since where the hardest instances lie
+depends on the algorithm.
 
 How do we know the peak is real and not just a story? Two ways meet here. The
 published analysis
 [derives it](https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content):
 for framed edge-matching puzzles, the color count where you'd expect about one
-solution falls near 17, and that is the hardest setting to search. And you can
-watch a piece of it yourself in the demo above: build real puzzles, count the
-work, and see it explode when colors are scarce. The impact is concrete. It
-means the gap to a solution isn't a tuning problem you can grind away with a
-faster machine; the puzzle was placed where search is worst on purpose, so
-beating it needs a genuinely better idea, not just more effort.
+solution falls near 17, and their SAT and CSP solvers found their hardest
+generated instances nearby. And you can watch a piece of it yourself in the
+demo above: build real puzzles, count the work, and see it change with the
+colour count. The impact is concrete but needs two cases kept apart. For exact
+exhaustive search, a constant-factor speedup cannot make the full 16x16 tree
+feasible. For stochastic record hunting, more throughput means more attempts
+and can plausibly raise the best score, with diminishing returns. A full
+solution most likely needs a better idea, not only more effort.
 
 See the difficulty measured live on the [Algorithms page](/algorithms).

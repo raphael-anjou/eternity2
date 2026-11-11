@@ -1,18 +1,19 @@
 ---
-title: "El puzzle no tiene función de altura"
+title: "Tres construcciones de altura fracasan en Eternity II"
 description: >-
   Toma el truco del físico que vuelve solubles los defectos cristalinos e intenta
   convertir un empalme mal casado en una dislocación con una carga conservada.
   Fracasa de tres maneras: una altura escalar es ciega a las roturas, el conjunto
   de roturas forma cadenas abiertas y no bucles cerrados, y la corriente orientada
-  por color no se conserva. Solo sobrevive un bit de paridad sin signo.
-metaDescription: "Una reformulación de Eternity II en dislocaciones intenta dar a cada defecto una carga conservada que un movimiento de gusano aniquilaría por pares. Fracasa de tres maneras; el único invariante que sobrevive es un bit de paridad sin signo por color, medido en los tableros de este proyecto."
+  por color no se conserva. Queda una paridad por color que todo tablero con
+  marco legal cumple automáticamente. No se descartan otros invariantes.
+metaDescription: "Una reformulación de Eternity II en dislocaciones busca una carga conservada por defecto, aniquilable por pares. Tres construcciones naturales fracasan en cuatro tableros; la paridad por color que queda vale automáticamente, y no se descartan otros invariantes."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 75
-updated: 2026-07-23
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: "Verificador sin función de altura: artículo, código fuente Rust y tabla de resultados por tablero (GitHub)"
@@ -127,9 +128,8 @@ coincidiendo el tablero 463 en 22 por ambos lados. Los colores y signos precisos
 que salen desequilibrados son etiquetas ligadas a cómo se numeró un tablero
 concreto y no tienen sentido propio; solo el recuento de colores desequilibrados,
 y el hecho de que nunca sea cero, es el contenido reproducido. Son los propios
-tableros de este proyecto, muy por debajo de los mejores de la comunidad, 470 bajo
-la convención de la pista central y 465 con las cinco pistas colocadas (de nuevo,
-la [página de récords](/research/records) conserva ese contexto); se usan aquí
+tableros de este proyecto, por debajo de los mejores de la comunidad (la
+[página de récords](/research/records) conserva ese contexto); se usan aquí
 porque la obstrucción debe verificarse en un tablero real de alta puntuación de la
 instancia oficial, no en un tablero pequeño generado donde sería o bien vacía o
 bien fuera de instancia.
@@ -138,18 +138,24 @@ bien fuera de instancia.
 
 Reúne los tres fracasos. Una altura escalar es sorda a las roturas; el conjunto de
 roturas son cadenas abiertas con decenas de cabos sueltos; la corriente orientada
-por color no se equilibra. Toda ruta hacia una altura de vector de Burgers está
-cerrada. Lo que queda es mucho más débil que una altura: el único invariante
-conservado del conjunto de roturas es una **paridad por color sin signo**, un bit
-por color (un elemento de un espacio de dimensión 22 sobre el cuerpo de dos
-elementos). Un bit registra si el recuento de empalmes medio rotos de un color es
-par o impar; no tiene dirección ni magnitud. Un bit no es la holonomía de ninguna
-función de altura, y ningún movimiento de gusano puede construirse sobre él.
+por color no se equilibra. En los cuatro tableros probados, ninguna de estas tres
+construcciones da una altura de vector de Burgers. Lo que queda es mucho más
+débil que una altura: una **paridad por color sin signo**, que indica si el
+recuento de empalmes medio rotos de un color es par o impar. Esa paridad es
+automática. Cada color aparece un número par de veces entre las medias aristas
+de cualquier puzzle recortado de un tablero resuelto, así que en todo tablero
+completo con marco legal cada color tiene un número par de empalmes medio rotos
+(el mismo recuento que hay detrás de [por qué 479 es imposible](/research/why/parity-defect-floor)).
+El bit es el mismo en todos los tableros, no dice nada propio de Eternity II, no
+es la holonomía de ninguna función de altura y ningún movimiento de gusano puede
+construirse sobre él.
 
-Ese es el resultado negativo, y vale la pena enunciarlo con claridad porque la
-idea que mata es realmente atractiva: la imagen de dímeros y defectos queda
-cerrada por el lado de las roturas, y con ella el sueño de un movimiento no local
-limpio que camine los defectos hasta aniquilarlos. La intuición física que deja en
+Ese es el resultado negativo, y su alcance importa. Muestra que tres
+construcciones naturales de altura fracasan; no muestra que no exista ningún
+otro invariante, lo que exigiría una prueba sobre todos los invariantes
+candidatos y no la comprobación de tres. La idea que debilita es realmente
+atractiva: la imagen de dímeros y defectos, tal como se construye aquí, no da
+ningún movimiento no local limpio que lleve los defectos hasta aniquilarse. La intuición física que deja en
 pie es más esperanzadora y vive en otra parte: la salida correcta de un tablero
 localmente congelado (véase el [muro de rigidez](/research/why/rigidity-wall)) es
 un **movimiento de agrupamiento correlacionado**, varias fichas giradas juntas, en
@@ -158,13 +164,12 @@ distinto y no se mide aquí.
 
 También encaja con la forma del puzzle tal como se ve en los tableros mismos. Las
 roturas no se dispersan; se [amontonan en una sola banda](/research/why/mismatch-geometry)
-y el grafo de las aristas mal casadas es siempre un bosque, sin cerrar nunca un
-bucle, que es el mismo hecho de cadena abierta que esta página demuestra imposible
-de cerrar. El bit de paridad superviviente es un primo de la ley de conteo detrás
-de [por qué 479 es imposible](/research/why/parity-defect-floor): ambos son lo que
+y los grafos de desajustes perfilados son bosques, que es lo que dan de todos
+modos, por azar, tan pocos defectos en una cuadrícula de 480 empalmes. El bit de
+paridad superviviente es un primo de la ley de conteo detrás de
+[por qué 479 es imposible](/research/why/parity-defect-floor): ambos son lo que
 se obtiene cuando un invariante orientado colapsa en uno sin signo sobre el cuerpo
-de dos elementos. La dirección es exactamente lo que esta instancia se niega a
-darte.
+de dos elementos.
 
 ## Compruébalo tú mismo
 

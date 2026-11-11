@@ -1,17 +1,18 @@
 ---
-title: No forced moves
+title: No forced moves from a single edge
 description: >-
   The usual way to crack a logic puzzle is to find a spot where only one piece
-  fits, place it, and repeat. That lever doesn't exist here: every interior
-  piece has between 73 and 137 possible neighbours, and not one is ever pinned
-  to a single option.
-metaDescription: "Eternity II has no forced moves: every one of its 196 interior pieces has 73 to 137 possible right-hand neighbours and is never pinned to a single option, so the usual logic lever is gone. That freedom is the flip side of forbidden patterns: lots of local slack, almost no global consistency."
+  fits, place it, and repeat. With one neighbour known, that lever is absent
+  here: every interior piece has between 73 and 137 compatible right-hand
+  partners. Forced moves only appear once two neighbours are fixed, and the
+  spread itself is what any random puzzle with this palette shows.
+metaDescription: "With one neighbour known, each of Eternity II's 196 interior pieces has 73 to 137 compatible right-hand partners, so single edges never force a move. With north and west fixed, about three candidates remain and some cells are forced. Random puzzles show the same spread."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 2
 order: 60
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: "No forced moves: article, source and results (GitHub)"
@@ -77,14 +78,25 @@ export function PartnerHistogram() {
 
 Every one of the 196 interior pieces has between 73 and 137 other pieces that
 can legally sit to its right (counting right-hand partners, as the chart above
-does). The typical piece has over a hundred options. Not a single piece is
-ever pinned to one choice.
+does). The typical piece has over a hundred options. With only one neighbour
+known, no piece is ever pinned to one choice, so a single-edge constraint never
+forces a move.
 
-This is the flip side of forbidden patterns. There, almost every combination
-of pieces is impossible. You'd think all those rules would corner pieces into
-place. They don't: the constraints rule out combinations without ever
-cornering an individual piece, so a solver never gets a free, forced move to
-build on.
+That statement is about one edge at a time. A cell in a real search usually
+knows more: under the standard top-left fill it knows both its north and its
+west colour. Then the candidate set collapses to about three pieces on
+average, and 47 of the 269 possible (north, west) demands have exactly one
+server (see [piece theft](/research/why/piece-theft)). Forced moves do exist;
+they arrive late, once two sides are fixed, and cannot be chained from a
+single edge.
+
+The spread is also not a design signature. Run the same count on 100 randomly
+painted 16x16 boards with the same palette (5 frame colours, 17 interior
+colours, the engine's framed generator) and the median piece has between 120
+and 128 partners (Eternity II: 125), the minimum ranges from 36 to 79
+(Eternity II: 73), and no board has a forced piece. The number follows from
+the colour frequencies alone: 17 colours shown in four rotations leave about
+120 compatible partners per piece.
 
 <div className="grid grid-cols-3 gap-3 text-center">
   <div className="rounded-lg border p-4">
@@ -110,8 +122,9 @@ accepts. The whole distribution sits far from one.
 
 ## See it on a real puzzle
 
-The engine fills a few cells; then we count, live, how many pieces legally
-fit the next one. It almost never drops to one.
+The engine fills a few cells; then we count, live, how many unused pieces
+legally fit the next one, given every neighbour already placed. Watch how the
+count shrinks once a cell has two placed neighbours.
 
 <Figure collapsible title="Interactive: candidate counts, cell by cell">
   <ForcedMovesLab />
@@ -119,9 +132,13 @@ fit the next one. It almost never drops to one.
 
 ## Why it matters
 
-Put this beside forbidden patterns and the real shape of the difficulty
-appears. Locally the puzzle looks loose: any piece fits next to plenty of
-others, so there's nothing to propagate and no chain of forced moves to ride.
-Globally almost every combination is illegal. The hardness lives in that gap:
-lots of local freedom, almost no global consistency. A solver has to make a
-long run of free-looking choices that only turn out wrong much later.
+Put this beside forbidden patterns and the shape of the difficulty appears.
+Pairwise the puzzle looks loose: any piece fits next to plenty of others, so
+propagating a single edge prunes almost nothing. Globally almost every
+combination is illegal. The pruning that does happen comes from cells with
+two or more fixed neighbours, which is why forward checking and
+[arc consistency](/research/build/reduce/arc-consistency) work on the
+conditional domains, not on pairwise counts. A solver still makes a long run
+of free-looking choices whose consequences only show up once later cells
+close around them. Nothing here is special to Eternity II: it is the generic
+behaviour of a 16x16 edge-matching puzzle with this many colours.
