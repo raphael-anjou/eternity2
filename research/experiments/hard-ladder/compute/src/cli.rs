@@ -51,10 +51,12 @@ fn to_jsonl<T: serde::Serialize>(rows: &[T]) -> String {
     rows.iter().map(|r| serde_json::to_string(r).expect("json") + "\n").collect()
 }
 
-const PAIRS: [(Ladder, Role); 3] = [
+const PAIRS: [(Ladder, Role); 5] = [
     (Ladder::Primary, Role::Test),
     (Ladder::Primary, Role::Calibration),
     (Ladder::Secondary, Role::Test),
+    (Ladder::EightC10, Role::Test),
+    (Ladder::EightC10, Role::Calibration),
 ];
 
 fn arg<'a>(args: &'a [String], key: &str) -> Option<&'a str> {

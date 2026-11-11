@@ -16,6 +16,8 @@ pub enum Ladder {
     Primary,
     /// The other adjacent integer.
     Secondary,
+    /// 8x8 only at c = 10 (above critical; round-2 rung R8, file `8-c10`).
+    EightC10,
 }
 
 impl Ladder {
@@ -24,6 +26,7 @@ impl Ladder {
         match self {
             Self::Primary => "primary",
             Self::Secondary => "secondary",
+            Self::EightC10 => "8-c10",
         }
     }
 
@@ -32,6 +35,7 @@ impl Ladder {
         match s {
             "primary" => Some(Self::Primary),
             "secondary" => Some(Self::Secondary),
+            "8-c10" => Some(Self::EightC10),
             _ => None,
         }
     }
@@ -83,10 +87,14 @@ pub fn owen_criterion(n: u8) -> f64 {
 /// Preregistered interior colour count for `ladder` at size `n`.
 #[must_use]
 pub fn colours(ladder: Ladder, n: u8) -> u8 {
+    if ladder == Ladder::EightC10 {
+        return 10;
+    }
     let i = owen_criterion(n);
     let nearest = (i + 0.5).floor();
     let pick = match ladder {
         Ladder::Primary => nearest,
+        Ladder::EightC10 => unreachable!(),
         Ladder::Secondary => {
             if nearest > i {
                 i.floor()
@@ -163,7 +171,8 @@ pub fn make_instance(ladder: Ladder, role: Role, n: u8, seed: u32) -> LadderInst
 #[must_use]
 pub fn ladder_instances(ladder: Ladder, role: Role) -> Vec<LadderInstance> {
     let mut v = Vec::new();
-    for n in SIZES {
+    let sizes: &[u8] = if ladder == Ladder::EightC10 { &[8] } else { &SIZES };
+    for &n in sizes {
         for seed in role.seeds() {
             v.push(make_instance(ladder, role, n, seed));
         }

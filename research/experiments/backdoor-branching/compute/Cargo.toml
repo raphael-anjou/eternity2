@@ -1,0 +1,25 @@
+[package]
+name = "backdoor-branching"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Round 2: backdoor-guided branching (Stage 1 features on A3 backdoors, Stage 2 DFS on the hard ladder)."
+default-run = "bb_ladder"
+
+# Standalone workspace so the crate builds from a clean checkout on its own.
+[workspace]
+
+[lib]
+name = "backdoor_branching"
+path = "src/lib.rs"
+
+[dependencies]
+hard-ladder = { path = "../../hard-ladder/compute" }
+sat-backdoors = { path = "../../sat-backdoors" }
+eternity2-engine = { path = "../../../../engine" }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
