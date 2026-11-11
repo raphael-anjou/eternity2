@@ -8,7 +8,7 @@ description: >-
 metaDescription: "La frontière ouverte d'Eternity II sur un tableau : l'écart de 470 à 480, la cible stricte à cinq indices au-delà de 465, le 10x10 sans indice set_2 d'Owen non résolu, franchir un bassin de rigidité, le mur mémoire du meet-in-the-middle, un axe de diversité au-delà du parallel tempering."
 kind: reference
 order: 35
-updated: 2026-07-21
+updated: 2026-11-11
 topics: []
 sources:
   - label: "Archive de la liste de diffusion eternity2 (groups.io) : où les cibles ouvertes sont annoncées et discutées"
@@ -97,24 +97,30 @@ une recherche en cours, que l'on peut rejoindre.
 </Callout>
 
 **Mur.** La même difficulté d'appariement d'arêtes que le puzzle complet, à une
-taille qu'une seule machine peut réellement terminer. Set_1 a demandé une
-recherche vaste mais bornée, donc set_2 est une cible d'ingénierie de recherche,
-pas une cible structurelle.
+taille où une recherche complète peut réellement aboutir. Set_1 est tombé après
+environ 2×10¹⁷ nœuds (environ 180 années-cœur en 2017), et set_2 devrait coûter
+le même ordre de grandeur : c'est une cible d'ingénierie de recherche, pas une
+cible structurelle. Une résolution reste un tirage au sort : avec les
+statistiques de set_1, l'attente de la première solution va d'environ un
+vingtième à trois fois le coût attendu (du 5e au 95e centile).
 
 **Essayé, et où cela s'est arrêté.** L'histoire complète est sur la page
 [benchmarks](/research/build/benchmarks#les-1010-de-brendan--lun-est-tombé-lautre-tient-encore) :
 set_1 a été résolu, les statistiques de set_2 sont connues, et il
 [tient toujours](/research/build/benchmarks#les-1010-de-brendan--lun-est-tombé-lautre-tient-encore).
 
-**Étiquette.** Abordable pour un débutant. C'est la seule cible ouverte
-dimensionnée pour une machine personnelle et un backtracker bien réglé plutôt
-qu'une grappe de calcul, donc la première vraie tentative recommandée.
+**Étiquette.** Difficile, au coût connu. Son prix est chiffré d'avance, et il
+correspond à un long calcul distribué ou à un moteur bien plus rapide, pas à un
+week-end sur un seul PC. Pour une première tentative, gravissez d'abord
+[l'échelle des benchmarks](/research/build/benchmarks#ce-quil-faut-exécuter-aujourdhui) du 7×7 au 9×9.
 
 ## Franchir un bassin de rigidité
 
 <Callout kind="open" title="Existe-t-il un chemin local d'un bassin record à un autre ?">
-  Chaque plateau record se trouve dans un bassin que des preuves MIP montrent
-  localement optimal jusqu'à un halo de plusieurs cellules. La question ouverte
+  Les bassins records testés jusqu'ici (trois ou quatre, dont un 469) sont
+  prouvés localement optimaux par MIP jusqu'à un halo de plusieurs cellules ;
+  rien ne dit encore que tous les plateaux records soient aussi rigides. La
+  question ouverte
   est de savoir si une suite de petits coups légaux atteint un autre bassin.
 </Callout>
 
@@ -213,9 +219,11 @@ la trancher dans un sens ou l'autre reformulerait la lecture des deux murs.
 
 ## Le pic de difficulté produit-il le profil de branchement d'aucun coup forcé ?
 
-<Callout kind="open" title="Le facteur de branchement élevé est-il imposé par la position au pic à une solution ?">
-  Chaque case intérieure conserve 73 à 137 pièces légales, et le puzzle se situe
-  à la transition de phase d'environ une solution attendue. Les deux sont
+<Callout kind="open" title="Le facteur de branchement élevé est-il imposé par la proximité du pic de difficulté ?">
+  Chaque case intérieure conserve 73 à 137 pièces légales, et le nombre de
+  couleurs intérieures (17) se situe près de la zone de difficulté de l'ensemble,
+  là où l'estimation au premier moment d'Owen donne environ une solution (le vrai
+  jeu de pièces en compterait environ 14 702 avec la pièce de départ). Les deux sont
   regroupés sous « rien de local à élaguer », mais aucune dérivation ne lie le
   décompte de branchement à la position à environ 17 couleurs intérieures.
 </Callout>
@@ -223,7 +231,7 @@ la trancher dans un sens ou l'autre reformulerait la lecture des deux murs.
 **Mur.** [Aucun coup forcé](/research/why/no-forced-moves) et
 [le pic de difficulté](/research/why/phase-transition). Le décompte de branchement
 est un compte de candidats par case sur le jeu de pièces ; le pic est un énoncé
-sur le nombre de solutions à 17 couleurs. Un puzzle pourrait en principe avoir
+sur le nombre attendu de solutions de puzzles aléatoires vers 17 couleurs. Un puzzle pourrait en principe avoir
 l'un sans l'autre.
 
 **Essayé, et où cela s'est arrêté.** [Élagage contre vitesse](/research/why/prune-vs-speed)

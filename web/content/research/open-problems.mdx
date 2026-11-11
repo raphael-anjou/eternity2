@@ -7,7 +7,7 @@ description: >-
 metaDescription: "The open frontier of Eternity II on one board: the 470-to-480 gap, the strict five-clue 465 target, Owen's unsolved hint-free 10x10 set_2, crossing a rigidity basin, the meet-in-the-middle memory wall, and a diversity axis beyond parallel tempering. Each angle paired with its wall."
 kind: reference
 order: 35
-updated: 2026-07-21
+updated: 2026-11-11
 topics: []
 sources:
   - label: "eternity2 mailing-list archive (groups.io): where the open targets are announced and discussed"
@@ -90,24 +90,29 @@ open problem on this page with a running, joinable search behind it.
   remains the community's agreed next rung below the full 16x16.
 </Callout>
 
-**Wall.** The same edge-matching hardness as the full puzzle, at a size a
-single machine can actually finish. Set_1 took a large but bounded search, so
-set_2 is a search-engineering target, not a structural one.
+**Wall.** The same edge-matching hardness as the full puzzle, at a size where
+a complete search can actually finish. Set_1 fell after about 2×10¹⁷ nodes
+(about 180 core-years in 2017), and set_2 should cost the same order, so it is
+a search-engineering target, not a structural one. One solve is a random draw:
+on set_1's statistics, the waiting time to the first solution spans about a
+twentieth to three times the expected cost (5th to 95th percentile).
 
 **Tried, and where it stopped.** The full story is on the
 [benchmarks](/research/build/benchmarks#brendans-1010s-one-fell-one-is-still-standing)
 page: set_1 was solved, set_2's statistics are known, and it is
 [still standing](/research/build/benchmarks#brendans-1010s-one-fell-one-is-still-standing).
 
-**Entry tag.** Newcomer-friendly. This is the one open target sized for a
-personal machine and a well-tuned backtracker rather than a compute cluster, so
-it is the recommended first real attempt.
+**Entry tag.** Hard, well-priced. Its cost is known in advance, and it is sized
+for a long distributed run or a much faster engine, not a weekend on one PC. For
+a first attempt, climb the 7×7 to 9×9
+[benchmark ladder](/research/build/benchmarks#what-to-run-today) first.
 
 ## Crossing a rigidity basin
 
 <Callout kind="open" title="Is there any local path from one record basin to another?">
-  Every record board sits in a basin that MIP proofs show is locally optimal
-  out to a multi-cell halo. The open question is whether any sequence of small,
+  The record basins tested so far (three to four, including a 469) are proven
+  locally optimal by MIP out to a multi-cell halo; whether every record board is
+  equally rigid is untested. The open question is whether any sequence of small,
   legal moves reaches a different basin at all.
 </Callout>
 
@@ -201,9 +206,11 @@ either way would reframe how the two walls are read.
 
 ## Does the hardness peak produce the no-forced-moves branching profile?
 
-<Callout kind="open" title="Is the high branching factor forced by sitting at the one-solution peak?">
-  Every interior cell keeps 73 to 137 legal pieces, and the puzzle sits at the
-  phase transition of about one expected solution. Both are grouped as "nothing
+<Callout kind="open" title="Is the high branching factor forced by sitting near the hardness peak?">
+  Every interior cell keeps 73 to 137 legal pieces, and the interior colour
+  count (17) sits near the ensemble hardness band where Owen's first-moment
+  estimate gives about one solution (the real piece set is estimated at about
+  14,702 with the starter). Both are grouped as "nothing
   local to prune," but no derivation ties the branching count to sitting at
   roughly 17 interior colours.
 </Callout>
@@ -211,7 +218,7 @@ either way would reframe how the two walls are read.
 **Wall.** [No forced moves](/research/why/no-forced-moves) and
 [the hardness peak](/research/why/phase-transition). The branching count is a
 per-cell candidate count on the piece set; the peak is a statement about the
-number of solutions at 17 colours. A puzzle could in principle have one without
+expected number of solutions of random puzzles near 17 colours. A puzzle could in principle have one without
 the other.
 
 **Tried, and where it stopped.** [Prune versus speed](/research/why/prune-vs-speed)

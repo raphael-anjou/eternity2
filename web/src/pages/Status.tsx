@@ -71,10 +71,12 @@ const T = {
     why: (
       <>
         Eternity II was engineered to resist search. There are on the order of 10<sup>560</sup> ways
-        to arrange the pieces, and the puzzle was generated to have close to a single solution, right
-        at the point where the problem is hardest. Getting to 470 is already the work of
-        purpose-built solvers running for tens of billions of steps. Closing the final gap is a
-        different kind of problem: it needs a better idea, not just a faster machine.
+        to arrange the pieces, and the puzzle was designed to have very few solutions (about 14,702 with the centre
+        clue, by community estimate), with a colour count near the band where such puzzles are
+        hardest. Getting to 470 is already the work of purpose-built solvers running for tens of
+        billions of steps. Faster machines have helped push the record, since more speed buys more
+        attempts, but no constant-factor speedup closes the last ten edges on its own: that needs a
+        better idea.
       </>
     ),
     ctaRecords: "See the full record timeline",
@@ -140,11 +142,14 @@ const T = {
     why: (
       <>
         Eternity II a été conçu pour résister à la recherche. Il existe de l'ordre de 10
-        <sup>560</sup> façons d'agencer les pièces, et le puzzle a été généré pour n'avoir qu'à peu
-        près une seule solution, pile là où le problème est le plus dur. Atteindre 470 est déjà
-        l'affaire de solveurs taillés sur mesure, lancés sur des dizaines de milliards d'étapes.
-        Combler le dernier écart relève d'un autre problème : il y faut une meilleure idée, pas
-        seulement une machine plus rapide.
+        <sup>560</sup> façons d'agencer les pièces, et le puzzle a été conçu pour n'avoir que très
+        peu de solutions (environ 14 702 avec l'indice central, selon l'estimation de la
+        communauté), avec un nombre de couleurs proche de la zone où ces puzzles sont les plus
+        durs. Atteindre 470 est déjà l'affaire de solveurs taillés sur mesure, lancés sur des
+        dizaines de milliards d'étapes. Des machines plus rapides ont aidé à faire monter le
+        record, puisque plus de vitesse veut dire plus de tentatives, mais aucune accélération
+        d'un facteur constant ne comble à elle seule les dix dernières arêtes : il y faut une
+        meilleure idée.
       </>
     ),
     ctaRecords: "Voir la chronologie complète des records",
@@ -210,10 +215,13 @@ const T = {
     why: (
       <>
         Eternity II se diseñó para resistir a la búsqueda. Hay del orden de 10<sup>560</sup> formas
-        de disponer las piezas, y el puzzle se generó para tener casi una única solución, justo en el
-        punto donde el problema es más difícil. Llegar a 470 es ya obra de solucionadores hechos a
-        medida, ejecutados durante decenas de miles de millones de pasos. Cerrar la última diferencia
-        es un problema de otra índole: hace falta una idea mejor, no solo una máquina más rápida.
+        de disponer las piezas, y el puzzle se diseñó para tener muy pocas soluciones (unas 14.702 con la pista
+        central, según la estimación de la comunidad), con un número de colores cercano a la franja
+        donde estos puzzles son más difíciles. Llegar a 470 es ya obra de solucionadores hechos a
+        medida, ejecutados durante decenas de miles de millones de pasos. Las máquinas más rápidas
+        han ayudado a subir el récord, porque más velocidad significa más intentos, pero ninguna
+        aceleración por un factor constante cierra por sí sola las diez últimas aristas: hace falta
+        una idea mejor.
       </>
     ),
     ctaRecords: "Ver la cronología completa de los récords",
