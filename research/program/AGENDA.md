@@ -199,7 +199,7 @@ test, scheduled at larger scale), `published`.
 - **Kill.** Murty arm does not beat the baseline on solve rate or on paired gap to the planted optimum by more than 2 standard errors on both sizes; or 90% or more of its improving moves are exchange cycles of 5 cells or fewer (already covered by the rigidity census).
 - **Budget.** About 8 core-hours, CPU only.
 
-## A10. Near-codeword spectrum: fewest breaks at each overlap with a planted solution · running
+## A10. Near-codeword spectrum: fewest breaks at each overlap with a planted solution · killed
 
 - **Hypothesis.** The curve b_min(a), the fewest breaks of any full board at distance a from the planted solution, tests the overlap-gap reading of the 470 wall for near-solutions: a barrier in the mid-overlap band that grows with size.
 - **Borrowed from.** Coding theory, near-codewords / (a,b) trapping sets: D. J. C. MacKay and M. S. Postol, ENTCS 74 (2003), DOI 10.1016/S1571-0661(04)80768-0; enumeration after Karimi and Banihashemi, IEEE Trans. Inf. Theory 58(11), 2012, DOI 10.1109/TIT.2012.2205663.
@@ -208,6 +208,8 @@ test, scheduled at larger scale), `published`.
 - **Baseline.** Annealed first-moment prediction of b_min per band; a polished-random reachable null; a looser palette as no-gap control.
 - **Kill.** K1: median barrier H_mid - H_far <= 0 at 5x5 and 6x6 or not growing; or at 7x7/8x8 a mid-band board as good as the best far-band board on 25% or more of instances. K2: b_min(a) <= 2 for some a >= n/3 at 6x6. K3: annealed model off by more than 2 breaks mid-band at 6x6.
 - **Budget.** 10 to 14 core-hours, CPU only.
+
+- **Result (round 2, [PR #25](https://github.com/raphael-anjou/eternity2/pull/25)).** Killed by a second independent judge; the first ruled the run invalid because the corner pin does not remove the 4-fold board rotation, so the far band held a turned copy of the planted solution and K1c was undetermined. With distance quotiented by rotation (amendment A6, committed before the fix-run solves), K1a fires on closed data: 5x5 C=13 median mid band 4 breaks against far band 7 (B* = -3, 30/30 optimal), 6x6 C=14 median B* in [-7, -1]. The judge reproduced all 60 5x5 optima with an independent CP-SAT model. No primary instance has a 0-break board far from the planted solution, so the kill covers single-solution-class small boards only: the mid band is a cheap saddle, not a barrier. Next: the same measurement between two distinct solutions on 6x6 and 7x7 palettes with 5 to 50 expected solution classes (kill if median H_between - H_near <= 0 or fewer than 10 usable instances per size). Experiment: `research/experiments/near-codeword-spectrum/`.
 
 ## A11. Coupled real replicas (local entropy) versus parallel tempering · proposed
 
@@ -219,7 +221,7 @@ test, scheduled at larger scale), `published`.
 - **Kill.** Solved-count advantage over the better baseline below 10 instances of 120, or exact one-sided McNemar p >= 0.01.
 - **Budget.** About 13 core-hours, CPU only.
 
-## A12. ProbCut statistical cutoffs for exact search · running
+## A12. ProbCut statistical cutoffs for exact search · killed
 
 - **Hypothesis.** A shallow subtree-size probe predicts whether a DFS subtree holds a solution well enough to cut it with a calibrated false-cut rate, past the depth where proofs stop.
 - **Borrowed from.** M. Buro, "ProbCut", ICCA Journal 1995, DOI 10.3233/ICG-1995-18202; Multi-ProbCut (Buro 1999).
@@ -228,6 +230,8 @@ test, scheduled at larger scale), `published`.
 - **Baseline.** Ladder DFS baselines; shallow value v_0 alone for the AUC stage.
 - **Kill.** Probe AUC gain over v_0 below 0.05, R^2 below 0.2, or held-out false-cut rate above 2p; or median nodes to first solution (all passes included) not at most 0.7x the better baseline at 8x8 and 9x9; and the ladder's G1 gate at 8x8.
 - **Budget.** A few core-hours, CPU only.
+
+- **Result (round 2, [PR #20](https://github.com/raphael-anjou/eternity2/pull/20)).** Killed by an independent judge. Its own stage-2 criterion fired: V1 solved 13/30 on the first R8 pass, at or below the kill line of 15. At 8x8 c=10 G1 is NO-GAIN for both variants against `scb` and `fc-dfs`; the cuts removed planted-solution branches (V1 13/30, V2 17/30 solved vs `fc-dfs` 19/30) and cost nodes at 6x6. The stage-1 AUC null is structural (row-boundary probes shorter than one row cannot see the sibling difference), so it is not evidence for the "signal fades two cells out" wall. A variant would need probes of n to 2n cells at mid-row nodes, at least 60 sibling sets, cuts on the ladder's strongest DFS. Experiment: `research/experiments/probcut/`.
 
 ## A13. Synteny decomposition of local optima · proposed
 
@@ -249,7 +253,7 @@ test, scheduled at larger scale), `published`.
 - **Kill.** No improvement over the better of ALNS and PT by more than 2 standard errors and no more planted solves on both sizes; or CP-SAT cannot certify the k=8 ball in 60 s on most 10x10 incumbents.
 - **Budget.** About 25 core-hours, CPU only.
 
-## A15. Non-chronological, bond-weighted unassignment (kTAM / iterative modulo scheduling) · proposed
+## A15. Non-chronological, bond-weighted unassignment (kTAM / iterative modulo scheduling) · killed
 
 - **Hypothesis.** Growing the board by stable cooperative attachments and detaching weakly bonded pieces anywhere (self-assembly kinetics), or evicting the piece that blocks a cell (iterative modulo scheduling), solves hard-band boards chronological DFS does not.
 - **Borrowed from.** Winfree's kinetic Tile Assembly Model (E. Winfree and R. Bekbolatov, "Proofreading Tile Sets", DNA Computing 2003); B. R. Rau, "Iterative modulo scheduling", MICRO-27, 1994, DOI 10.1145/192724.192731. Two round-1 ideas merged here because both rest on the same mechanism.
@@ -259,7 +263,9 @@ test, scheduled at larger scale), `published`.
 - **Kill.** Solves fewer than max(baselines) + 5 boards at 8x8; mechanism killed if the generic arm comes within 4 boards.
 - **Budget.** 1 to 4 core-hours, CPU only.
 
-## A16. Backdoor-guided branching · running
+- **Result (round 3, [PR #23](https://github.com/raphael-anjou/eternity2/pull/23)).** Killed by an independent judge on the method clause; the mechanism clause did not fire. Run at 6x6 c=5 and 7x7 c=6 first, 1e6 events per instance (one event = one placement or removal). R6 solved/30: ladder DFS `scb-gacolor_ac3_random` 30 (KM median 1,866 events), plain DFS 30, random eviction 19, kTAM detachment (V1) 23, IMS blocker eviction (V2) 27; G1 against the ladder DFS NO-GAIN for both (paired ratios 186 and 100). R7: ladder DFS 10 (16 within 1e6 nodes), every other arm 0. R8 not triggered. V2 beats random eviction at R6 (ratio 0.43, p 0.004; holds over the judge's run seeds 2 to 5 and a matched control), so choosing which piece to remove by its blocking relation carries signal, but without propagation it loses to complete propagating DFS by two orders of magnitude. Exploratory equal-CPU check at R7 (11.8 s per instance): ladder DFS 16/30, V1 and V2 1/30 (lower bounds: most method runs hit their node cap at about 80% of that CPU). Randomised restarts on the ladder DFS were suggested and are not taken up (restart portfolios are saturated in EXPLORED.md). Follow-ups: A19, A20, A21. Experiment: `research/experiments/ktam-unassignment/`.
+
+## A16. Backdoor-guided branching · killed
 
 - **Hypothesis.** A3's small backdoors can be recognised from root features without the solution, and branching on predicted backdoor cells first shrinks DFS trees below dynamic fail-first ordering.
 - **Borrowed from.** Strong backdoors (Williams, Gomes and Selman, IJCAI 2003), via A3.
@@ -268,7 +274,9 @@ test, scheduled at larger scale), `published`.
 - **Kill.** Backdoor-membership AUC not above fail-first with CI above 0, or the ladder's G1 gate fails at 8x8 against the strongest dynamic ordering.
 - **Budget.** A few core-hours.
 
-## A17. Cut-multiset feasibility pruning · running
+- **Result (round 2, [PR #24](https://github.com/raphael-anjou/eternity2/pull/24)).** Killed by an independent judge: K1 does not fire but K2 and K3 do. Stage 1: backdoor membership is predicted with test AUC 0.637 against 0.373 for fail-first (Delta +0.264, CI [0.233, 0.295]), but the model adds only +0.010 (CI includes 0) over domain size with the sign learned on training, and within interior cells its AUC is 0.518, so the signal is mostly position class plus domain size. Stage 2 on 20 test seeds per rung: branching first on predicted backdoor cells is NO-GAIN against `bb-mrv` (A3 propagation plus MRV) at every rung; R6 node ratio 17.2 (learned) and 8.1 (impact feature), R7 1/20 solved against 15/20, R8 (8x8 c=10) 1 to 2/20 against 20/20, and the loss holds on nodes alone without the 240 s guard. Side observation, not preregistered: `bb-mrv` beats the ladder baseline `scb-gacolor_ac3_random` at all three rungs (R8 20/20 vs 12/20, KM median 95k vs 468k nodes, faster in wall clock). Next: preregister `bb-mrv` as a ladder baseline candidate on fresh seeds (kill if G1 fails at 8-c10 or the wall-clock ratio against scb is above 1), and if it survives re-baseline A12 and A17 on it. Further backdoor work should use backdoors for decomposition or restarts, not as a first-branch rule. Experiment: `research/experiments/backdoor-branching/`.
+
+## A17. Cut-multiset feasibility pruning · promoted
 
 - **Hypothesis.** A check that the colours demanded along the frontier of a partial board can be supplied by the unused pieces (count, parity and flow conditions) prunes DFS nodes that local arc consistency keeps.
 - **Borrowed from.** Transfer-matrix counting over colour multisets (round-1 A5).
@@ -276,6 +284,56 @@ test, scheduled at larger scale), `published`.
 - **Cheap test.** On the hard-instance ladder, nodes and wall clock.
 - **Kill.** No significant node reduction on any of the round-2 rungs (6x6 c=5, 7x7 c=6, 8x8 c=10). A pass needs median paired node ratio at most 0.5 at 8x8.
 - **Budget.** A few core-hours.
+
+- **Result (round 2, [PR #21](https://github.com/raphael-anjou/eternity2/pull/21)).** Kept by an independent judge as a small gain. The count/parity half was already in `gacolor` and the ring-cut half measured at zero, so only Hall matching (every empty cell gets a distinct unused piece, Kuhn augmenting paths) was tested. 6x6 c=5: GAIN, paired node ratio 0.900 (V1, p 0.0002) and 0.876 (V2, p 0.018), Holm-corrected. 7x7 c=6 and 8x8 c=10: NO-GAIN. Wall clock neutral to slightly worse. 8x8 c=10 does not separate pruning methods (plain DFS matches the baseline in nodes at about 26x lower wall time). Next variant: Hall plus Regin filtering on the frontier with a prune-invariant value order, on an 8x8 rung between c=8 and c=10; kill if NO-GAIN there or wall ratio above 1 against the better of the baseline and plain DFS. Experiment: `research/experiments/cut-multiset-pruning/`.
+
+## A18. Exact frame marginals: where border pieces sit across all valid frames · proposed
+
+- **Hypothesis.** Exact per-slot and per-adjacency frequencies over all valid frames (A5 counts 4.05e37 on the official ring) are non-uniform enough that the planted frame's placements rank above chance, beyond what colour rarity already gives, and ordering the border by them shrinks DFS trees.
+- **Borrowed from.** Forward-backward marginals on a transfer matrix (hidden Markov models; L. R. Rabiner, "A tutorial on hidden Markov models and selected applications in speech recognition", Proc. IEEE 77(2), 1989, DOI 10.1109/5.18626), applied to the A5 counter. Pieces of the same edge-arc type are interchangeable in M1, so per-piece marginals reduce to per-type marginals divided by the type multiplicity.
+- **Nearest cell.** Belief-propagation ordering and survey propagation (dead ends: signal fades two cells out) and A1 spectral pair statistics (killed: nothing beyond colour rarity). Missing mechanism: exact rather than approximate marginals, restricted to the frame subproblem where they are computable, scored on ground truth.
+- **Cheap test.** Generated 8x8 and 10x10 boards with a planted solution: exact frame marginals, then the rank of each planted placement against a colour-rarity ranking of the same slot, paired per board. If that survives, a border ordering by marginal inside the ladder DFS. The official-ring marginals are computed as a descriptive side result only.
+- **Baseline.** Colour-rarity ranking (the A1 baseline) for recovery; the ladder's strongest propagating DFS with its own border order for nodes.
+- **Kill.** Paired planted-placement rank no better than colour rarity at both sizes (CI including 0), or no significant node reduction on any ladder rung. Most valid frames do not extend to a full solution, so frame-only signal may not transfer; that is the expected failure mode.
+- **Budget.** Under 2 core-hours on reduced boards; a few runs of the A5 counter (about 9 min per prime, 17.5 GiB peak on the official ring) for the descriptive official marginals. No AWS.
+
+## A19. Ablation of the ladder's best DFS · proposed
+
+- **Hypothesis.** One component of `scb-gacolor_ac3_random` (border-first MRV, AC-3 after every placement, the GAColor per-colour pairing check, class balance, random value order) carries most of its 44x node lead over plain DFS at 6x6 c=5, and the same component explains its lead at 7x7 c=6.
+- **Borrowed from.** Component ablation, standard in CP solver evaluation. A measurement, not a new method: it tells later candidates which inference to build on.
+- **Nearest cell.** Arc consistency and dynamic ordering (saturated as methods); not previously ablated on node-counted, hardness-matched instances.
+- **Cheap test.** Remove one component at a time (and add one at a time to plain DFS) on ladder R6 and R7 test seeds, 1e6 nodes and CPU time per instance, 3 run seeds where the order is random.
+- **Baseline.** The full solver and plain row-major DFS.
+- **Kill.** Not a method, so no kill: the outcome is the per-component paired node and CPU ratio table. Dropped if no single removal changes nodes significantly at either rung (the lead is then spread over components).
+- **Budget.** Under 1 core-hour.
+
+## A20. Blocker eviction as the backjump rule inside propagating DFS · proposed
+
+- **Hypothesis.** Inside the ladder's propagating DFS, undoing the placement that blocks the cell whose domain was wiped out (the IMS rule that beat random eviction in A15), then re-propagating, solves more 7x7 and 8x8 boards than chronological backtracking at equal events and CPU.
+- **Borrowed from.** B. R. Rau, "Iterative modulo scheduling" (MICRO-27, 1994); conflict-directed backjumping (P. Prosser, "Hybrid algorithms for the constraint satisfaction problem", Computational Intelligence 1993).
+- **Nearest cell.** No-good learning (mapped: no-goods outrun memory at 16x16) and A15 (killed: eviction without propagation). Missing mechanism: blocker choice by conflict, without stored no-goods, on top of full propagation.
+- **Cheap test.** Ladder R7 and 8x8 c=9 test seeds, 3 run seeds per arm, 1e6 events plus CPU time.
+- **Baseline.** The ladder DFS, and a twin that evicts a random placed piece with identical propagation (matched control).
+- **Kill.** NO-GAIN against the ladder DFS on G1 at both rungs and solves at most baseline + 3 on the run-seed median; mechanism killed if the random twin comes within 2 solves and is not significantly worse.
+- **Budget.** 1 to 3 core-hours, CPU only.
+
+## A21. Value order by propagation impact · proposed
+
+- **Hypothesis.** In the ladder's propagating DFS, trying first the piece and rotation whose propagation removes the fewest values from neighbouring domains (least-constraining value measured by real propagation, not by colour counts) shrinks trees at 7x7 c=6 and 8x8 c=9 against its random value order.
+- **Borrowed from.** Impact-based search (P. Refalo, "Impact-based search strategies for constraint programming", CP 2004).
+- **Nearest cell.** Fixed and dynamic fill orders, learned move ordering. Novelty check against those first; record whether a value-impact order was already measured.
+- **Cheap test.** Ladder R6, R7 and 8x8 c=9 test seeds, nodes and CPU time per instance.
+- **Baseline.** The ladder DFS with its random value order (3 run seeds).
+- **Kill.** NO-GAIN on every rung, or a node GAIN whose CPU ratio is above 1 at every rung.
+- **Budget.** Under 2 core-hours.
+
+## A22. `bb-mrv` as a ladder baseline: fresh seeds, scaling, ablation · promoted
+
+- **Hypothesis.** The A16 side observation holds on fresh seeds: `bb-mrv` (A3 propagation with piece all-different, plus free MRV) beats `scb-gacolor_ac3_random` in nodes and wall clock, and its node ratio shrinks with board size (a smaller effective branching factor rather than a constant factor).
+- **Nearest cell.** Propagating complete DFS (the ladder baseline). Not a new method: a baseline check that decides what every later candidate is compared against.
+- **Cheap test.** Ladder R6, R7 seeds 21..30; 8x8 c=10 seeds 21..50; a fixed c = critical + 2 track for n = 6..10, seeds 1..30; four one-change ablations.
+- **Kill.** Not adopted if G1 fails at 8x8 c=10 on seeds 21..50 or the median paired wall-clock ratio there is above 1; "gain grows with n" only if the slope CI is entirely below 0.
+- **Result (round 3, [PR #26](https://github.com/raphael-anjou/eternity2/pull/26)).** Kept by an independent judge, scoped to the 8x8 c=10 rung: 30/30 solved against 20/30, KM median 69,036 vs 555,342 nodes, G1 ratio 0.147 (CI [0.076, 0.313]), wall ratio 0.194; node-identical on the judge's rerun and G1 PASS for scb run seeds 1 to 5. At the critical-colour rungs R6 and R7 G1 fails (0.80, 0.70) and `bb-mrv` is slower in wall clock (1.64x, 1.85x), so it is not adopted there. Scaling: no evidence of a growing gain, because 9x9 c=11 and 10x10 c=12 are censored for both solvers on every pair even at the extended 1e7 / 180 s cap (binding slope +0.089 per n). Exploratory only: over n = 6..8 the median log10 ratio goes -0.26, -0.38, -0.83. Ablations at R8 (node ratio against the parent): no hidden singles 1.11, border-first order 1.83, random value order 1.62; adding A3's piece all-different to scb cuts its nodes to 0.23 but costs per node (wall 0.90). Next: a separately preregistered scaling run with per-size caps of 1e8 to 1e9 nodes on the +2 track, and re-baselining A17 on `bb-mrv` at 8x8 c=10. Experiment: `research/experiments/mrv-baseline/`.
 
 ## Parked from the round-1 idea pass
 

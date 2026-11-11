@@ -2478,3 +2478,129 @@ backdoor-guided branching (from A3) and A17 cut-multiset feasibility pruning
 detection (premise not supported by A4) and abstraction refinement on piece
 distinctness (closest to the fake-480 dead end). Reproducibility: prose.
 Files: research/program/AGENDA.md, research/LEDGER.md.
+
+## 2026-11-11 · Round 2, hard-instance ladder: infrastructure valid, own kill fired
+
+Preregistered shared harness for round 2 (node-counted DFS on generated 6x6
+to 10x10 boards, colours by Owen's one-expected-solution criterion: 5.22,
+6.38, 7.56, 8.74, 9.93 interior colours), judged by a separate session. The
+preregistered usability condition (best baseline solves at least 15/30 at
+8x8) failed: 0/30 at cap 1e6 nodes, and 1/30 (c=8) / 0/30 (c=7) at the
+original 1e7 cap in the judge's rerun. Usable rungs: 6x6 c=5 (best baseline
+30/30, KM median 951 nodes, 44x fewer than plain DFS) and 7x7 c=6 (16/30).
+Learning: on this generator the counts at or just below the critical point
+are the hardest; an 8x8 rung that separates pruning methods needs a colour
+count between 8 and 10. 360/360 committed rows reproduce node for node.
+Reproducibility: deterministic, `just experiments hard-ladder`. Source commit
+521c1f4 (PR #19). Files: research/experiments/hard-ladder/.
+
+## 2026-11-11 · Round 2, A12 ProbCut statistical cutoffs: killed
+
+Preregistered test on the ladder, judged by a separate session. Own stage-2
+kill fired (R8 first pass 13/30, line 15). At 8x8 c=10 neither variant gains
+on nodes against `scb` or `fc-dfs`; cuts removed planted-solution branches
+(V1 13/30, V2 17/30 vs 19/30) and cost nodes at 6x6 c=5. The stage-1 AUC null
+is structural (probes shorter than one row), so it is not read as further
+evidence for the propagation-signal wall. Clean rerun reproduced every JSONL
+row. Reproducibility: deterministic, `just experiments probcut`. Source
+commit aa4216f (PR #20). Files: research/experiments/probcut/.
+
+## 2026-11-11 · Round 2, A17 cut-multiset (Hall matching) pruning: kept, small gain
+
+Preregistered test on the ladder, judged by a separate session. Novelty check
+reduced the idea to Hall matching feasibility (count/parity already in
+`gacolor`; ring cuts measured at zero). Paired G1, Holm over 2 variants:
+6x6 c=5 GAIN (node ratio 0.900, p 0.0002; 0.876, p 0.018); 7x7 c=6 and 8x8
+c=10 NO-GAIN. Wall clock neutral to slightly worse. Side result: at 8x8 c=10
+plain row-major DFS matches the best propagating baseline in nodes (19/30
+solved each) at about 26x lower wall time, so that rung cannot separate
+pruning methods. Reproducibility: deterministic, `just experiments
+cut-multiset-pruning`. Source commit e2641a5 (PR #21). Files:
+research/experiments/cut-multiset-pruning/.
+
+## 2026-11-11 · Agenda A18 proposed: exact frame marginals
+
+Added after the A5 count: exact per-slot and per-adjacency frequencies over
+all valid frames, tested for whether planted placements rank above colour
+rarity on generated boards before any use as a border ordering. Nearest
+dead ends: belief and survey propagation, A1 spectral statistics.
+Reproducibility: none yet (proposal only, no computation). Source commit
+c54478d. Files: research/program/AGENDA.md.
+
+## 2026-11-11 · Round 3, A15 non-chronological bond-weighted unassignment: killed
+
+Preregistered test on the hard ladder, judged by a separate session. kTAM
+detachment (V1) and IMS blocker eviction (V2) against the ladder DFS
+`scb-gacolor_ac3_random`, plain DFS and a tuned random-eviction arm, 1e6
+events per instance, 6x6 c=5 and 7x7 c=6 first. R6 solved/30: 30, 30, 19, 23,
+27; G1 against the ladder DFS NO-GAIN (ratios 186 and 100). R7: ladder DFS
+10, every other arm 0. 8x8 c=9 not triggered. Learning: V2 beats random
+eviction (ratio 0.43, p 0.004), so the blocker choice carries signal, but
+non-chronological search without propagation loses to propagating complete
+DFS by two orders of magnitude, also at equal CPU (exploratory). Follow-ups
+A19 (ablation of the ladder DFS), A20 (blocker eviction inside propagating
+DFS) and A21 (value order by propagation impact) added as proposed.
+Reproducibility: deterministic, `just experiments ktam-unassignment`, full
+rerun bit for bit except wall clock. Source commit 617c131 (PR #23). Files:
+research/experiments/ktam-unassignment/, research/program/AGENDA.md.
+
+## 2026-11-11 · Round 2, A16 backdoor-guided branching: killed
+
+Preregistered test on the hard ladder, judged by a separate session. Stage 1
+(root features on A3's 300 boards, labels from A3's backdoors): learned AUC
+0.637 vs fail-first 0.373, but only +0.010 over signed domain size and 0.518
+within interior cells, so the signal is position class plus domain size.
+Stage 2 (seeds 1..20, cap 1e6 nodes): branching first on predicted backdoor
+cells is NO-GAIN against MRV with the same propagation at 6x6 c=5 (node ratio
+8.1 to 17.2), 7x7 c=6 (1/20 vs 15/20) and 8x8 c=10 (1 to 2/20 vs 20/20); K2
+and K3 fire, and the loss holds on nodes without the time guard. Learning:
+backdoor cells are not good first branching cells. Side observation, not
+preregistered: `bb-mrv` (A3 propagation, piece all-different, MRV) beats the
+ladder baseline `scb-gacolor_ac3_random` at all three rungs (8x8 c=10: 20/20
+vs 12/20), so the ladder's calibrated baseline may not be the strongest
+available; a fresh-seed baseline test is the next step. New ladder file
+`8-c10` added. Reproducibility: node counts deterministic,
+`just experiments backdoor-branching` (about 2 h on 8 vCPU; runs stopped by
+the 240 s guard depend on machine speed). Source commit 3c85866 (PR #24).
+Files: research/experiments/backdoor-branching/,
+research/experiments/hard-ladder/instances/8-c10-*.jsonl,
+research/program/AGENDA.md.
+
+## 2026-11-11 · Round 2, A10 near-codeword spectrum: killed
+
+Preregistered CP-SAT measurement of the fewest internal breaks of full boards
+in near, mid and far overlap bands around a planted solution, judged twice.
+Judge 1: invalid, because the corner pin leaves the 4-fold board rotation, so
+the far band held the planted solution's own turned copy, and K1c was
+undetermined. Fix run on rotation-quotiented distance d* (amendment A6,
+committed before its solves). Judge 2: K1a fires on closed data; 5x5 C=13
+median mid band 4 breaks against far band 7 (B* -3, 30/30 optimal), 6x6 C=14
+B* in [-7, -1]; an independent judge-written CP-SAT model reproduces all 60
+5x5 optima. Learning: on single-solution-class small boards the mid band is a
+cheap saddle, not a barrier; no board far from the planted solution has 0
+breaks. Untested: the barrier between two distinct solutions.
+Reproducibility: CP-SAT with time limits, `just experiments
+near-codeword-spectrum` (about 10 core-hours; unclosed solves reported as
+intervals); witnesses rechecked by an independent numpy checker. Source commit
+49bd769 (PR #25). Files: research/experiments/near-codeword-spectrum/,
+research/program/AGENDA.md.
+
+## 2026-11-11 · Round 3, A22 bb-mrv as a ladder baseline: kept at 8x8 c=10
+
+Preregistered fresh-seed test of the A16 side observation, judged by a separate
+session. At 8x8 c=10 seeds 21..50, `bb-mrv` against `scb-gacolor_ac3_random`:
+30/30 vs 20/30 solved, KM median 69,036 vs 555,342 nodes, G1 ratio 0.147 (CI
+[0.076, 0.313]) PASS, wall ratio 0.194; the judge's rerun is node-identical
+60/60. At 6x6 c=5 and 7x7 c=6 G1 fails (0.80, 0.70) and `bb-mrv` is slower in
+wall clock. Scaling on c = critical + 2: no evidence of a growing gain, since
+9x9 c=11 and 10x10 c=12 are censored for both solvers on every pair at 1e7
+nodes; exploratory n = 6..8 median log10 ratios -0.26, -0.38, -0.83.
+Ablations (R8 node ratio against parent): no hidden singles 1.11, border-first
+1.83, random value order 1.62, scb plus piece all-different 0.23. Learning:
+the ladder baseline is beaten above the critical colour count by piece-side
+propagation plus free MRV; the scaling question needs caps of 1e8 or more.
+New ladder files `8-c10-fresh` and `plus2` (hard-ladder amendment A4).
+Reproducibility: node counts deterministic, `just experiments mrv-baseline`
+(about 90 min on 8 vCPU; wall clock depends on machine). Source commit
+046324c (PR #26). Files: research/experiments/mrv-baseline/,
+research/experiments/hard-ladder/, research/program/AGENDA.md.
