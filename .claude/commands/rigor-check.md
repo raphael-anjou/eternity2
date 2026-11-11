@@ -18,9 +18,13 @@ data before editing, and fix EN, FR and ES together.
   property? Anything painted from a solved board has exact colour-side parity
   and zero total slack automatically; that is not evidence of design.
 - If a property is presented as "extreme", "designed", "no slack", or a
-  "law", the page must show the same statistic on random instances
-  (`generate_solved` / `generate_solved_framed`) or say it has not been
-  compared.
+  "law", the page must show the same statistic on random instances or say it
+  has not been compared. Match the null to the claim: `generate_solved` and
+  `generate_solved_framed` pick their own per-colour counts (the framed one
+  near-uniform per band), so they are an unmatched ensemble. A claim that may
+  depend on the colour census needs a control that keeps the studied board's
+  exact colour multiset (shuffled within frame and interior seams) and
+  rebuilds the boards.
 - A decay, threshold or scaling law fitted to two or three points is a
   conjecture. Say how many points and do not extrapolate beyond them.
 
@@ -63,7 +67,12 @@ data before editing, and fix EN, FR and ES together.
   about 14,702 with the starter clue and about one with all five, a
   first-moment ensemble estimate (canonical page:
   `/research/build/analysis/solution-counting`).
-- `repro.cmd` regenerates the headline numbers, not just part of them.
+- Read `repro.kind`, `repro.produces` and `repro.scope` first. A
+  `produces: search` command must regenerate the numbers the page states; an
+  `artifact` command (default for `record-boards`) only has to verify the
+  committed board, and `repro.scope` or the prose must say which search
+  claims cannot be replayed. `kind: prose` pages need no command but every
+  number still needs a source.
 
 ## 6. Cross-page consistency
 
