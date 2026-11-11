@@ -62,9 +62,11 @@ The VM has a few CPU cores and no GPU. Size tests to finish in hours. Anything
 needing GPUs or many core-days is a request to the user, with the cost
 estimated, not something to start.
 
-A small AWS budget (about $100) is available through the organization's
-secrets. It is a reserve, not an allowance: spend it only on a run that a
-cheap test has already earned, tell the user the instance type, hours and
+An AWS account is available through the organization's secrets. The
+research program may spend at most $50 of it in total; what it does not spend
+stays available for later experiments. Track spend per run in the ledger.
+It is a reserve, not an allowance: spend it only on a run that a cheap test
+has already earned, tell the user the instance type, hours and
 expected cost before launching, tag every instance, and give it an automatic
 shutdown. New accounts often have a GPU quota of zero; request the increase
 early.
