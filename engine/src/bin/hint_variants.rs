@@ -57,8 +57,8 @@ impl Grid {
 /// interior colours target ~24, and CRUCIALLY the interior-dominant ratio is
 /// preserved even on small boards by choosing the border count explicitly rather
 /// than accepting the engine's default `min(5, colours-1)` cap. At n=16 this is
-/// exactly E2 (5 border, 17 interior); at n=8 it is 2 border + 7 interior (ratio
-/// ~3.5, matching E2's 5:17) instead of the degenerate 5 border + 1 interior the
+/// exactly E2 (5 border, 17 interior); at n=8 it is 2 border + 6 interior (ratio
+/// 3, close to E2's 5:17) instead of the degenerate 5 border + 1 interior the
 /// default cap would give. The board is generated with
 /// [`generate_solved_framed_bc`] passing this border count.
 fn faithful_colors(n: usize) -> (u8, u8) {
