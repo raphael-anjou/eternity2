@@ -26,9 +26,9 @@ language-specific content. The workflow also copies the React Router SPA shell t
 **Downloadable build artifact.** Every workflow run also uploads the built site
 as a plain `web-dist` artifact (the exact `web/build/client/` bytes that go to
 Pages, retained 14 days). Grab it from the run's **Actions → Artifacts** section
-to self-host the same build behind your own server/proxy without rebuilding —
+to self-host the same build behind your own server/proxy without rebuilding:
 unzip it and point nginx/Caddy/Traefik at the folder. (This is the *root* build;
-for a path-prefix host, build with `BASE_PATH` yourself — see below.)
+for a path-prefix host, build with `BASE_PATH` yourself; see below.)
 
 **Crawler / AI-agent files.** The build root carries three discovery files:
 `robots.txt` and `llms.txt` ship verbatim from `web/public/`, while `sitemap.xml`
@@ -38,31 +38,31 @@ crawler (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, …) plus a blanket
 allow; `llms.txt` is a curated [llmstxt.org](https://llmstxt.org) site map for
 LLMs. The sitemap honors `VITE_SITE_ORIGIN`/`BASE_PATH`, so subpath/alternate-host
 deploys get correct absolute URLs automatically. `robots.txt` hardcodes the
-`eternity2.dev` sitemap URL — edit it if you deploy elsewhere.
+`eternity2.dev` sitemap URL; edit it if you deploy elsewhere.
 
 **Path prefix / subpath deploys.** By default the site is served at a domain
 root and asset/route paths are absolute. To serve it under a prefix instead
 (e.g. behind a reverse proxy at `host/eternity2/`, or a GitHub project page at
-`<user>.github.io/<repo>/`), set two build-time env vars — no code changes:
+`<user>.github.io/<repo>/`), set two build-time env vars (no code changes):
 
 ```bash
 # served at https://www.terra-numerica.fr/eternity2/
 BASE_PATH=/eternity2 \
 VITE_SITE_ORIGIN=https://www.terra-numerica.fr \
 pnpm build
-# the whole site is now under build/client/eternity2/ — upload that, or upload
+# the whole site is now under build/client/eternity2/: upload that, or upload
 # build/client/ and let the server resolve /eternity2/… paths.
 ```
 
-- `BASE_PATH` — the path prefix. Becomes the Vite asset `base` and the router
+- `BASE_PATH`: the path prefix. Becomes the Vite asset `base` and the router
   `basename`, so every asset link, nav link and prerendered route in the output
   carries the prefix. The `pnpm build` post-step
   (`scripts/relocate-under-base.mjs`) then moves the entire build output under a
   matching `build/client/eternity2/` directory, so the files on disk sit exactly
   where those prefixed URLs point. This means the prefix is **passed straight
-  through** to the files — a reverse proxy must **not** strip it (see the Traefik
+  through** to the files: a reverse proxy must **not** strip it (see the Traefik
   note below). Default `""` (root); the post-step is then a no-op.
-- `VITE_SITE_ORIGIN` — the public origin used for `canonical`, `hreflang` and
+- `VITE_SITE_ORIGIN`: the public origin used for `canonical`, `hreflang` and
   `og:url` tags. Default `https://eternity2.dev`. Set it so the SEO/social tags
   point at the real deployed URL.
 
@@ -78,7 +78,7 @@ Host requirements: serve `.wasm` with the `application/wasm` MIME type (all
 mainstream hosts/CDNs do), and serve the site at the domain root. For unmatched
 paths, fall back to `__spa-fallback.html` (the bundled nginx template
 `deploy/nginx.conf.template` does this; on a CDN, point the 404/SPA fallback
-there). For a prefixed build, everything — including the SPA fallback — lives
+there). For a prefixed build, everything (including the SPA fallback) lives
 under the prefix dir, so point the fallback at `<prefix>/__spa-fallback.html`.
 
 ## Option B: Docker
@@ -125,13 +125,13 @@ docker push registry.example.org/eternity2/site:1.0.0
 
 ### Behind a reverse proxy (Traefik)
 
-Both setups below are verified end-to-end against a real Traefik v3 instance —
+Both setups below are verified end-to-end against a real Traefik v3 instance:
 assets, the WASM engine, the localized routes (`/fr`, `/es`), the sitemap and the SPA fallback all
 resolve, and the app hydrates in the browser. The container ships a healthcheck
 and Traefik only routes to healthy containers, so both cases "just work" once
 the container reports healthy (a few seconds after start).
 
-**At a host root** (`https://eternity2.example/`): nothing special — route the
+**At a host root** (`https://eternity2.example/`): nothing special: route the
 host to the container, expose only its port 80 to the proxy network.
 
 ```yaml
@@ -147,7 +147,7 @@ labels:
 **Under a path prefix** (`https://example.org/eternity2/`): build the image with
 `BASE_PATH=/eternity2` (build arg, see above) and **do NOT use `StripPrefix`**.
 The prefixed build lays the whole site out under `/eternity2/` on disk and emits
-`/eternity2/...` asset and route links, so it expects to *receive* the prefix —
+`/eternity2/...` asset and route links, so it expects to *receive* the prefix;
 stripping it would make every asset 404. Route the prefixed path straight
 through:
 
@@ -173,8 +173,8 @@ Also set `VITE_SITE_ORIGIN` so the SEO tags use the public hostname.
 ### Operational profile
 
 - One stateless nginx container; scale or restart freely, no volumes.
-- Healthcheck built into the image (HTTP GET of the site root — `/`, or
-  `<prefix>/` for a prefixed build — over IPv4). Traefik/Swarm/Kubernetes will
+- Healthcheck built into the image (HTTP GET of the site root, `/`, or
+  `<prefix>/` for a prefixed build, over IPv4). Traefik/Swarm/Kubernetes will
   only route to the container once it reports healthy.
 - All computation (the solver!) runs in the visitor's browser, so the container's
   resource needs are those of a static file server: ~10 MB RAM.
