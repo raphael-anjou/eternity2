@@ -68,7 +68,7 @@ strict-5/5 and the border is hint-unconstrained):
    randomised depth-first placement over the 60 border cells, grey outward, all
    ring adjacencies matched, deduplicated by exact ring equality);
 2. freeze each border and fill its 196 interior cells with **one** fixed
-   producer at a fixed budget — a break-tolerant beam that fills row-major,
+   producer at a fixed budget, a break-tolerant beam that fills row-major,
    scoring each candidate by matched-minus-mismatched edges against its placed
    neighbours (the frozen border included) and pruning to a fixed width with a
    seeded tie-break;
@@ -90,7 +90,7 @@ border, best kept.
 | --- | --- | --- |
 | Distinct strong borders generated | 8 | 16 (17 DFS attempts) |
 | Interior producer | hard-fit greedy beam (weak) | break-tolerant beam, width 128 (stronger) |
-| Top score band (min / median / max) | 252 / — / 258 | 434 / 437 / 440 |
+| Top score band (min / median / max) | 252 / – / 258 | 434 / 437 / 440 |
 | Any border reaches the 455 threshold | no | no |
 | Gap from the best border-first top to 455 | ~197 | 15 |
 | Pairwise interior tile-Hamming (of 196 cells) | ~200 of 208 rows-0..12 tiles | 188 to 191, mean 190.4 (120 pairs) |

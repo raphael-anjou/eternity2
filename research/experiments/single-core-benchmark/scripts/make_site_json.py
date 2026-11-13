@@ -39,9 +39,9 @@ EXPERIMENT = HERE.parent            # research/experiments/single-core-benchmark
 REPO = EXPERIMENT.parents[2]        # ...<exp> -> experiments -> research -> <repo>
 DEFAULT_OUT = REPO / "web" / "src" / "data" / "single-core-benchmark.json"
 
-# Ceiling markers the page annotates (not measured here; puzzle-level facts).
+# The score axis maximum (a puzzle-level fact, not measured here). The page
+# reads the strict five-clue record from web/src/data/records-timeline.ts.
 MAX_SCORE = 480
-COMMUNITY_RECORD_5CLUE = 464
 
 
 def main():
@@ -111,7 +111,6 @@ def main():
     out = {
         "budgetS": meta["budget_s"],
         "maxScore": MAX_SCORE,
-        "community": COMMUNITY_RECORD_5CLUE,
         "variantIds": variant_ids,
         "paradox": paradox,
         "algos": algos,

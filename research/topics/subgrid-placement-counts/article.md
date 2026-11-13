@@ -53,7 +53,7 @@ in the centre and four near-corner pieces.
 A common early sanity check is: *"in isolation, how many ways can I legally fill
 this little block?"* The community member **sylvogel** proposed exactly such a
 reference table on the groups.io forum. We reproduced his numbers from scratch
-with our engine — both to validate the table and to publish a version anyone can
+with our engine, both to validate the table and to publish a version anyone can
 re-run.
 
 ## Method
@@ -62,7 +62,7 @@ For a $w\times h$ block at a fixed board position we count the ways to fill it
 with **distinct** official pieces such that:
 
 1. **Piece class matches the cell.** Each cell draws only from the piece class
-   matching its number of border-facing sides — a cell with two board-rim sides
+   matching its number of border-facing sides: a cell with two board-rim sides
    takes a corner piece, one rim side an edge piece, no rim side an interior
    piece. This mirrors how a real solver pools pieces.
 2. **Border edges are grey.** Every edge facing the board's outer rim is grey
@@ -115,7 +115,7 @@ the whole table runs in well under a minute on 8 cores.
 Every count is **exact**, by one of two methods:
 
 - A **broken-profile colour transfer matrix** gives the *non-distinct* count (one
-  piece may be reused) instantly for any block — it is the exact upper bound on the
+  piece may be reused) instantly for any block; it is the exact upper bound on the
   work of the next step.
 - A **parallel distinct-counting depth-first search** then enumerates the fillings
   with *distinct* pieces: fill the block cell by cell, trying only candidates whose
@@ -127,9 +127,9 @@ Every count is **exact**, by one of two methods:
 
 - **Exactly-enumerable scope.** The distinct DFS is run only when the block's
   non-distinct count is at most ~5×10⁹ fillings, which keeps the whole table well
-  under a minute. The few interior columns above that — the **3×3 middle**, the
+  under a minute. The few interior columns above that (the **3×3 middle**, the
   **empty/fixed** columns of the **4×4 corners**, and the whole **4×4 side**
-  (whose counts run from ~10¹⁰ up into the tens of trillions) — are emitted as
+  (whose counts run from ~10¹⁰ up into the tens of trillions)) are emitted as
   `null` with a `note` by the generator. Everything else, including all 4×4
   *fixed + 4 hints* columns and every per-corner cN split, is computed exactly
   here.
@@ -139,5 +139,5 @@ Every count is **exact**, by one of two methods:
   (`results/published-reference.json`) and rendered *in italics* on the site to
   mark them as published-but-not-independently-recomputed. They are never mixed
   into the generated `results/reference-table.json`.
-- "Distinct pieces" is enforced *within the block only* — this is a local sanity
+- "Distinct pieces" is enforced *within the block only*; this is a local sanity
   check, not a statement about full-board completability.

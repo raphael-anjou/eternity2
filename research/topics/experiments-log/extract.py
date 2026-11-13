@@ -32,6 +32,30 @@ def _clean(s):
     s = re.sub(r"[*`_#]", "", s)
     return re.sub(r"\s+", " ", s).strip()
 
+def _dedash(s):
+    """The site's style gate forbids em dashes: a vault sentence joined by one
+    becomes a comma, and a dash left dangling by truncation is dropped."""
+    s = re.sub(r"\s*\u2014\s*", ", ", s)
+    return s.rstrip(", ") if s.endswith(", ") else s
+
+# The site's style gate bans a list of verbal tics ("honest", ...). Vault notes
+# use them freely, so they are reworded at extraction (ids and titles too).
+# Literal phrases, applied in order.
+REWORD = [
+    ("honest-status-", "status-"),
+    ("honest status ", "status "),
+    ("-pipeline-honest-", "-pipeline-"),
+    ("pipeline honest ", "pipeline "),
+    ("HONEST strict-canonical", "Measured strict-canonical"),
+    ("Honest null result", "Null result"),
+    ("Honest assessment of", "Assessment of"),
+]
+
+def _reword(s):
+    for old, new in REWORD:
+        s = s.replace(old, new)
+    return s
+
 def extract_why(txt):
     """Best-effort why-it-happened line from a concept body (verdict/conclusion/
     because-sentence). Returns None when nothing confident is found, so we never
@@ -75,16 +99,16 @@ def main():
                     desc = line
                     break
         entry = {
-            "id": name,
-            "title": name.replace("-", " "),
+            "id": _reword(name),
+            "title": _reword(name.replace("-", " ")),
             "status": bucket(raw),
-            "summary": desc.strip()[:280],
+            "summary": _reword(_dedash(desc.strip()[:280])),
         }
         # A why-it-happened line, mainly for the instructive (refuted/partial) ones.
         if entry["status"] in ("refuted", "partial"):
             w = extract_why(txt[m.end():] if m else txt)
             if w:
-                entry["why"] = w[:320]
+                entry["why"] = _reword(_dedash(w[:320]))
         out.append(entry)
     out.sort(key=lambda x: x["id"])
     sys.stderr.write("buckets: %s\n" % dict(Counter(x["status"] for x in out)))

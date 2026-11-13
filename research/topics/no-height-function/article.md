@@ -75,8 +75,8 @@ trivially zero; a half-broken joint is an unpaired half-edge, and its signed
 contribution has nothing to cancel against.
 
 What survives is far weaker than a height. The only conserved topological
-invariant of E2 breaks is an **unsigned per-color parity** — one bit per color,
-an element of a 22-dimensional space over GF(2) — not an integer or a
+invariant of E2 breaks is an **unsigned per-color parity** (one bit per color,
+an element of a 22-dimensional space over GF(2)), not an integer or a
 two-dimensional Burgers vector. A bit is not the holonomy of any height
 function. So the dimer/six-vertex height program is closed from the defect
 side, and with it the dream of a clean worm move that walks defects to
@@ -127,7 +127,7 @@ on rerun; no RNG; Apple Silicon, single core, runtime well under one second):
 For orientation, the paper reported **28 / 22 / 32** odd cores on its own 451 /
 463 / 458 boards; our four boards land at **22 / 22 / 34 / 26**, squarely in the
 same regime. Our best board (463, only 17 breaks from a hypothetical solution)
-still carries 22 open-string cores and 10 non-conserved color currents — the
+still carries 22 open-string cores and 10 non-conserved color currents; the
 obstruction does not soften as the board approaches a solution, which is the
 whole point. And a small coincidence worth flagging: the paper's headline
 non-conserved current was color 6 summing to (-1, -3) on its 451 board; our
@@ -148,7 +148,7 @@ non-conserved currents depend on the instance's color numbering and carry no
 independent meaning; only the count of colors with a nonzero sum, and the
 sums' nonzero-ness, are the reproduced content. The third obstruction (a scalar
 height telescopes to zero holonomy) is a proved identity and is asserted here
-rather than recomputed. The positive companion finding from the same source —
-that a correlated two-tile co-rotation can cross the single-swap barrier that a
-height-guided worm move was meant to cross — is a separate result and is not
+rather than recomputed. The positive companion finding from the same source
+(that a correlated two-tile co-rotation can cross the single-swap barrier that a
+height-guided worm move was meant to cross) is a separate result and is not
 measured in this topic.

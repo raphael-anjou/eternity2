@@ -1,7 +1,7 @@
 ---
 id: forbidden-patterns
 title: Forbidden patterns
-summary: Almost every small patch of pieces you could build is impossible under the official set — 99.72% of 2x2 squares can never be made to match.
+summary: Almost every small patch of pieces you could build is impossible under the official set: 99.72% of 2x2 squares can never be made to match.
 status: published
 created: 2026-06-22
 updated: 2026-06-22
@@ -31,7 +31,7 @@ site:
 ## Summary
 
 Pick a few of Eternity II's interior pieces and try to fit them together into a
-small shape, rotating them however you like. Most of the time you simply can't —
+small shape, rotating them however you like. Most of the time you simply can't:
 the colors won't line up no matter what you do. For a 2x2 square the odds are
 brutal: **99.72% of the ways to choose and place four distinct pieces are
 impossible.** Only about 1 in 358 actually works.
@@ -43,7 +43,7 @@ cheap way to measure how "healthy" a partly-built board is.
 
 Eternity II is an edge-matching puzzle: 256 square tiles, each with a color on
 all four sides, that you drop into a 16x16 grid so touching sides share a color.
-Of the 256 tiles, 196 are *interior* pieces — they have no grey rim edge, so
+Of the 256 tiles, 196 are *interior* pieces: they have no grey rim edge, so
 they're the only ones that ever sit inside the board rather than along the
 border. Those 196 are the ones we look at here.
 
@@ -69,7 +69,7 @@ four shapes:
 - a **2x2 square** of four cells.
 
 Edges follow the engine's convention: up, right, down, left, with clockwise
-rotation. There is no sampling — every distinct-piece placement is checked — so
+rotation. There is no sampling (every distinct-piece placement is checked), so
 the numbers are exact and reproduce every time. The 2x2 case means walking all
 $196 \times 195 \times 194 \times 193 \approx 1.43$ billion ordered quadruples;
 a quick check on the two edges touching the top-left piece throws out almost all
@@ -90,12 +90,12 @@ in an L and you're forbidden 83% of the time. Close the square and 99.72% of all
 placements are dead on arrival.
 
 The horizontal and vertical pair counts come out identical, which is the expected
-sign of a piece set with no built-in directional bias — the colors are
+sign of a piece set with no built-in directional bias: the colors are
 distributed the same way up-down as left-right.
 
 ## Why it matters
 
-A correct, complete board contains **zero** forbidden patches of any shape — by
+A correct, complete board contains **zero** forbidden patches of any shape, by
 definition, everything matches. So the number of forbidden patches in a board is
 a kind of distance-to-valid: the more of them, the further you are from a real
 solution, even when two boards happen to have the same number of matched edges.
@@ -106,7 +106,7 @@ that doesn't care about your search method.
 It also explains, from a different angle, why the puzzle resists clever local
 fixes. With 99.72% of small squares impossible, the pieces that *do* fit together
 are scarce and specific. There's very little room to shuffle things around
-locally without breaking something — the good arrangements are rare and rigid.
+locally without breaking something: the good arrangements are rare and rigid.
 
 ## Reproduce
 
@@ -125,6 +125,6 @@ slow part.
   which is why the two-cell shapes have $196 \times 195 = 38{,}220$ placements
   rather than half that. Forbidden percentages are unaffected by the ordering
   choice.
-- Larger shapes (2x3, 3x3) are forbidden essentially always — past a 2x2 there's
+- Larger shapes (2x3, 3x3) are forbidden essentially always; past a 2x2 there's
   little headroom left to measure. The four shapes here capture the full climb
   from "often fine" to "almost never possible".

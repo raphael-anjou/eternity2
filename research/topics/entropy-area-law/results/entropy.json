@@ -3,14 +3,24 @@
   "interiorPlacements": 784,
   "lambdaH": 46.1815,
   "log10LambdaH": 1.6645,
-  "note": "h(n) = log10 of the width-n transfer eigenvalue, per cell. The sequence decreases to the 2-D entropy density h_infinity (Fekete). h(1), h(2) computed exactly here; h(3), h(4) and h_infinity from the offline width-n sweep.",
+  "note": "h(n) = log10(lambda_n)/n, lambda_n the dominant eigenvalue of the width-n row-transfer operator (pieces reusable, strip sides free). h(n) decreases to the 2-D entropy density h_infinity = inf_n h(n) (Fekete), so every h(n) is an upper bound on h_infinity. Widths 1 and 2 are computed by this crate; widths 3 to 6 are carried from research/topics/entropy-area-law/compute/scripts/strip_entropy.js (stdlib Node, single thread; it agrees with this crate at widths 1 and 2).",
   "hByWidth": [
-    { "width": 1, "h": 1.6645, "exact": true },
-    { "width": 2, "h": 1.0497, "exact": true },
-    { "width": 3, "h": 0.8449, "exact": false },
-    { "width": 4, "h": 0.7425, "exact": false }
+    { "width": 1, "lambda": 46.182, "h": 1.6645, "source": "compute crate" },
+    { "width": 2, "lambda": 125.745, "h": 1.0497, "source": "compute crate" },
+    { "width": 3, "lambda": 342.502, "h": 0.8449, "source": "strip_entropy.js" },
+    { "width": 4, "lambda": 932.949, "h": 0.7425, "source": "strip_entropy.js" },
+    { "width": 5, "lambda": 2541.305, "h": 0.6810, "source": "strip_entropy.js" },
+    { "width": 6, "lambda": 6922.392, "h": 0.6400, "source": "strip_entropy.js" }
   ],
-  "hInfinity": 0.67,
+  "hIncrementByWidth": [
+    { "width": 2, "increment": 0.4350 },
+    { "width": 3, "increment": 0.4352 },
+    { "width": 4, "increment": 0.4352 },
+    { "width": 5, "increment": 0.4352 },
+    { "width": 6, "increment": 0.4352 }
+  ],
+  "hInfinityUpperBound": 0.6400,
+  "hInfinityNote": "No value of h_infinity is computed. Because h_infinity is the infimum of h(n), the smallest computed h(n), at width 6, bounds it from above. Each added row multiplies lambda by about 10^0.435 (hIncrementByWidth), so h(n) is close to 0.435 + 1.23/n over widths 1 to 6; the research page reads the limit as close to 0.435 from that, a reading of six widths and not a computed limit.",
   "blockCountsNote": "A(n) = colour-valid n×n interior fillings with pieces reusable (the matching grammar); B(n) = those that use distinct pieces (true E2); rho = B/A. Computed exactly in-repo here: A(n) by a dense broken-profile transfer DP, B(n) by a parallel distinct-counting DFS bounded by A(n). B is exact through n=3; n=4 is over the DFS budget (A(4) still computed). Cross-checked at n=2 against research/topics/subgrid-placement-counts (B(2)=4059952).",
   "blockCounts": [
     { "n": 1, "cells": 1, "reusable": 784, "distinct": 784, "ratio": 1.000000, "wallSeconds": 0.00 },
@@ -24,12 +34,46 @@
     { "n": 3, "sOverN2": 1.255 },
     { "n": 4, "sOverN2": 1.050 }
   ],
-  "areaLawExponent": 0.0445,
-  "areaLawExponentNote": "alpha fitted by least squares through the origin (ln rho = -alpha n^2) over the exact in-repo B(n)/A(n) for n=1..3. The per-n alpha(n) = -ln(rho(n))/n^2 rises with n over this small exact range (see alphaByN), so this fit is a conservative estimate of the large-patch exponent; the rho(n) curve beyond n=3 is an extrapolation of the fit.",
+  "alphaByNNote": "-ln(rho(n))/n^2 at each exactly computed n = 2..3. It describes those points; no exponent is fitted from them.",
   "alphaByN": [
     { "n": 2, "alphaN": 0.0285 },
     { "n": 3, "alphaN": 0.0483 }
   ],
-  "distinctnessCollapseCells": 155,
-  "distinctnessCollapseNote": "Extrapolated cell count where rho drops below 1e-3, from n* = sqrt(ln(1000)/alpha); beyond the exactly-computed range."
+  "sampledDistinctFractionNote": "Share of colour-valid patches (pieces reusable, every internal joint matched, outer border free) that use distinct pieces, estimated by drawing patches uniformly at random. Not exact: seeded samples. Two independent runs, seeds 1 to 6 (sampledDistinctFraction) and seeds 101 to 106 (sampledDistinctFractionSecondRun), agree within their combined standard error at every size (largest gap 1.8 combined standard errors, at 32 cells). The 2x2 and 3x3 rows reproduce the exact blockCounts ratios within sampling error. Source: research/topics/entropy-area-law/compute/scripts/distinct_fraction.js (stdlib Node, single thread).",
+  "sampledDistinctFraction": [
+    { "rows": 2, "cols": 2, "cells": 4, "rho": 0.8921, "standardError": 0.00031, "samples": 1000000 },
+    { "rows": 3, "cols": 3, "cells": 9, "rho": 0.6473, "standardError": 0.00048, "samples": 1000000 },
+    { "rows": 4, "cols": 4, "cells": 16, "rho": 0.3263, "standardError": 0.00074, "samples": 400000 },
+    { "rows": 4, "cols": 6, "cells": 24, "rho": 0.1060, "standardError": 0.00049, "samples": 400000 },
+    { "rows": 4, "cols": 8, "cells": 32, "rho": 0.02383, "standardError": 0.00024, "samples": 400000 },
+    { "rows": 4, "cols": 12, "cells": 48, "rho": 0.000375, "standardError": 0.000019, "samples": 1000000 }
+  ],
+  "sampledDistinctFractionSecondRun": [
+    { "rows": 2, "cols": 2, "cells": 4, "rho": 0.8918, "standardError": 0.00031, "samples": 1000000 },
+    { "rows": 3, "cols": 3, "cells": 9, "rho": 0.6470, "standardError": 0.00048, "samples": 1000000 },
+    { "rows": 4, "cols": 4, "cells": 16, "rho": 0.3261, "standardError": 0.00074, "samples": 400000 },
+    { "rows": 4, "cols": 6, "cells": 24, "rho": 0.1071, "standardError": 0.00049, "samples": 400000 },
+    { "rows": 4, "cols": 8, "cells": 32, "rho": 0.02443, "standardError": 0.00024, "samples": 400000 },
+    { "rows": 4, "cols": 12, "cells": 48, "rho": 0.000389, "standardError": 0.000020, "samples": 1000000 }
+  ],
+  "distinctFractionBelowOnePerThousandCells": 44,
+  "distinctFractionBelowOnePerThousandNote": "Log-linear interpolation between the sampled 32-cell and 48-cell fractions crosses 1e-3 at 44.2 cells with seeds 1 to 6 and at 44.4 cells with seeds 101 to 106 (research/topics/entropy-area-law/compute/scripts/entropy_fields.py). Inside the sampled range, not an extrapolation; patches four cells wide only.",
+  "withdrawn": {
+    "date": "2026-11-13",
+    "hInfinity": {
+      "value": 0.67,
+      "wasNote": "h_infinity from the offline width-n sweep.",
+      "reason": "Not computed by this crate: a constant carried from an off-repo sweep. h_infinity is the infimum of h(n), and h(6) = 0.6400 is already below 0.67, so the value is impossible. Replaced by hInfinityUpperBound."
+    },
+    "areaLawExponent": {
+      "value": 0.0445,
+      "wasNote": "alpha fitted by least squares through the origin (ln rho = -alpha n^2) over the exact in-repo B(n)/A(n) for n=1..3. The per-n alpha(n) = -ln(rho(n))/n^2 rises with n over this small exact range (see alphaByN), so this fit is a conservative estimate of the large-patch exponent; the rho(n) curve beyond n=3 is an extrapolation of the fit.",
+      "reason": "A three-point fit extrapolated far past its range. The sampled fraction at 48 cells is 0.000375, about 315 times below the fit's exp(-0.0445 x 48) = 0.118, and -ln(rho) per cell keeps rising (0.070 at 16 cells, 0.164 at 48), so no single exponent describes the decay. Replaced by sampledDistinctFraction."
+    },
+    "distinctnessCollapseCells": {
+      "value": 155,
+      "wasNote": "Extrapolated cell count where rho drops below 1e-3, from n* = sqrt(ln(1000)/alpha); beyond the exactly-computed range.",
+      "reason": "Derived from the withdrawn exponent (ln(1000)/0.0445 = 155.2). The sampled fraction crosses 1e-3 near 44 cells. Replaced by distinctFractionBelowOnePerThousandCells."
+    }
+  }
 }

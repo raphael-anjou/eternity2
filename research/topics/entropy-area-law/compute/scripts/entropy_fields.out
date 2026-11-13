@@ -1,0 +1,40 @@
+width  lambda      h(n)    increment
+    1      46.182  1.6645  nan
+    2     125.745  1.0497  0.4350
+    3     342.502  0.8449  0.4352
+    4     932.949  0.7425  0.4352
+    5    2541.305  0.6810  0.4352
+    6    6922.392  0.6400  0.4352
+h_infinity = inf h(n) <= 0.6400 (width 6)
+withdrawn h_infinity 0.67 exceeds h(6) = 0.6400: impossible for an infimum
+h(1) - increment = 1.2293 (the constant in h(n) ~ 0.435 + c/n)
+mean-field log10(784/289) = 0.4334
+
+[seeds 1-6]
+patch  cells  rho        s.e.      -ln(rho)/cell  old fit exp(-0.0445 cells)  fit/sample
+2x2       4  0.8921     0.00031           0.029                      0.8369         0.9
+3x3       9  0.6473     0.00048           0.048                        0.67         1.0
+4x4      16  0.3263     0.00074           0.070                      0.4907         1.5
+4x6      24  0.106      0.00049           0.094                      0.3437         3.2
+4x8      32  0.02383    0.00024           0.117                      0.2407        10.1
+4x12     48  0.000375   1.9e-05           0.164                      0.1181       315.0
+sampled rho crosses 1e-3 between 32 and 48 cells: 44.2 cells (log-linear interpolation)
+
+[seeds 101-106]
+patch  cells  rho        s.e.      -ln(rho)/cell  old fit exp(-0.0445 cells)  fit/sample
+2x2       4  0.8918     0.00031           0.029                      0.8369         0.9
+3x3       9  0.647      0.00048           0.048                        0.67         1.0
+4x4      16  0.3261     0.00074           0.070                      0.4907         1.5
+4x6      24  0.1071     0.00049           0.093                      0.3437         3.2
+4x8      32  0.02443    0.00024           0.116                      0.2407         9.9
+4x12     48  0.000389   2e-05             0.164                      0.1181       303.7
+sampled rho crosses 1e-3 between 32 and 48 cells: 44.4 cells (log-linear interpolation)
+
+spread between the two runs (difference / sqrt(se1^2 + se2^2)):
+  2x2   0.8921    0.8918    difference -0.0003  z = -0.68
+  3x3   0.6473    0.647     difference -0.0003  z = -0.44
+  4x4   0.3263    0.3261    difference -0.0002  z = -0.19
+  4x6   0.106     0.1071    difference +0.0011  z = +1.59
+  4x8   0.02383   0.02443   difference +0.0006  z = +1.77
+  4x12  0.000375  0.000389  difference +1.4e-05  z = +0.51
+withdrawn collapse: 155 cells, from cells = ln(1000)/0.0445 = 155.2

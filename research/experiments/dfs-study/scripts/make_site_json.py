@@ -102,7 +102,6 @@ def main():
         "seed": meta["seed"],
         "n_instances": len(meta["variant_ids"]),
         "max_score": 480,
-        "community_5clue_record": 464,
         "variants": variants,
         "community": community,
     }

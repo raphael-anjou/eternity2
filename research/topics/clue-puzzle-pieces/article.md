@@ -1,7 +1,7 @@
 ---
 id: clue-puzzle-pieces
 title: The clue puzzles, recovered and solved
-summary: The pieces of all four Eternity II clue puzzles, which the community withheld on copyright grounds, survive in two solvers' example files — Clues 1 & 2 in Le Bail's 2007 SHORTER, all four in Wortmann's Eternity2Puzzles.jl. Here they are, cross-checked, solved and verified from scratch.
+summary: The pieces of all four Eternity II clue puzzles, which the community withheld on copyright grounds, survive in two solvers' example files: Clues 1 & 2 in Le Bail's 2007 SHORTER, all four in Wortmann's Eternity2Puzzles.jl. Here they are, cross-checked, solved and verified from scratch.
 status: published
 created: 2026-07-12
 updated: 2026-07-12
@@ -66,7 +66,7 @@ with their real motifs intact.
 **Clues 3 & 4.** These are absent from SHORTER but present in a second, much more
 recent project: Janos Wortmann's `Eternity2Puzzles.jl`, a Julia package on GitHub
 that bundles all four clue puzzles as plain piece files (`clue1.txt` …
-`clue4.txt`). Its `clue1` and `clue2` are the same two puzzles Le Bail shipped —
+`clue4.txt`). Its `clue1` and `clue2` are the same two puzzles Le Bail shipped:
 we canonicalise each file into a rotation-invariant, colour-relabelled multiset of
 pieces and Wortmann's Clue 1 and Clue 2 match Le Bail's exactly, piece for piece.
 A source that reproduces the two puzzles we can already cross-check is a

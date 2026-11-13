@@ -1,4 +1,4 @@
-# Reproduction plan — parity-defect-floor
+# Reproduction plan: parity-defect-floor
 
 > **Repro tier: exact.**
 > exact = re-run reproduces committed results byte-for-byte. seeded-statistical =
@@ -30,14 +30,25 @@ official 256-tile bag.
    checker re-establishes the premise (all h(c) even), not the deduction.
 4. **Theorem 2 (defect floor = 2)**: for a bag with no self-symmetric tile,
    every non-solution has defect >= 2. Premise re-established by item 2.
-5. **Theorem 3 (defect-2 generator census, <= 76 = 50 + 23 + 3)** (EXT,
-   `final_bounds.py`, `e2_twins.py`):
-   - **50** interior near-twin pairs: unordered pairs of interior tiles that
-     in some orientations agree on exactly 3 of 4 edge positions.
+5. **Theorem 3 (single moves to defect 2, a floor of 154 = 125 + 29)**
+   (corrected 2026-11-13; the plan first read the census as a ceiling,
+   "<= 76 = 50 + 23 + 3", which it is not):
+   - **125** near-twin pairs of the same kind, 50 interior, 73 edge, 2
+     corner: some turn of one tile that keeps its gray sides where the other
+     has them agrees with it on exactly 3 of 4 sides. Each pair aligns in one
+     way only, so 125 swaps. The first version counted the 50 interior pairs
+     only.
    - **23** interior tiles whose half-turn (180 degrees) breaks exactly 2
      joints: exactly one of N=S, E=W holds.
    - **3** interior tiles whose quarter-turn (90 or 270 degrees) breaks
-     exactly 2 joints: exactly two edge positions fixed by the turn.
+     exactly 2 joints: exactly two edge positions fixed by the turn. All 3
+     are among the 23, and each gives two boards (90 and 270), so the turns
+     number 23 + 2 x 3 = 29 on 23 tiles.
+   - Every swap and turn above lands on 478 from every solution (a swapped
+     pair sitting side by side across its differing side is the exception),
+     so 154 is a floor on the single-move neighbours at 478. Other moves
+     (adjacent swaps that change the shared color, for instance) can add
+     more; no ceiling is claimed.
 6. **Theorem 5 (frame decomposition)** (EXT, `frame_colors.py`,
    `ring_decomp.py`): colors 1-5 appear on **zero** interior tiles; their
    half-edge total is 120 = 2 x 60, saturating the 60 ring joints at 12 per

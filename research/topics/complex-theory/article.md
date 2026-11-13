@@ -21,7 +21,7 @@ sources:
   - label: "Brendan Owen's original complex-theory posts (groups.io message 5209)"
     url: https://groups.io/g/eternity2/message/5209
 reproduce:
-  - "compare web/src/engine-extras/complexity.ts against reference/complex_theory.c — the port is line-faithful and validated against McGavin's published depth table (14,702 expected solutions with the centre hint)"
+  - "compare web/src/engine-extras/complexity.ts against reference/complex_theory.c: the port is line-faithful and validated against McGavin's published depth table (14,702 expected solutions with the centre hint)"
 results:
   - label: McGavin's reference C source (provenance copy, (c) Peter McGavin 2024)
     path: reference/complex_theory.c

@@ -127,9 +127,24 @@ research-rare-color-geography:
 research-entropy-area-law:
     cd research/topics/entropy-area-law/compute && cargo run --release > ../results/entropy.json
 
+# The entropy topic's script-produced numbers: strip eigenvalues h(1) to h(6)
+# (width 6 alone takes about 3 minutes and 1.7 GB), two seeded runs of the
+# distinct-piece sampler (minutes each, single thread), then the derived
+# figures (increments, 1e-3 crossing per run, spread between runs). Timings in
+# the .out files vary; every number reproduces given the seeds.
+research-entropy-area-law-scripts:
+    cd research/topics/entropy-area-law/compute/scripts && node strip_entropy.js 5 > strip_entropy.out && node strip_entropy.js 6 6 >> strip_entropy.out
+    cd research/topics/entropy-area-law/compute/scripts && node distinct_fraction.js > distinct_fraction.out && node distinct_fraction.js --seed-offset 100 > distinct_fraction.seed100.out
+    cd research/topics/entropy-area-law/compute/scripts && python3 -I entropy_fields.py > entropy_fields.out
+
 # Recompute every bundled record board's score from its edges (verification).
 research-record-boards:
     cd research/topics/record-boards/compute && cargo run --release > ../results/verified-scores.json
+
+# Re-verify the stored community record boards from official piece numbers and
+# rotations (artifact verification of stored boards, not a search; stdlib only).
+research-record-boards-pieces:
+    python3 -I research/topics/record-boards/compute/verify_pieces.py research/topics/record-boards/community/*.json > research/topics/record-boards/results/community-verified.json
 
 # Reproduce the border-mismatch-share topic's results (split each high board's
 # unmatched edges into interior-interior / interior-border / border-border).

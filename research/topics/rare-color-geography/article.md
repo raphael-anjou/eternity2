@@ -1,7 +1,7 @@
 ---
 id: rare-color-geography
 title: The rare colors live on the frame
-summary: Five of the 22 colors appear only on the border ring, each on exactly 24 edges, never once in the interior — a deliberate design signature.
+summary: Five of the 22 colors appear only on the border ring, each on exactly 24 edges, never once in the interior, a deliberate design signature.
 status: published
 created: 2026-06-22
 updated: 2026-06-22

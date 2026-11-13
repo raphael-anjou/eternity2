@@ -1,7 +1,7 @@
 ---
 id: experiments-log
 title: Experiments log (every attempt, with its outcome)
-summary: A regenerable roll-up of every experiment in the research notebook — its outcome and a one-line note — surfaced on the site as a searchable log.
+summary: A regenerable roll-up of every experiment in the research notebook, its outcome and a one-line note, surfaced on the site as a searchable log.
 status: published
 created: 2026-06-23
 updated: 2026-06-23
@@ -31,7 +31,7 @@ The research notebook holds hundreds of attempts at Eternity II. This topic roll
 them all up into a single browsable record on the site at
 [`/research/lab/experiments`](https://eternity2.dev/research/lab/experiments): every
 experiment, its outcome (worked, partial, refuted, idea, or won't-do), a one-line
-note, and — for the instructive refuted and partial ones — a short "why" pulled
+note, and (for the instructive refuted and partial ones) a short "why" pulled
 from its write-up. The point is breadth: the dead ends and half-built ideas are as
 useful to publish as the wins, so others can build on them and skip walls already
 hit.
