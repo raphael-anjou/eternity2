@@ -4,15 +4,15 @@ description: >-
   Un argument de comptage sur le jeu de pièces officiel interdit un score
   d'exactement 479/480 : les demi-arêtes de chaque couleur viennent en nombre
   pair, et un unique raccord cassé laisserait deux comptes impairs. Le
-  plancher sous le parfait est 478, et au plus 76 quasi-solutions à un coup
-  peuvent entourer une solution.
-metaDescription: "Un théorème de parité sur le jeu de pièces officiel d'Eternity II : les demi-arêtes de chaque couleur sont en nombre pair, donc un plateau avec un seul raccord cassé ne peut pas exister. 479/480 est impossible, le plancher sous le parfait est 478, au plus 76 quasi-solutions entourent une solution."
+  plancher sous le parfait est 478, et toute solution a environ 150 voisins
+  à un coup qui s'y trouvent exactement.
+metaDescription: "Un théorème de parité sur le jeu officiel d'Eternity II : les demi-arêtes de chaque couleur sont en nombre pair, donc un plateau avec un seul raccord cassé ne peut pas exister. 479/480 est impossible, le plancher sous le parfait est 478, et toute solution a environ 150 voisins à un coup à 478."
 kind: finding
 contribution: theory
 rigor: proven
 tier: 1
 order: 35
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, search-space]
 sources:
   - label: "David Eddy ouvre le fil Parity : le nombre d'arêtes de chaque type est pair, et la conséquence sur la dernière pièce (msg 332, juin 2007)"
@@ -40,8 +40,8 @@ par un plateau que quelqu'un a construit. Elle a exactement un trou. Aucun
 placement complet légal des 256 pièces ne marque 479. C'est un théorème sur
 le jeu de pièces publié, démontrable par simple comptage, et cette page
 déroule l'argument entier : la parité qui l'impose, le plancher de défaut de
-2 qui en découle, et le recensement qui borne le nombre de quasi-solutions à
-un coup autour de toute solution. C'est aussi une entrée de
+2 qui en découle, et le recensement qui compte les quasi-solutions à un coup
+autour de chaque solution. C'est aussi une entrée de
 [la moisson de théorèmes](/research/why/theorem-sweep), le tour d'horizon de
 ce qui se démontre à partir du sac avant toute recherche.
 
@@ -118,29 +118,31 @@ un raccord à la fois est structurellement incapable de le franchir.
 
 Une solution existe ; le casse-tête a été construit à partir d'elle.
 Qu'est-ce qui se trouve juste à côté, à 478 ? Un plateau à un coup d'une
-solution doit venir d'un coup qui casse exactement deux raccords, et seules
-deux sortes de coups uniques peuvent le faire. Les deux se comptent dans le
-sac :
+solution doit venir d'un coup qui casse exactement deux raccords. Deux
+sortes de coups uniques le font, et les deux se comptent dans le sac :
 
-- **Échanges de jumelles.** Deux tuiles intérieures qui s'accordent, dans
+- **Échanges de jumelles.** Deux tuiles de même nature qui s'accordent, dans
   certaines orientations, sur trois de leurs quatre bords. Placées de sorte
   que les bords communs s'alignent, les échanger ne dérange qu'un bord de
-  chacune : deux raccords. Le jeu contient exactement **50** telles paires
-  quasi-jumelles.
+  chacune : deux raccords. Le jeu contient exactement **125** telles paires
+  quasi-jumelles : 50 intérieures, 73 de bord et 2 de coin.
 - **Rotations sur place.** Une tuile dont les couleurs répétées permettent à
   un demi-tour ou à un quart de tour de garder deux de ses quatre couleurs
   de bord en position, si bien que la tourner là où elle est casse
   exactement les deux autres raccords. Le jeu contient **23** tuiles à
   demi-tour et **3** tuiles à quart de tour de ce type.
 
-En les additionnant, toute solution a au plus $50 + 23 + 3 = 76$ voisins de
-défaut 2 atteignables par un seul échange ou une seule rotation. C'est une
-borne supérieure tirée du sac : qu'une paire de jumelles donnée s'aligne
-vraiment dans une solution précise dépend de cette solution, si bien que le
-compte réalisé pour la solution des concepteurs reste ouvert. Le plafond
-tient malgré tout. Autour du sommet de l'échelle, les quasi-solutions sont
-clairsemées, quelques dizaines de plateaux au plus, alors que les barreaux
-plus bas sont peuplés astronomiquement. C'est la même rareté que
+Les trois tuiles à quart de tour font partie des 23 et chacune admet plus
+d'une rotation utile : les 23 tuiles offrent 29 rotations distinctes. Les
+deux sortes de coups marchent dans toute solution. Pour échanger deux
+jumelles, on donne à chaque pièce l'orientation de l'autre : un raccord
+casse dans chaque case, où que soient les deux pièces. Toute solution a donc
+environ $125 + 29 = 154$ voisins à un coup à 478, un plancher tiré du sac et
+non un plafond (seule exception, une paire posée côte à côte par son bord
+différent). Une version antérieure de cette page donnait ici un plafond de
+76 ; ce chiffre ne comptait que les paires intérieures et prenait un
+plancher pour une borne supérieure, il est retiré. Comparée aux populations
+astronomiques des barreaux plus bas, la coquille reste petite. C'est la même rareté que
 [les motifs interdits](/research/why/forbidden-patterns) montrent à
 l'échelle 2×2, lue au sommet.
 
@@ -180,18 +182,22 @@ jamais que tout près de la fin
 Tout cela est vrai, et le fil s'est arrêté là. Poussée un pas plus loin, la
 même observation contient le théorème ci-dessus : la parité fait plus que
 rendre la dernière pièce aléatoire, elle supprime le barreau 479 purement et
-simplement, fixe le plancher de défaut à 2, et plafonne à 76 la coquille à
-un coup autour de chaque solution.
+simplement, fixe le plancher de défaut à 2, et place environ 150 plateaux à
+un coup, à 478, autour de chaque solution.
 
 ## Vérifiez-le vous-même
 
 Chaque nombre de cette page se réduit à un recensement en une passe du jeu
 officiel : les comptes de demi-arêtes et leur parité, l'identité
 d'ajustement exact 960, le zéro tuile symétrique par rotation, la partition
-4/56/196 en coins/bords/intérieur, les générateurs de défaut 2 en 50/23/3,
-la saturation du cadre et le vecteur de demande vers l'intérieur. Le
-vérificateur recalcule chaque valeur à côté de sa valeur attendue et émet un
-drapeau de réussite par affirmation ; les 16 vérifications passent et la
+4/56/196 en coins/bords/intérieur, les 50 paires quasi-jumelles intérieures
+et les 23 tuiles qui tournent, la saturation du cadre et le vecteur de
+demande vers l'intérieur, ainsi que le recensement des coups uniques (125
+échanges de quasi-jumelles et 29 rotations sur place, soit un plancher de
+154 voisins à 478). Le vérificateur recalcule chaque valeur à côté de sa
+valeur attendue et émet un drapeau de réussite par affirmation ; les 21
+vérifications passent (`all_ok: true` dans les
+[résultats du recensement](https://github.com/raphael-anjou/eternity2/blob/main/research/topics/parity-defect-floor/results/census.json) versionnés) et la
 sortie est identique à l'octet près d'une exécution à l'autre.
 [L'article, la source du vérificateur et les résultats sont sur GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/parity-defect-floor),
 et le bloc de reproduction de cette page pointe vers le même sujet. Une

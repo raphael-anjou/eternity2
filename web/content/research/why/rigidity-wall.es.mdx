@@ -10,10 +10,10 @@ metaDescription: "En los tableros récord de Eternity II probados, rellenar una 
 kind: finding
 contribution: theory
 tier: 1
-rigor: proven
+rigor: measured
 author: raphael-anjou
 order: 45
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, local-search, exact-methods]
 complexity:
   time: "una resolución MIP por región; de ~70 s (48 celdas) a ~1800 s (halo-1 conjunto de 59 celdas) en CBC"
@@ -129,7 +129,9 @@ un punto exacto y se queda ahí.
 Hasta los movimientos diseñados para parecer gratis fracasan. Algunos pares
 de piezas comparten tres de sus cuatro colores de arista, así que
 intercambiarlas parece casi neutro. En el 469 de la comunidad se probaron los
-114 intercambios simples de ese tipo: exactamente uno mantiene la puntuación
+114 intercambios simples de ese tipo (los pares que comparten tres colores
+de arista en la orientación almacenada del archivo; salvo rotación hay
+125): exactamente uno mantiene la puntuación
 en 469 (y produce el único tablero gemelo conocido), 2 dan 468 y 111 dan
 467. Los 6.441 intercambios dobles: ninguno alcanza 470, el mejor da 468. En
 6.555 perturbaciones construidas precisamente para ser casi neutras en
@@ -221,8 +223,10 @@ pero dispersas agotan el tiempo.
 
 La única región que queda con una brecha, las cuatro filas superiores, 64
 celdas, sigue dando un resultado *sólido*: una cota dual de 123 frente a los
-116 del titular, de modo que ni siquiera el caso no cerrado puede superar el muro
-por mucho (implica una cota a escala de tablero de ≤ 476).
+116 del titular, de modo que volver a resolver esas filas, con el resto del 469 de
+McGavin fijo, gana como mucho 7 aristas: ningún tablero que conserve el 469
+intacto fuera de sus cuatro filas superiores pasa de 476. No dice nada de los
+tableros que difieren en otras zonas.
 
 No todas las resoluciones terminaron, y el registro conserva también esas. La
 resolución conjunta halo-2 de 54 celdas sobre el 469 se quedó atascada en su
@@ -249,9 +253,11 @@ el conjunto de nivel 459 es una unión disjunta de muchos puntos rígidos, y
 superarlo exige una reorganización a escala de tablero o un punto de partida
 distinto, nunca un arreglo local.
 
-La insignia dice *probado* en lugar de *conjeturado* para las regiones
-efectivamente cerradas; el enunciado general sobre *todos* los tableros sigue
-siendo una conjetura, respaldada por cada región probada hasta la fecha.
+La página está calificada como *medida*: cada región cerrada es un
+certificado de solver, pero las ejecuciones MIP de la tabla son resultados de
+cuaderno aún no versionados aquí, y solo la reproducción SAT en radio 4 lo
+está. El enunciado general sobre *todos* los tableros sigue siendo una
+conjetura, respaldada por cada región probada hasta la fecha.
 
 ## Tampoco existe ningún intercambio ingenioso
 
@@ -569,8 +575,9 @@ sobre cinco tableros públicos, con nuestro propio codificador y un control
 positivo para asegurarnos de que una región concordante vuelve satisfacible. En
 los cuatro tableros récord de la comunidad, desde el 467 de Verhaard hasta el 470
 de Blackwood, y el 464 de Riotte (el récord estricto de cinco pistas de
-entonces, llevado desde entonces a 465 por su
-[flota distribuida](/research/community/five-clue-fleet)), cada
+entonces, superado después, primero
+por su [flota distribuida](/research/community/five-clue-fleet); véase
+[Récords y solucionadores](/research/records)), cada
 resolución que termina es UNSAT hasta un halo de radio 4 en el sentido de
 Chebyshev (esta reproducción mide la región liberada por radio de Chebyshev,
 mientras que las escaleras SAT del cuaderno más abajo cuentan pasos de
@@ -608,8 +615,9 @@ UNSAT en menos de 2 s cada uno; el halo 7, 173 libres y 83 fijadas, UNSAT en
 filas superiores más 3 de las 5 pistas. Así que las dos filas superiores de
 este tablero son, por sí solas, demostrablemente incompatibles con cualquier
 solución perfecta: todo 480 debe diferir de este tablero en algún punto de
-esas 38 celdas. Es menos especial de lo que parece: con a lo sumo unas $10^7$ soluciones
-(ver [el recuento de soluciones](/research/build/analysis/solution-counting)),
+esas 38 celdas. Es menos especial de lo que parece: con unas $10^7$
+soluciones esperadas sin pistas, una estimación del primer momento y no una
+cota (ver [el recuento de soluciones](/research/build/analysis/solution-counting)),
 casi cualquier esqueleto fijo de 38 celdas es incompatible con todas ellas,
 así que esto muestra qué poco de un tablero hay que dejar fijado para excluir
 el 480, no una rigidez propia de este tablero. En radio 15, con solo 4 celdas
@@ -670,17 +678,18 @@ borde de ese récord, llegar a 480 es demostrablemente imposible. Una solución 
 
 La expectativa nula da el mismo veredicto. Hay unas $10^{37{,}6}$
 colocaciones de marco válidas (ver
-[la pureza del anillo](/research/why/ring-purity)) frente a como mucho unas
-$1{,}15\times10^{7}$ soluciones, cada una con un único borde, así que un borde
-legal tomado al azar admite un 480 con probabilidad inferior a unos
-$10^{-30}$, y nueve bordes UNSAT de nueve es lo que darían nueve bordes
+[la pureza del anillo](/research/why/ring-purity)) frente a unas
+$1{,}15\times10^{7}$ soluciones esperadas sin pistas (una estimación del
+primer momento, no una cota), cada una con un único borde, así que según esa
+estimación un borde legal tomado al azar admite un 480 con probabilidad del
+orden de $10^{-30}$, y nueve bordes UNSAT de nueve es lo que darían nueve bordes
 cualesquiera. No se ejecutó ningún control con bordes aleatorios o de
 puntuación baja. El resultado muestra que pulir dentro de un borde fijo no
 puede llegar a 480; no muestra que los bordes récord sean especiales.
 
 ## Por qué existe el muro
 
-La página hasta aquí prueba el muro; esto es lo más parecido que tenemos a
+La página hasta aquí documenta el muro en los tableros probados; esto es lo más parecido que tenemos a
 una razón. Modela el conjunto de tableros con puntuación fija como un grafo
 cuyas aristas son movimientos que tocan como mucho $k$ celdas, y pregunta por
 el menor $k$ que lo conecta: el radio de conectividad. En instancias pequeñas
@@ -726,9 +735,10 @@ permitiría son simetrías globales, y este juego de piezas no tiene
 esencialmente ninguna.)
 
 <Callout kind="insight" title="La siguiente pieza del cuadro">
-  Si no puedes mejorar un tablero localmente, quizá puedas saltar de un buen
-  tablero a otro. Eso también fracasa, por una razón afín: [ve por qué el salto
-  entre cuencas es imposible](/research/why/sigma-cycles).
+  Si no puedes mejorar un tablero localmente, quizá puedas caminar de un buen
+  tablero a otro. Entre los tableros récord conocidos eso también fracasa, por
+  una razón afín: [interpolar entre tableros récord
+  fracasa](/research/why/sigma-cycles).
 </Callout>
 
 *Las pruebas usan programación entera sobre regiones de cada tablero; corren

@@ -4,15 +4,16 @@ description: >-
   Rellena un tablero en un orden fijo y los tres cuartos de arriba entran con
   soltura; lo que sobra es, por construcción, el final del orden. En cuarenta
   tableros generados, una búsqueda row-major se atasca en una mediana de 12
-  filas de 16, y más presupuesto no la mueve. Falta comprobar si algunas
+  filas de 16, y 2,7 veces más presupuesto la mueve como mucho una fila, como
+  haría un árbol exponencial corriente. Falta comprobar si algunas
   celdas son difíciles con cualquier orden.
-metaDescription: "En cuarenta tableros 16x16 resolubles, una búsqueda row-major rellena una mediana de 12 filas de 16 y se atasca con cualquier presupuesto. Lo que sobra queda al final del orden por construcción; que una región sea difícil con cualquier orden no se ha probado."
+metaDescription: "En cuarenta tableros 16x16 resolubles, una búsqueda row-major rellena una mediana de 12 filas de 16 y se atasca; 2,7 veces más presupuesto la mueve como mucho una fila. Lo que sobra queda al final del orden por construcción; que una región sea difícil con cualquier orden no se ha probado."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 3
 order: 82
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, search-space]
 sources: []
 related:
@@ -152,10 +153,9 @@ sí (por columnas, en espiral, invertido, aleatorio) y una medida de cuánto se
 solapan las celdas que cada uno deja sin resolver. Esa comparación aún no se ha
 hecho.
 
-## El atasco es un muro, no un arranque lento
+## Más presupuesto, misma frontera
 
-Una última comprobación separa un muro de una búsqueda que sencillamente se quedó
-sin nodos. Reejecuta ocho de los tableros a cuatro millones de nodos, unas 2,7
+Una última comprobación pregunta si un presupuesto mayor mueve la frontera. Reejecuta ocho de los tableros a cuatro millones de nodos, unas 2,7
 veces el presupuesto del barrido, y compara la frontera con las mismas semillas de
 la serie principal.
 
@@ -166,10 +166,13 @@ la serie principal.
 
 La frontera no sube con el presupuesto. Cuatro de los ocho tableros suben una
 fila, uno baja una fila, y tres no se mueven en absoluto, todo dentro de una sola
-fila de temblor, y el sobrante permanece por completo en la banda inferior. La
-búsqueda no es lenta; está detenida, y está detenida en la última región que
-intenta rellenar. Ese es el fallo insensible al presupuesto que predice la
-conjetura, reproducido directamente.
+fila de temblor, y el sobrante permanece por completo en la banda inferior.
+Esta prueba no distingue un muro de un árbol exponencial corriente. Si el
+árbol crece un factor $b$ por celda en la frontera, un presupuesto 2,7 veces
+mayor compra unas $\log 2{,}7 / \log b$ celdas más, menos de una celda en
+cuanto $b$ supera 2,7, así que una frontera que se queda dentro de una fila
+es también lo que da un árbol corriente. Una prueba con potencia necesita
+presupuestos repartidos en varias décadas.
 
 ## Qué zanja esto y qué no
 
@@ -190,10 +193,13 @@ afirmación aparte, no medida.
 La mitad **demasiado acoplada globalmente** es un techo empírico ligado a la
 escasez del conjunto oficial, el acoplamiento que permite que una pieza escasa
 gastada arriba [mate de hambre a una celda muy abajo](/research/why/piece-theft).
-Nuestros tableros vienen del generador enmarcado del kit, con solución plantada y
-que plausiblemente admite muchas soluciones, mientras que la estimación del
-primer momento del puzzle real es de unas 14 702 con la pieza central (ver el
-[recuento de soluciones](/research/build/analysis/solution-counting)). La
+Nuestros tableros vienen del generador enmarcado del kit, con solución plantada
+y, como el conjunto oficial sin pistas, con muchas soluciones esperables: la
+estimación del primer momento en la que se apoya el
+[recuento de soluciones](/research/build/analysis/solution-counting) da unas
+$10^{7}$ para un tablero enmarcado 16x16 al azar con 17 colores interiores, 5
+de marco y ninguna pista, frente a unas $1{,}15\times10^{7}$ para el conjunto
+oficial sin pistas (unas 14 702 una vez fijada la pieza central). La
 localización vale para cualquier tablero bajo un relleno secuencial, porque el sobrante tiene que vivir en algún sitio y un
 barrido row-major lo pone abajo, de modo que la familia generada es una prueba
 adecuada de la localización; no es una prueba de la afirmación de acoplamiento,

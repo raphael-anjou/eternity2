@@ -1,5 +1,5 @@
 ---
-title: L'entropie et la loi d'aire
+title: L'entropie et la règle d'usage unique
 description: >-
   Eternity II a deux règles : les bords doivent coïncider, et chaque pièce
   ne sert qu'une fois. Sans la seconde, les motifs localement valides
@@ -11,7 +11,7 @@ contribution: theory
 rigor: measured
 tier: 2
 order: 50
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure]
 related:
   - /research/why/phase-transition
@@ -20,20 +20,22 @@ related:
   - /research/why/piece-theft
   - /research/build/analysis/solution-counting
 repro:
-  kind: exact
-  cmd: just research-entropy-area-law
+  kind: seeded
+  cmd: just research-entropy-area-law && just research-entropy-area-law-scripts
   topic: entropy-area-law
   scope: >-
-    La commande reproduit exactement, dans le dépôt : la borne horizontale
-    lambdaH et les densités d'entropie h(1), h(2) pour les largeurs 1 et 2, à
-    partir des valeurs propres de la matrice de transfert ; les comptages de
-    blocs intérieurs A(n) jusqu'à n=4 et les comptages à pièces distinctes B(n)
-    jusqu'à n=3 (B(2)=4059952 recoupe la table subgrid-placement-counts) ; et
-    l'exposant de loi d'aire alpha proche de 0,044 ajusté sur cette plage. Les
-    points de largeur supérieure h(3), h(4) et la limite h_infinity aux environs
-    de 0,67 proviennent encore d'un balayage hors ligne, et la courbe rho(n)
-    ainsi que le seuil des ~155 cellules au-delà de n=3 sont des extrapolations
-    de l'ajustement du dépôt, non des comptages exacts.
+    Exact : la première recette calcule la borne horizontale lambdaH, h(1) et
+    h(2) à partir des valeurs propres de la matrice de transfert, les
+    comptages de blocs intérieurs A(n) jusqu'à n=4 et les comptages à pièces
+    distinctes B(n) jusqu'à n=3 (B(2)=4059952 recoupe la table
+    subgrid-placement-counts) ; la seconde calcule h(1) à h(6) par itération
+    de la puissance. Échantillonné, avec graine : la seconde recette tire aussi
+    les fractions à pièces distinctes des motifs de quatre cases de large en
+    deux exécutions de graines différentes et interpole dans chacune le
+    passage sous 1e-3 ; elles se reproduisent à graine donnée, pas comme des
+    comptages exacts. Le fichier de résultats recopie tels quels les chiffres
+    des scripts en nommant leur source ; les valeurs retirées n'y figurent
+    plus que sous une clé « withdrawn », chacune avec sa raison.
 sources:
   - label: "Le lemme de sous-additivité de Fekete, le théorème qui garantit l'existence même de la limite d'entropie h∞"
     url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
@@ -58,10 +60,15 @@ import { useIsClient } from "@/lib/utils";
 import { EntropyScarcityLab } from "@/components/research/EntropyScarcityLab";
 import data from "@/data/entropy-area-law.json";
 
-export const rhoCurve = Array.from({ length: 13 }, (_, i) => {
-  const n = i + 1;
-  return { cells: n * n, rho: Math.exp(-data.areaLawExponent * n * n) };
-});
+export const rhoPoints = [
+  { cells: 1, rho: 1 },
+  { cells: 4, rho: 0.892166 },
+  { cells: 9, rho: 0.64768 },
+  { cells: 16, rho: 0.3263 },
+  { cells: 24, rho: 0.106 },
+  { cells: 32, rho: 0.02383 },
+  { cells: 48, rho: 0.000375 },
+];
 
 export function EntropyChart() {
   const isClient = useIsClient();
@@ -74,8 +81,8 @@ export function EntropyChart() {
             <XAxis
               dataKey="width"
               type="number"
-              domain={[1, 4]}
-              tickCount={4}
+              domain={[1, 6]}
+              tickCount={6}
               label={{ value: "strip width n", position: "insideBottom", offset: -8, fontSize: 12 }}
               fontSize={12}
             />
@@ -109,13 +116,13 @@ export function RhoChart() {
     <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
       {isClient ? (
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <LineChart data={rhoCurve} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+          <LineChart data={rhoPoints} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis
               dataKey="cells"
               type="number"
-              domain={[0, 170]}
-              tickCount={7}
+              domain={[0, 50]}
+              tickCount={6}
               label={{
                 value: "patch size (cells)",
                 position: "insideBottom",
@@ -126,7 +133,7 @@ export function RhoChart() {
             />
             <YAxis
               scale="log"
-              domain={[1e-7, 1]}
+              domain={[1e-4, 1]}
               allowDataOverflow
               tickFormatter={(n) => Number(n).toExponential(0)}
               width={52}
@@ -141,7 +148,7 @@ export function RhoChart() {
               dataKey="rho"
               stroke="#f59e0b"
               strokeWidth={2}
-              dot={false}
+              dot={{ r: 3 }}
               isAnimationActive={false}
             />
           </LineChart>
@@ -169,43 +176,46 @@ s'élargit.
 
 ## L'entropie de la grammaire, largeur par largeur
 
-<Figure caption="Décroissance vers la limite ≈ 0,67. Les deux premiers points sont calculés exactement ici ; les autres proviennent d'un balayage hors ligne.">
+<Figure caption="Décroissance vers une limite proche de 0,44. Chaque rangée ajoutée multiplie le compte par environ 2,72 (10 puissance 0,435), si bien que h(n) vaut à peu près 0,435 + 1,23/n ; les largeurs montrées sont encore loin de la limite.">
   <EntropyChart />
 </Figure>
 
-## Puis la loi d'aire frappe
+## Puis la règle d'usage unique frappe
 
 Rétablissons maintenant la règle qui impose d'utiliser chaque pièce une
-seule fois, et demandons-nous à quelle fréquence un bloc $n \times n$
-compatible en couleurs emploie effectivement des pièces distinctes. Nous le
-comptons exactement, dans le dépôt : pour chaque taille de bloc intérieur nous
-comptons $A(n)$, les remplissages compatibles en couleurs quand les pièces
-peuvent se répéter, et $B(n)$, ceux qui emploient des pièces distinctes, puis
-prenons $\rho(n) = B(n)/A(n)$. Elle s'effondre, et elle s'effondre selon
-l'aire, non selon le périmètre :
+seule fois, et demandons-nous à quelle fréquence un bloc compatible en
+couleurs emploie effectivement des pièces distinctes. Appelons cette part
+$\rho$. Pour les blocs carrés, nous la comptons exactement, dans le dépôt :
+pour chaque taille de bloc intérieur $n$ nous comptons $A(n)$, les
+remplissages compatibles en couleurs quand les pièces peuvent se répéter, et
+$B(n)$, ceux qui emploient des pièces distinctes, puis prenons
+$\rho(n) = B(n)/A(n)$. On obtient 0,892 en 2×2 et 0,648 en 3×3, avec
+$B(2) = 4\,059\,952$ concordant avec la table de référence sub-grille du
+dépôt. À $n=4$, le comptage réutilisable $A(4)$ atteint déjà
+$6{,}3\times10^{16}$, au-delà de l'énumération distincte exacte en temps
+raisonnable. Au-delà, nous échantillonnons : tirer uniformément des motifs
+compatibles de quatre cases de large (exactement, par leurs nombres de
+complétions) donne $\rho = 0{,}33$ à 16 cases, 0,11 à 24, 0,024 à 32 et
+0,0004 à 48. Deux exécutions de graines différentes donnent 0,3263 et 0,3261,
+0,1060 et 0,1071, 0,0238 et 0,0244, 0,000375 et 0,000389 ; elles concordent à
+leur erreur type combinée près (l'écart le plus grand, à 32 cases, vaut 1,8
+erreur type combinée).
 
-$$
-\rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.044.
-$$
+Elle s'effondre, et plus vite qu'une loi d'aire : $-\ln \rho$ par case passe
+de 0,07 à 16 cases à 0,16 à 48. Deux effets s'ajoutent. Deux cases voisines
+portent la même pièce environ 2,6 % du temps dans un motif compatible, cinq
+fois le hasard de 1 sur 196, et deux cases quelconques du motif peuvent
+porter la même pièce, si bien que le nombre d'occasions de répétition croît
+comme le carré de la taille du motif. La proportion de motifs réalisables
+passe sous le millième vers 44 cases (44,2 et 44,4 dans les deux exécutions,
+par interpolation log-linéaire entre 32 et 48 cases). Ce chiffre repose sur
+des valeurs échantillonnées, non sur des comptages exacts. Une version antérieure de cette page
+ajustait $\rho(n) \approx \exp(-0{,}044\, n^2)$ sur les deux points exacts et
+en extrapolait un effondrement vers 155 cases ; la fraction
+échantillonnée à 48 cases est environ 300 fois sous cet ajustement, qui est
+donc retiré, avec le chiffre de 155 cases.
 
-L'exposant est ajusté par moindres carrés sur la plage comptée exactement :
-$A$ et $B$ sont calculés ici pour $n$ jusqu'à $3$ (et $A$ jusqu'à $4$), avec
-$B(2) = 4\,059\,952$ concordant avec la table de référence sub-grille du dépôt.
-L'exposant par bloc croît encore sur cette petite plage (0,029 à $n=2$, 0,048 à
-$n=3$), si bien que 0,044 est une estimation basse de la valeur pour les grands
-blocs. À $n=4$, le comptage réutilisable $A(4)$ atteint déjà $6{,}3\times10^{16}$,
-au-delà de l'énumération distincte exacte en temps raisonnable ; la courbe
-au-delà de $n=3$ est donc une extrapolation de l'ajustement.
-
-Une décroissance en loi d'aire est brutale, car l'aire croît de façon
-quadratique. Par extrapolation, la proportion de blocs réalisables passe sous le
-seuil du millième aux alentours de 155 cellules. (Une étude hors site antérieure
-rapportait un $\alpha \approx 0.085$ plus raide et un seuil vers 80 cellules ;
-les comptages exacts du dépôt sur $n \le 3$ donnent les valeurs plus douces
-présentées ici, l'exposant par bloc croissant restant compatible avec la valeur
-hors site atteinte pour de plus grands blocs.)
-
-<Figure caption="Proportion de blocs compatibles en couleurs réalisables avec des pièces distinctes. L'exposant est l'ajustement par moindres carrés du dépôt sur les blocs comptés exactement (n jusqu'à 3) ; la courbe au-delà est une extrapolation.">
+<Figure caption="Proportion de motifs compatibles en couleurs réalisables avec des pièces distinctes : exacte pour les blocs carrés jusqu'à 3×3 (1, 4 et 9 cases), échantillonnée au-delà sur des motifs de quatre cases de large (16, 24, 32 et 48 cases, au moins 400 000 tirages chacun ; la première des deux exécutions avec graine est tracée).">
   <RhoChart />
 </Figure>
 
@@ -234,7 +244,7 @@ les casse-têtes d'appariement de bords en général
 l'instance 16×16 à tuiles réutilisables avec cadre gris soit facile en pratique
 n'a pas été mesuré.
 
-Voir [pourquoi le basin-hopping est impossible](/research/why/sigma-cycles).
+Voir [l'interpolation entre plateaux records échoue](/research/why/sigma-cycles).
 
 ## Le théorème, en bref
 
@@ -247,8 +257,8 @@ $$
 $$
 
 En passant au logarithme, $\log \lambda_n$ devient sous-additif, et le lemme
-de Fekete donne la limite comme un infimum, ce qui explique précisément
-pourquoi la courbe ci-dessus décroît :
+de Fekete donne la limite comme un infimum, si bien que chaque largeur
+calculée la majore :
 
 $$
 h_\infty \;=\; \lim_{n\to\infty}\frac{\log_{10}\lambda_n}{n} \;=\; \inf_n \frac{\log_{10}\lambda_n}{n}.
@@ -258,18 +268,25 @@ La borne supérieure est le taux purement horizontal : ignorer les
 contraintes verticales ne fait qu'ajouter des blocs, donc
 
 $$
-0 \;<\; h_\infty \;\le\; \log_{10}\lambda_H \;=\; 1.6645,
+0 \;\le\; h_\infty \;\le\; \log_{10}\lambda_H \;=\; 1.6645,
 $$
 
 avec $\lambda_H = 46.18$ le rayon spectral de la matrice de compatibilité
-des couleurs à l'horizontale. La positivité tient parce que la grammaire
-admet exponentiellement de nombreuses chaînes, si bien que la densité est
-strictement comprise entre zéro et 1,6645, mesurée aux environs de 0,67.
+des couleurs à l'horizontale. Comme la limite est un infimum, chaque largeur
+calculée en est une borne supérieure : $h(6) = 0{,}640$ donne
+$h_\infty \le 0{,}640$. Les incréments $\log_{10}(\lambda_{n+1}/\lambda_n)$
+restent à 0,4352 de la largeur 2 à la largeur 6 : la limite est donc proche
+de 0,435, tout près de la valeur de champ moyen
+$\log_{10}(784/289) = 0{,}433$. La stricte positivité ne découle pas de cet
+argument : beaucoup de chaînes à une dimension ne donnent pas à elles seules
+d'entropie à deux dimensions.
 
-Ce que le théorème démontre, c'est qu'une limite positive existe et qu'elle
-est majorée par $\log_{10}(46.18) = 1.6645$. Sa valeur précise aux environs de
-0,67 provient d'un balayage hors ligne. L'exposant de loi d'aire
-$\alpha \approx 0.044$ est ajusté ici à partir des comptages de blocs exacts du
-dépôt sur $n \le 3$ ; son extrapolation aux plus grands blocs (et le seuil des
-~155 cellules) dépasse la plage comptée exactement. Le théorème ne fixe pas ces
-valeurs.
+Ce que le théorème démontre, c'est que la limite existe et reste sous chaque
+valeur de bande. Sa valeur, environ 0,435, se lit sur les valeurs propres
+des bandes de largeur 1 à 6 (1,6645, 1,0497, 0,8449, 0,7425, 0,6810,
+0,6400), recalculées par les
+[scripts du sujet](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/entropy-area-law/compute/scripts).
+Une version antérieure de cette page donnait une limite d'environ 0,67 ;
+puisque $h(6)$ est déjà en dessous, ce chiffre est impossible et il est
+retiré. Les fractions à pièces distinctes au-delà du 3×3 sont échantillonnées,
+non comptées, et le théorème ne les fixe pas.

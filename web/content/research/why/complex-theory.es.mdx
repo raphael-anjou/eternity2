@@ -10,7 +10,7 @@ kind: finding
 contribution: exposition
 rigor: conjectured
 order: 30
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, backtracking]
 sources:
   - label: "La forma cerrada del pico de profundidad de Brendan Owen, 256·(1−1/e) (groups.io msg 8125, 2010)"
@@ -127,7 +127,7 @@ inscrito en la estructura del tablero antes de colocar una pieza.
 
 Representa la anchura esperada a cada profundidad y aparecen tres regímenes. Su
 forma es lo que la comunidad llama el embudo de E2. Lanza el barrido de abajo y
-observa el contador: sube astronómicamente, luego apenas se mueve
+observa el contador: sube astronómicamente, luego sube mucho más despacio
 durante un centenar de celdas a lo largo de la meseta, ese avance plano por una
 banda astronómicamente ancha es el muro, antes de que las últimas sesenta piezas
 lo hagan bajar de nuevo en embudo.
@@ -151,14 +151,16 @@ orden por sí solo, antes de colocar un solo nodo.
 - **Crecimiento (profundidad 1–50).** Las soluciones se multiplican
   geométricamente de una a unas $10^{27}$. Cada colocación es prácticamente
   gratuita; todavía nada te limita.
-- **Meseta (profundidad 50–200).** El árbol está en su punto más ancho, unas
-  $10^{45}$ formas de extender, mientras que el número de soluciones apenas se
-  mueve. Aquí es donde los backtrackers pasan la mayor parte de su tiempo: una
+- **Meseta (profundidad 50–200).** El árbol alcanza aquí su anchura máxima,
+  sin ser plano: la anchura sube de unas $10^{27}$ en la profundidad 50 a un
+  pico cercano a $10^{46}$ en la profundidad 161 y vuelve a unas $10^{41}$ en
+  la profundidad 200; solo queda a menos de una década del pico entre las
+  profundidades 140 y 178, aproximadamente. Aquí es donde los backtrackers pasan la mayor parte de su tiempo: una
   muestra empírica ([groups.io msg 11725](https://groups.io/g/eternity2/message/11725),
   un cálculo de 1 mil millones de iteraciones) midió el 99 % del tiempo del
   backtracker a profundidad $>132$ y el 70 % a profundidad $>150$, es decir, en
   el fondo del árbol y no al principio.
-- **Colapso (profundidad 200–256).** La anchura cae de $10^{45}$ de vuelta a
+- **Colapso (profundidad 200–256).** La anchura cae de unas $10^{41}$ de vuelta a
   unas $10^{4}$. Las ~60 últimas piezas están fuertemente restringidas: cada una
   colocada elimina órdenes de magnitud de ramas. El final de partida es
   localmente fácil; lo difícil es llegar a él.

@@ -7,13 +7,12 @@ description: >-
   hardness, and how to write the puzzle for a SAT, exact-cover, or ILP solver
   with small worked sketches. A measurement on planted boards puts a number on
   the choice of solver: a restarting DFS hits a wall about one board size
-  before CP-SAT does, and both walls move with the colour count, close to
-  where the boards cross the expected-one-solution size.
+  before CP-SAT does, and both walls move with the colour count.
 metaDescription: "Edge matching is NP-complete as a family, but one fixed 16x16 board is a constant, not a problem. Beside SAT, DLX and ILP encodings, a planted-board measurement shows CP-SAT pushing the solvability wall about a size past a restarting DFS, both walls moving with the colour count."
 kind: concept
 contribution: exposition
 order: 25
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [exact-methods]
 sources:
   - label: 'Demaine & Demaine 2007, "Jigsaw Puzzles, Edge Matching, and Polyomino Packing: Connections and Complexity" (Graphs and Combinatorics 23): edge matching is NP-complete'
@@ -224,9 +223,12 @@ number. The bench is a family of *planted*
 boards: framed, colour-balanced instances built from a known solution, five
 solution cells pinned as clues, scored with the rim-excluding matched-edges
 convention (a full solve at size $N$ is exactly $2N(N-1)$ matched edges: 264
-at 12×12, 480 at 16×16). Planted boards are not canonical Eternity II; they
-plausibly admit very many solutions, where the real puzzle's first-moment
-estimate is about 14,702 with the centre clue and about one with all five. What they offer is a ladder of guaranteed-solvable instances
+at 12×12, 480 at 16×16). Planted boards are not canonical Eternity II. At
+these sizes they are far more constrained than the real puzzle: the same
+first-moment estimate that gives about 14,702 for Eternity II with the centre
+clue gives a random 12×12 board with 17 interior colours and five clues about
+$10^{-41}$ solutions, so a planted board of that size almost surely has only
+its own. What they offer is a ladder of guaranteed-solvable instances
 that two different search paradigms can attack side by side.
 
 On this bench, at 22 colours in total (17 interior plus 5 border, the real
@@ -280,15 +282,16 @@ colours means a more constrained board and an easier search for everyone;
 fewer colours drags both paradigms down together, so measurements taken at
 26 colours flatter every solver in the race.
 
-Where the walls sit lines up with where these boards cross the
-expected-one-solution size for their colour count. A crude first-moment
-estimate for the interior alone, $m! \cdot 4^m / c^{j}$ with $m = (N-2)^2$
-pieces, $j = 2(N-2)(N-3)$ internal joints and $c$ interior colours, crosses
-one between N = 12 and N = 13 at 17 interior colours ($10^{-3.3}$ at 12,
-$10^{3.1}$ at 13) and near N = 16 at 21 ($10^{-6.2}$ at 15, $10^{2.4}$ at 16).
-At 17 interior colours that is where CP-SAT slows and starts timing out. Both
-solvers hit their wall near this crossing, and CP-SAT pushes it out by a size
-or two compared with the restarting DFS. With five seeds per size, one DFS
+The walls do not sit at the expected-one-solution size. Counting every
+joint, frame and seams included, with the same first-moment formula that
+gives 14,702 for Eternity II, a board with 17 interior colours and no clues
+expects $10^{-28}$ solutions at 12×12, $10^{-6}$ at 15×15 and $10^{7}$ at
+16×16; with five clues it stays below one at every size up to 16×16
+($10^{-7}$ there). Both solvers fail on boards that almost surely have a
+single solution, and CP-SAT pushes the wall out by a size or two compared
+with the restarting DFS. An earlier version of this page placed the crossing
+between 12×12 and 13×13 with a formula that left out the seam joints and the
+frame; that placement is withdrawn. With five seeds per size, one DFS
 implementation and single-seed probes on the larger rungs, these data cannot
 say how much of the cliff belongs to the search paradigm and how much to where
 the board family sits relative to the phase transition. The planted 16×16 the probe

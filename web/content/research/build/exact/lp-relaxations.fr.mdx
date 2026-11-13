@@ -13,7 +13,7 @@ metaDescription: "Eternity II en programme entier : relâché, le LP atteint une
 kind: concept
 order: 160
 group: Exact methods
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [exact-methods]
 sources:
   - label: "La formulation en clique maximum : 262 144 sommets de placement, trouver une clique de 256 (groups.io message 627, 2007)"
@@ -285,9 +285,12 @@ $8 + 168 + 784 = 960 = 480 \times 2$. L'instance n'a aucun mou ; chaque côté
 non-bordure doit trouver un partenaire.
 
 Le LP sur ce graphe d'appariement raconte son histoire en trois temps. Figez
-chaque pièce dans une orientation fixe et la borne vaut 307,00, entière et
-égale à un décompte en forme close, mais non valide pour le vrai puzzle
-puisque les rotations sont interdites. Laissez les côtés s'apparier librement
+chaque pièce dans l'orientation où le fichier publié l'enregistre et la borne
+vaut 307,00, entière et égale à un décompte en forme close, mais non valide
+pour le vrai puzzle puisque les rotations sont interdites. Ce 307 tient à
+l'orientation enregistrée, pas aux pièces : des orientations fixes tirées au
+hasard pour les 256 pièces plafonnent vers 402 (2 000 tirages, écart type
+9,6), et les orientations d'une solution permettent 480. Laissez les côtés s'apparier librement
 à travers les rotations (21 636 variables d'appariement, une contrainte de
 degré par côté) et le LP atteint exactement 480,00, avec 132 appariements
 fractionnaires ; ajouter des budgets d'appariement par pièce ne change rien.
@@ -324,7 +327,7 @@ fois résolu aussi à l'optimalité entière, l'optimum entier vaut également
 480,0 : pour chaque couleur il existe une affectation de rotations
 entières qui place ses arêtes sur les bons côtés pour dépenser tout le
 budget $\lfloor N_k/2 \rfloor$. Cela ajoute un quatrième barreau à
-l'échelle ci-dessus (rotations figées 307, appariement libre 480,00
+l'échelle ci-dessus (rotations du fichier 307, appariement libre 480,00
 fractionnaire, cohérence de rotation 480,00 fractionnaire, et désormais
 même les rotations entières laissent 480 faisable au niveau de l'offre).
 La flexibilité de rotation n'est jamais la contrainte active ;

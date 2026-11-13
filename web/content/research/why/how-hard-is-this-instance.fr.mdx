@@ -8,13 +8,12 @@ description: >-
   solveur SAT, de couverture exacte ou de PLNE, avec de petits croquis détaillés.
   Une mesure sur plateaux plantés chiffre le choix du solveur : une DFS à
   redémarrages bute sur un mur environ une taille de plateau avant CP-SAT, et
-  les deux murs bougent avec le nombre de couleurs, près de la taille où les
-  plateaux franchissent le seuil d'une solution attendue.
+  les deux murs bougent avec le nombre de couleurs.
 metaDescription: "L’appariement de bords est NP-complet comme famille, mais un plateau 16x16 fixé est une constante. Outre les encodages SAT, DLX et PLNE, une mesure sur plateaux plantés montre CP-SAT repoussant le mur d’environ une taille au-delà d’une DFS, les deux murs suivant le nombre de couleurs."
 kind: concept
 contribution: exposition
 order: 25
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [exact-methods]
 sources:
   - label: 'Demaine & Demaine 2007, « Jigsaw Puzzles, Edge Matching, and Polyomino Packing: Connections and Complexity » (Graphs and Combinatorics 23) : l''appariement de bords est NP-complet'
@@ -253,10 +252,12 @@ famille de plateaux *plantés* : des instances cadrées, aux couleurs
 solution épinglées comme indices, notées selon la convention des bords appariés
 hors pourtour (une résolution complète à la taille $N$ vaut exactement
 $2N(N-1)$ bords appariés : 264 en 12×12, 480 en 16×16). Les plateaux plantés ne
-sont pas l'Eternity II canonique ; ils admettent vraisemblablement de très
-nombreuses solutions, là où l'estimation du premier moment du vrai puzzle est
-d'environ 14 702 avec la pièce centrale et d'environ une avec les cinq
-indices. Ce qu'ils offrent, c'est une échelle d'instances
+sont pas l'Eternity II canonique. À ces tailles, ils sont bien plus
+contraints que le vrai puzzle : la même estimation du premier moment, qui
+donne environ 14 702 solutions à Eternity II avec la pièce centrale, en donne
+environ $10^{-41}$ à un plateau 12×12 aléatoire à 17 couleurs intérieures et
+cinq indices ; un plateau planté de cette taille n'a donc presque sûrement que
+la sienne. Ce qu'ils offrent, c'est une échelle d'instances
 résolubles par construction que deux paradigmes de recherche différents peuvent
 attaquer côte à côte.
 
@@ -316,16 +317,17 @@ pour tout le monde ; moins de couleurs tire les deux paradigmes vers le bas
 ensemble, si bien que des mesures prises à 26 couleurs avantagent tous les
 solveurs de la course.
 
-La position des murs coïncide avec la taille à laquelle ces plateaux
-franchissent le seuil d'une solution attendue pour leur nombre de couleurs.
-Une estimation grossière du premier moment pour l'intérieur seul,
-$m! \cdot 4^m / c^{j}$ avec $m = (N-2)^2$ pièces, $j = 2(N-2)(N-3)$ joints
-internes et $c$ couleurs intérieures, franchit un entre N = 12 et N = 13 à 17
-couleurs intérieures ($10^{-3.3}$ à 12, $10^{3.1}$ à 13) et vers N = 16 à 21
-($10^{-6.2}$ à 15, $10^{2.4}$ à 16). À 17 couleurs intérieures, c'est
-précisément là que CP-SAT ralentit et commence à dépasser ses délais. Les deux
-solveurs butent près de ce franchissement, et CP-SAT repousse le mur d'une ou
-deux tailles par rapport à la DFS à redémarrages. Avec cinq graines par
+Les murs ne se trouvent pas à la taille où l'on attend une solution. En
+comptant tous les joints, cadre et coutures compris, avec la formule du
+premier moment qui donne 14 702 pour Eternity II, un plateau à 17 couleurs
+intérieures sans indice attend $10^{-28}$ solutions en 12×12, $10^{-6}$ en
+15×15 et $10^{7}$ en 16×16 ; avec cinq indices, l'attente reste sous un à
+toutes les tailles jusqu'au 16×16 ($10^{-7}$ à cette taille). Les deux
+solveurs échouent sur des plateaux qui n'ont presque sûrement qu'une
+solution, et CP-SAT repousse le mur d'une ou deux tailles par rapport à la
+DFS à redémarrages. Une version antérieure de cette page plaçait le
+franchissement entre 12×12 et 13×13, avec une formule qui omettait les
+joints de couture et le cadre ; ce placement est retiré. Avec cinq graines par
 taille, une seule implémentation de DFS et des sondes à graine unique sur les
 grands barreaux, ces données ne permettent pas de dire quelle part de la
 falaise revient au paradigme de recherche et quelle part à la position de la

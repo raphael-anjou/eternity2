@@ -1,16 +1,18 @@
 ---
-title: Pourquoi le basin-hopping semble impossible
+title: L'interpolation entre plateaux records échoue
 description: >-
-  Si l'on ne peut pas améliorer un excellent plateau en le peaufinant, peut-être
-  peut-on sauter vers un autre excellent plateau. Sur chaque paire de records
-  testée, c'est impossible, et la raison structurelle mérite qu'on la voie.
-metaDescription: "Polir un excellent plateau d'Eternity II ne l'améliore pas, et sauter vers un autre est impossible sur chaque paire testée. La structure en cycles entre plateaux forts, la loi de frontière qui taxe tout mouvement partiel, et les évasions ratées face au record 469 de McGavin."
+  La boucle qui change un plateau record en un autre est aussi grande qu'entre
+  deux arrangements aléatoires, et chaque pas partiel le long de cette boucle
+  fait moins bien que son point de départ. Cheminer entre plateaux connus est
+  exclu ; les coups de perturbation suivie de réoptimisation sont une autre
+  opération, non testée ici.
+metaDescription: "Entre les plateaux records d'Eternity II, les boucles de permutation égalent celles d'un modèle nul aléatoire, et chaque préfixe propre de chaque grande boucle fait moins bien que son départ : interpoler entre plateaux connus échoue. Cycles, loi de frontière, évasions, face au 469 de McGavin."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 1
 order: 70
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, local-search]
 sources:
   - label: "Annonce du record 469 de Peter McGavin : l'un des plateaux contre lesquels les cycles sont calculés (groups.io msg 10045, septembre 2020)"
@@ -45,7 +47,11 @@ pièces et en déplaçant chacune vers l'emplacement qu'occupait la suivante, to
 le long d'une boucle. Les mathématiciens appellent cette boucle un cycle.
 Parcourez la boucle entière et vous arrivez à l'autre plateau.
 
-Voici le hic. Entre les meilleurs plateaux, cette boucle est énorme. Passer d'un
+Voici le hic. Entre les meilleurs plateaux, cette boucle est énorme, et
+exactement aussi grande qu'entre deux arrangements sans rapport : un
+rebrassage aléatoire qui garde coins, bords et pièces intérieures dans leurs
+classes a une plus grande boucle de 119 cellules en médiane (de 66 à 187
+entre 5 % et 95 %), et les paires de records ont une médiane de 119. Passer d'un
 plateau à 464 de Riotte à celui à 469 de McGavin, c'est une boucle imbriquée
 allant jusqu'à 189 cellules, accompagnée de quelques plus courtes, déplaçant
 presque toutes les pièces du plateau.
@@ -326,7 +332,8 @@ combien. Appliqué au 469 de McGavin (les pièces de tuples de couleurs
 positions de la même ligne), un tel échange produit un plateau véritablement
 différent qui score aussi 469 ; les deux plateaux diffèrent d'exactement 2
 cellules. Celui-là est déterministe et vérifié sur les deux plateaux. Le jeu de
-pièces canonique contient 5 paires jumelles et 114 paires quasi jumelles, donc
+pièces canonique contient 5 paires jumelles et 125 paires quasi jumelles à
+rotation près (114 dans l'orientation stockée du fichier), donc
 ces mouvements existent en quantité, mais ce sont des trocs, pas des gains :
 sur nos propres plateaux, échanger deux pièces dont les quatre couleurs
 coïncident comme multiensemble mais pas en ordre cyclique coûte toujours 4
@@ -409,9 +416,11 @@ boucle sous un autre nom.
 
 Conjuguée avec [le mur de rigidité](/research/why/rigidity-wall), cette
 observation ferme d'un coup les deux voies de sortie évidentes. On ne peut pas
-s'extraire localement d'un bon plateau, et on ne peut pas non plus sauter vers un
-voisin, car le meilleur plateau le plus proche se trouve à un unique mouvement
-indivisible de nombreuses cellules, sans étape améliorante pour vous y conduire.
+s'extraire localement d'un bon plateau, et parcourir la boucle d'un bon
+plateau connu à un autre ne passe jamais par un plateau aussi bon que le
+départ. Cela exclut l'interpolation entre plateaux connus. Cela ne teste pas
+les mouvements de perturbation suivie de réoptimisation, qui sont une autre
+opération.
 Ces cycles atteignent le 469 de McGavin et le 470 de Blackwood ; lire le même
 mur à travers les deux alphabets raconte une seule histoire. C'est une
 explication plausible de la raison pour laquelle le record de 470 tient depuis

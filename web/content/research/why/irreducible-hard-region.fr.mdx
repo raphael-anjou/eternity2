@@ -4,15 +4,16 @@ description: >-
   Remplissez un plateau dans un ordre fixe et les trois quarts du haut se posent
   librement ; le reste est, par construction, la fin de l'ordre. Sur quarante
   plateaux générés, une recherche row-major cale à une médiane de 12 lignes sur
-  16, et un budget plus large n'y change rien. Reste à tester si certaines cases
+  16, et un budget 2,7 fois plus large la déplace d'une ligne au plus,
+  comme le ferait un arbre exponentiel ordinaire. Reste à tester si certaines cases
   sont difficiles quel que soit l'ordre.
-metaDescription: "Sur quarante plateaux 16x16 solubles, une recherche row-major remplit une médiane de 12 lignes sur 16, puis cale quel que soit le budget. Le reste tombe en fin d'ordre par construction ; qu'une région soit difficile quel que soit l'ordre n'a pas été testé."
+metaDescription: "Sur quarante plateaux 16x16 solubles, une recherche row-major remplit une médiane de 12 lignes sur 16, puis cale ; un budget 2,7 fois plus large la déplace d'une ligne au plus. Le reste tombe en fin d'ordre par construction ; qu'une région soit difficile quel que soit l'ordre n'a pas été testé."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 3
 order: 82
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, search-space]
 sources: []
 related:
@@ -156,10 +157,9 @@ sans rapport entre eux (par colonnes, en spirale, inversé, aléatoire) et une
 mesure du recouvrement entre les cases que chacun laisse vides. Cette
 comparaison n'a pas encore été faite.
 
-## Le blocage est un mur, pas un démarrage lent
+## Plus de budget, même front
 
-Une dernière vérification sépare un mur d'une recherche qui a simplement manqué
-de nœuds. Réexécutez huit des plateaux à quatre millions de nœuds, soit environ
+Une dernière vérification demande si un budget plus large déplace le front. Réexécutez huit des plateaux à quatre millions de nœuds, soit environ
 2,7 fois le budget du balayage, et comparez le front aux mêmes graines de la
 série principale.
 
@@ -170,10 +170,13 @@ série principale.
 
 Le front ne monte pas avec le budget. Quatre des huit plateaux montent d'une
 ligne, un descend d'une ligne, et trois ne bougent pas du tout, le tout dans une
-seule ligne de gigue, et le reste demeure entièrement dans la bande basse. La
-recherche n'est pas lente ; elle est arrêtée, et elle est arrêtée à la dernière
-région qu'elle tente de remplir. C'est l'échec insensible au budget que la
-conjecture prédit, reproduit directement.
+seule ligne de gigue, et le reste demeure entièrement dans la bande basse. Ce
+test ne distingue pas un mur d'un arbre exponentiel ordinaire. Si l'arbre
+croît d'un facteur $b$ par case au front, un budget 2,7 fois plus grand
+achète environ $\log 2{,}7 / \log b$ cases de plus, moins d'une case dès que
+$b$ dépasse 2,7 : un front qui reste dans une seule ligne est aussi ce que
+donne un arbre ordinaire. Un test qui ait de la puissance demande des
+budgets étalés sur plusieurs décades.
 
 ## Ce que cela règle et ne règle pas
 
@@ -194,10 +197,14 @@ est l'affirmation distincte et non mesurée.
 Le volet **trop globalement couplée** est un plafond empirique lié à la rareté de
 l'ensemble officiel, le couplage qui permet à une pièce rare dépensée en haut d'
 [affamer une case bien plus bas](/research/why/piece-theft). Nos plateaux
-proviennent du générateur encadré du kit, à solution plantée et admettant
-plausiblement de nombreuses solutions, là où l'estimation du premier moment du
-vrai casse-tête est d'environ 14 702 avec la pièce centrale (voir le
-[dénombrement des solutions](/research/build/analysis/solution-counting)). La
+proviennent du générateur encadré du kit, à solution plantée et, comme
+l'ensemble officiel sans indice, censés admettre de nombreuses solutions :
+l'estimation du premier moment qui sous-tend le
+[dénombrement des solutions](/research/build/analysis/solution-counting) donne
+environ $10^{7}$ pour un plateau encadré 16x16 tiré au hasard avec 17 couleurs
+intérieures, 5 couleurs de cadre et aucun indice, contre environ
+$1{,}15\times10^{7}$ pour l'ensemble officiel sans indice (environ 14 702 une
+fois la pièce centrale fixée). La
 localisation vaut pour tout plateau sous un remplissage séquentiel, car le reste doit bien vivre quelque part et un
 balayage row-major le met en bas, si bien que la famille générée est un test
 adéquat de la localisation ; ce n'est pas un test de l'affirmation de couplage,

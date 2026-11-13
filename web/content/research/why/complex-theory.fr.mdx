@@ -10,7 +10,7 @@ kind: finding
 contribution: exposition
 rigor: conjectured
 order: 30
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, backtracking]
 sources:
   - label: "La forme close du pic de profondeur de Brendan Owen, 256·(1−1/e) (groups.io msg 8125, 2010)"
@@ -129,7 +129,7 @@ une pièce.
 Tracez la largeur attendue à chaque profondeur et trois régimes apparaissent.
 Leur forme est ce que la communauté appelle l'entonnoir d'E2. Lancez le
 balayage ci-dessous et observez le compteur : il grimpe astronomiquement,
-puis bouge à peine pendant une centaine de cases à travers le plateau, cette
+puis grimpe bien plus lentement pendant une centaine de cases à travers le plateau, cette
 reptation plate au sein d'une bande astronomiquement large, c'est le mur, avant que les soixante dernières pièces ne le fassent redescendre en entonnoir.
 
 <Figure caption="Une tête de recherche balayant la profondeur 1 → 256 le long de la courbe des branches attendues. Le nombre au-dessus du plateau indique combien il existe de façons légales d'étendre un plateau partiel à cet endroit, et combien chaque placement élague peu.">
@@ -151,14 +151,16 @@ décidé par le seul ordre, avant qu'un seul nœud ne soit posé.
 - **Croissance (profondeur 1–50).** Les solutions se multiplient
   géométriquement, de un à environ $10^{27}$. Chaque placement est pour ainsi
   dire gratuit ; rien ne vous contraint encore.
-- **Plateau (profondeur 50–200).** L'arbre est à sa largeur maximale, environ
-  $10^{45}$ façons d'étendre, tandis que le nombre de solutions ne bouge
-  presque pas. C'est là que les backtrackers passent l'essentiel de leur temps :
+- **Plateau (profondeur 50–200).** L'arbre atteint ici sa largeur maximale,
+  sans être plat : la largeur monte d'environ $10^{27}$ à la profondeur 50
+  jusqu'à un pic proche de $10^{46}$ à la profondeur 161, puis revient vers
+  $10^{41}$ à la profondeur 200 ; elle ne reste à moins d'une décade du pic
+  qu'entre les profondeurs 140 et 178 environ. C'est là que les backtrackers passent l'essentiel de leur temps :
   un échantillon empirique ([groups.io msg 11725](https://groups.io/g/eternity2/message/11725),
   un calcul de 1 milliard d'itérations) a mesuré 99 % du temps du backtracker à
   une profondeur $>132$ et 70 % à une profondeur $>150$, c'est-à-dire au fond de
   l'arbre plutôt qu'au début.
-- **Effondrement (profondeur 200–256).** La largeur retombe de $10^{45}$ à
+- **Effondrement (profondeur 200–256).** La largeur retombe d'environ $10^{41}$ à
   environ $10^{4}$. Les ~60 dernières pièces sont fortement contraintes :
   chacune posée élimine des ordres de grandeur de branches. La fin de partie
   est localement facile ; le difficile, c'est d'y parvenir.

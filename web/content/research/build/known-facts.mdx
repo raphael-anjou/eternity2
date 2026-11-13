@@ -3,13 +3,12 @@ title: Known facts & numbers
 description: >-
   The numbers every Eternity II researcher ends up re-deriving, collected in
   one place with their provenance: the puzzle definition, the clue placements,
-  scoring conventions, the record table, search-space sizes and the structural
-  counts.
-metaDescription: "The Eternity II numbers researchers keep re-deriving, each with provenance: the 256-piece definition, five clue placements, scoring on 480 edges, and the record table. Plus search-space sizes (~10^557), the 470/480 canonical ceiling, the strict five-clue 465, symmetry and colour counts."
+  scoring conventions, how to read the record table, search-space sizes and the structural counts.
+metaDescription: "The Eternity II numbers researchers keep re-deriving, each with provenance: the 256-piece definition, five clue placements, scoring on 480 edges, and how to read the record table. Plus search-space sizes (~10^557), symmetry and colour counts."
 kind: reference
 order: 15
 group: Check your code
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure]
 sources:
   - label: Wikipedia, "Eternity II puzzle" (the prize, the deadline, Verhaard's 467 and the 10^557 estimate)
@@ -18,12 +17,6 @@ sources:
     url: https://groups.io/g/eternity2/message/10045
   - label: "470: “470 Found” (Joshua Blackwood), eternity2@groups.io, 2021-03"
     url: https://groups.io/g/eternity2/message/10117
-  - label: "460 with all five clues: “Highest points (of 480) with using all 5 (!) hints?” thread, eternity2@groups.io, 2023-03"
-    url: https://groups.io/g/eternity2/message/11074
-  - label: "464 with all five clues (Benjamin Riotte): “Record of Eternity2 with 5 hints?” thread, eternity2@groups.io, 2026-07"
-    url: https://groups.io/g/eternity2/message/11919
-  - label: "465 with all five clues (Benjamin Riotte's distributed fleet): the effort's announcement topic, eternity2@groups.io, 2026-08"
-    url: https://groups.io/g/eternity2/topic/120997660
   - label: Brendan Owen's expected-solution-count estimates (groups.io message 5197)
     url: https://groups.io/g/eternity2/message/5197
   - label: Louis Verhaard, algorithm and score details for the 467 (shortestpath.se)
@@ -101,9 +94,7 @@ splits the record table in two; see below.
 The clues also settle a counting question: with only the mandatory piece
 placed, [complex theory](/research/why/complex-theory) expects ≈ 14,702 full
 solutions; with all five, the estimate falls to about 4×10⁻⁸
-([msg 11193](https://groups.io/g/eternity2/message/11193)). Beyond the solution the designer planted,
-essentially no other is expected, so the five-clue puzzle is almost surely
-unique. Both figures are averages over random puzzles with the same piece
+([msg 11193](https://groups.io/g/eternity2/message/11193)). So the expected total with all five is about one, the solution the designer planted; that is an expectation, not a proof that no other exists. Both figures are averages over random puzzles with the same piece
 statistics, not counts of this puzzle's solutions; see
 [solution counting](/research/build/analysis/solution-counting).
 
@@ -142,29 +133,19 @@ The 480 internal edges split into three families (computed):
 
 ## The record table
 
-The full timeline, with board previews and per-record references, lives at
-[Records & solvers](/research/records). The numbers themselves:
+The record table, with board previews, dates and the source of every row,
+lives on [Records & solvers](/research/records), which is the single home of
+the current numbers. Two facts to read it with:
 
-| Score | Who | When | Track |
-| --- | --- | --- | --- |
-| 467 | Louis Verhaard's team | Sept 2008 | canonical; won the $10,000 partial prize |
-| 468 | Joshua Blackwood | Aug 2020 | canonical |
-| 469 | Peter McGavin (Blackwood's solver) | Sept 2020 | canonical |
-| 469 | Jef Bucas (seven boards, 469a–g) and Carlos Fernandez (a one-piece variant of McGavin's) | Oct–Nov 2020 | canonical |
-| **470** | **Joshua Blackwood** | **Mar 2021** | **canonical, the ceiling since** |
-| 470 | Jef Bucas | Dec 2024 | canonical (tie of the 470) |
-| 460 | Bruno Gauthier | Mar 2023 | strict-canonical; best board respecting the four optional clues, 2023 until beaten Jul 2026 |
-| 464 | Benjamin Riotte | Jul 2026 | strict-canonical; beat Gauthier's 460, all five clues respected, held two months |
-| **465** | **Benjamin Riotte's distributed fleet** | **Aug 2026** | **strict-canonical record; many distinct boards, credited across contributors** |
-| "480" | various | 2023 | variant piece sets, not the canonical puzzle |
-
-The 469s were long quoted as the ceiling, but board-level verification shows
-the 468/469/470 boards are all the same starter-only regime (the contest
-rules pinned only the starter piece), so the 470 is the record on the same
-puzzle, not an easier variant. A full canonical solution (480/480) has never
-been reported by anyone, in any public source. The gap of 10 edges has stood
-since March 2021. Board previews and the per-record references for every row
-are at [Records & solvers](/research/records).
+- **Two tracks.** *Canonical* boards respect only the mandatory centre clue;
+  *strict-canonical* boards respect all five. The two tracks have separate
+  records.
+- **Same puzzle.** The canonical 468, 469 and 470 boards of 2020 and 2021 all
+  sit in the same starter-only regime (the contest rules pinned only the
+  starter piece), so the canonical record is on the official puzzle, not an
+  easier variant. Boards that claim "480" use
+  [variant piece sets](/research/build/variants), and no full solution
+  (480/480) of the official puzzle has been reported in any public source.
 
 **Open targets.** The full 16×16 is not the only unsolved board with a name.
 The nearest named one is Brendan Owen's
@@ -180,7 +161,7 @@ the live frontier.
 | --- | --- | --- |
 | All placements, no constraints: 256! · 4²⁵⁶ | ≈ 1.15 × 10⁶⁶¹ | computed |
 | Corners in corners, edges on the border (orientation forced), clue pinned: 4! · 56! · 195! · 4¹⁹⁵ | ≈ 1.115 × 10⁵⁵⁷ | computed; matches the widely quoted Wikipedia figure |
-| Widest point of the search tree (complex-theory estimate, row scan) | ≈ 10⁴⁵ ways to extend, around depth 50–200 | Owen / McGavin, see [complex theory](/research/why/complex-theory) |
+| Widest point of the search tree (complex-theory estimate, row scan) | peaks partway through the fill, well before the last rows; the depth profile and its numbers are on [complex theory](/research/why/complex-theory) | Owen / McGavin model |
 | Expected full solutions (random-ensemble average), 1 clue / 5 clues | ≈ 14,702 / ≈ 4×10⁻⁸ (plus the planted solution) | same; see [solution counting](/research/build/analysis/solution-counting) |
 
 The 10⁵⁵⁷ figure is worth being able to re-derive rather than cite: the 4
@@ -252,9 +233,6 @@ and live demos on the linked pages):
 - **computed**: re-derived exactly from the official 256-piece set; the
   relevant pages carry `just research-…` reproduction commands and the raw
   results live in the [repository](https://github.com/raphael-anjou/eternity2).
-- **groups.io**: the record scores (468, 469, 470, the strict 465) exist only
-  in mailing-list messages and on the community board viewer; the exact
-  announcement messages are linked from [Records & solvers](/research/records),
-  and each board can be re-scored at [e2.bucas.name](https://e2.bucas.name).
+- **public announcements**: record scores come from mailing-list messages and other public board libraries, not from this repository; the exact sources are linked from [Records & solvers](/research/records), and each board can be re-scored at [e2.bucas.name](https://e2.bucas.name).
 - **Wikipedia**: covers only the encyclopedic layer (the prize, the deadline,
   and Verhaard's 467).

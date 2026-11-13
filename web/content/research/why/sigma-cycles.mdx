@@ -1,16 +1,17 @@
 ---
-title: Why basin-hopping looks impossible
+title: Interpolating between record boards fails
 description: >-
-  If you can't improve a great board by polishing it, maybe you can jump to a
-  different great board. On every record pair tested, you can't, and the
-  structural reason why is worth seeing.
-metaDescription: "If polishing a great Eternity II board can't improve it, maybe you can jump to another great one; on every pair tested you can't. The cycle structure between strong boards, the boundary law taxing every partial move, and the failed escape attempts, computed against McGavin's 469 record."
+  The loop that turns one record board into another is as large as between
+  two random arrangements, and every partial step along it scores worse than
+  its start. Walking between known boards is ruled out; perturb-and-reoptimise
+  moves are a different operation and are not tested here.
+metaDescription: "Between the Eternity II record boards, the permutation loops match a random null and every proper prefix of every large loop scores below its start, so interpolating between known boards fails. Cycles, boundary law and escape attempts, against McGavin's 469."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 1
 order: 70
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, local-search]
 sources:
   - label: "Peter McGavin's 469-record announcement: one of the boards the cycles are computed against (groups.io msg 10045, September 2020)"
@@ -43,7 +44,11 @@ into the other by picking up a set of pieces and shifting each one into the
 spot the next was using, all the way around a loop. Mathematicians call that
 loop a cycle. Do the whole loop and you arrive at the other board.
 
-Here's the catch. Between the best boards that loop is enormous. Going from a
+Here's the catch. Between the best boards that loop is enormous, and exactly
+as large as it would be between two unrelated arrangements: a random
+reshuffle that keeps corners, edges and interior pieces in their own classes
+has a largest loop of median 119 cells (5% to 95%: 66 to 187), and the
+record pairs have a median of 119. Going from a
 Riotte 464 board to McGavin's 469 means one interlocking cycle of up to 189
 cells alongside a few shorter ones, moving nearly every piece on the board.
 
@@ -289,7 +294,8 @@ mismatch, not necessarily how many. Applying one such swap to McGavin's 469
 single edge, seated at two same-row positions) produces a genuinely different
 board that also scores 469; the two boards differ in exactly 2 cells. That one
 is deterministic and verified on both boards. The canonical piece set contains
-5 twin pairs and 114 near-twin pairs, so such moves exist in quantity, but
+5 twin pairs and 125 near-twin pairs counted up to rotation (114 in the
+file's stored orientation), so such moves exist in quantity, but
 they are trades, not gains: on our own boards, swapping two pieces whose four
 colours agree as an unordered set but not in cyclic order always costs 4 edges
 (no rotation realigns them), and the best near-twin swap we found costs 1. A
@@ -361,9 +367,10 @@ without the whole loop is a partial-loop move under another name.
 
 Together with [the rigidity wall](/research/why/rigidity-wall), this closes
 off the two obvious escape routes at once. You can't climb out of a good
-board locally, and you can't hop to a neighbour either, because the nearest
-better board is one indivisible move of many cells away, with no improving step
-to lead you into it. These cycles reach McGavin's 469 and Blackwood's 470;
+board locally, and walking the loop from one known strong board to another
+never passes a board as good as its start. That rules out interpolating
+between known boards. It does not test perturb-and-reoptimise moves, which
+are a different operation. These cycles reach McGavin's 469 and Blackwood's 470;
 reading the same wall across both alphabets tells one story. This is a
 plausible part of why the 470 record has stood since 2021: the moves that would
 beat it appear too large for any step-by-step search to find.

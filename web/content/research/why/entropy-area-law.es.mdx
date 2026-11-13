@@ -1,5 +1,5 @@
 ---
-title: La entropía y la ley de área
+title: La entropía y la regla de uso único
 description: >-
   Eternity II tiene dos reglas: los bordes deben coincidir y cada pieza se
   usa una sola vez. Sin la segunda, los parches localmente válidos abundan;
@@ -11,7 +11,7 @@ contribution: theory
 rigor: measured
 tier: 2
 order: 50
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure]
 related:
   - /research/why/phase-transition
@@ -20,20 +20,22 @@ related:
   - /research/why/piece-theft
   - /research/build/analysis/solution-counting
 repro:
-  kind: exact
-  cmd: just research-entropy-area-law
+  kind: seeded
+  cmd: just research-entropy-area-law && just research-entropy-area-law-scripts
   topic: entropy-area-law
   scope: >-
-    El comando reproduce exactamente, en el repositorio: la cota horizontal
-    lambdaH y las densidades de entropía h(1), h(2) para los anchos 1 y 2, a
-    partir de los valores propios de la matriz de transferencia; los recuentos
-    de bloques interiores A(n) hasta n=4 y los recuentos con piezas distintas
-    B(n) hasta n=3 (B(2)=4059952 coincide con la tabla subgrid-placement-counts);
-    y el exponente de ley de área alpha cercano a 0,044 ajustado sobre ese rango.
-    Los puntos de mayor ancho h(3), h(4) y el límite h_infinity en torno a 0,67
-    siguen provenientes de un barrido fuera de línea, y la curva rho(n) y el
-    umbral de las ~155 celdas más allá de n=3 son extrapolaciones del ajuste del
-    repositorio, no recuentos exactos.
+    Exacto: la primera receta calcula la cota horizontal lambdaH, h(1) y h(2)
+    a partir de los valores propios de la matriz de transferencia, los
+    recuentos de bloques interiores A(n) hasta n=4 y los recuentos con piezas
+    distintas B(n) hasta n=3 (B(2)=4059952 coincide con la tabla
+    subgrid-placement-counts); la segunda calcula h(1) a h(6) por iteración de
+    potencias. Muestreado, con semilla: la segunda receta también extrae las
+    fracciones con piezas distintas de parches de cuatro celdas de ancho en dos
+    ejecuciones con semillas distintas e interpola en cada una el cruce de
+    1e-3; se reproducen con la semilla dada, no como recuentos exactos. El
+    archivo de resultados copia tal cual las cifras de los scripts, con su
+    fuente nombrada; los valores retirados solo aparecen allí bajo una clave
+    «withdrawn», cada uno con su motivo.
 sources:
   - label: "El lema de subaditividad de Fekete, el teorema que garantiza la existencia misma del límite de entropía h∞"
     url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
@@ -58,10 +60,15 @@ import { useIsClient } from "@/lib/utils";
 import { EntropyScarcityLab } from "@/components/research/EntropyScarcityLab";
 import data from "@/data/entropy-area-law.json";
 
-export const rhoCurve = Array.from({ length: 13 }, (_, i) => {
-  const n = i + 1;
-  return { cells: n * n, rho: Math.exp(-data.areaLawExponent * n * n) };
-});
+export const rhoPoints = [
+  { cells: 1, rho: 1 },
+  { cells: 4, rho: 0.892166 },
+  { cells: 9, rho: 0.64768 },
+  { cells: 16, rho: 0.3263 },
+  { cells: 24, rho: 0.106 },
+  { cells: 32, rho: 0.02383 },
+  { cells: 48, rho: 0.000375 },
+];
 
 export function EntropyChart() {
   const isClient = useIsClient();
@@ -74,8 +81,8 @@ export function EntropyChart() {
             <XAxis
               dataKey="width"
               type="number"
-              domain={[1, 4]}
-              tickCount={4}
+              domain={[1, 6]}
+              tickCount={6}
               label={{ value: "strip width n", position: "insideBottom", offset: -8, fontSize: 12 }}
               fontSize={12}
             />
@@ -109,13 +116,13 @@ export function RhoChart() {
     <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
       {isClient ? (
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <LineChart data={rhoCurve} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+          <LineChart data={rhoPoints} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis
               dataKey="cells"
               type="number"
-              domain={[0, 170]}
-              tickCount={7}
+              domain={[0, 50]}
+              tickCount={6}
               label={{
                 value: "patch size (cells)",
                 position: "insideBottom",
@@ -126,7 +133,7 @@ export function RhoChart() {
             />
             <YAxis
               scale="log"
-              domain={[1e-7, 1]}
+              domain={[1e-4, 1]}
               allowDataOverflow
               tickFormatter={(n) => Number(n).toExponential(0)}
               width={52}
@@ -141,7 +148,7 @@ export function RhoChart() {
               dataKey="rho"
               stroke="#f59e0b"
               strokeWidth={2}
-              dot={false}
+              dot={{ r: 3 }}
               isAnimationActive={false}
             />
           </LineChart>
@@ -168,42 +175,46 @@ ensancha.
 
 ## La entropía de la gramática, ancho a ancho
 
-<Figure caption="Decreciendo hacia el límite ≈ 0,67. Los dos primeros puntos se calculan exactamente aquí; el resto proviene de un barrido fuera de línea.">
+<Figure caption="Decreciendo hacia un límite cercano a 0,44. Cada fila añadida multiplica el recuento por unos 2,72 (10 elevado a 0,435), así que h(n) vale aproximadamente 0,435 + 1,23/n; los anchos mostrados siguen lejos del límite.">
   <EntropyChart />
 </Figure>
 
-## Luego golpea la ley de área
+## Luego golpea la regla del uso único
 
 Ahora restablezcamos la regla de usar cada pieza una sola vez y preguntémonos
-con qué frecuencia un bloque $n \times n$ compatible en colores emplea
-realmente piezas distintas. Llamémoslo $\rho(n)$. Lo contamos de forma exacta,
-en el repositorio: para cada tamaño de bloque interior contamos $A(n)$, los
-rellenos compatibles en colores cuando las piezas pueden repetirse, y $B(n)$,
-los que usan piezas distintas, y tomamos $\rho(n) = B(n)/A(n)$. Se derrumba, y
-se derrumba según el área, no según el perímetro:
-
-$$
-\rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.044.
-$$
-
-El exponente se ajusta por mínimos cuadrados sobre el rango contado con
-exactitud: $A$ y $B$ se calculan aquí para $n$ hasta $3$ (y $A$ hasta $4$), con
-$B(2) = 4\,059\,952$ coincidiendo con la tabla de referencia de sub-bloques del
-repositorio. El exponente por bloque aún crece en ese pequeño rango (0,029 en
-$n=2$, 0,048 en $n=3$), así que 0,044 es una estimación baja del valor para
-bloques grandes. En $n=4$ el recuento reutilizable $A(4)$ ya alcanza
+con qué frecuencia un parche compatible en colores emplea realmente piezas
+distintas. Llamemos $\rho$ a esa fracción. Para bloques cuadrados la contamos
+de forma exacta, en el repositorio: para cada tamaño de bloque interior $n$
+contamos $A(n)$, los rellenos compatibles en colores cuando las piezas pueden
+repetirse, y $B(n)$, los que usan piezas distintas, y tomamos
+$\rho(n) = B(n)/A(n)$. Sale 0,892 en 2×2 y 0,648 en 3×3, con
+$B(2) = 4\,059\,952$ coincidiendo con la tabla de referencia de sub-bloques
+del repositorio. En $n=4$ el recuento reutilizable $A(4)$ ya alcanza
 $6{,}3\times10^{16}$, más allá de la enumeración distinta exacta en un tiempo
-razonable; por eso la curva más allá de $n=3$ es una extrapolación del ajuste.
+razonable. Más allá muestreamos: sacar al azar, de manera uniforme, parches
+compatibles de cuatro celdas de ancho (exactamente, a través de sus números
+de compleciones) da $\rho = 0{,}33$ con 16 celdas, 0,11 con 24, 0,024 con 32
+y 0,0004 con 48. Dos ejecuciones con semillas distintas dan 0,3263 y 0,3261,
+0,1060 y 0,1071, 0,0238 y 0,0244, 0,000375 y 0,000389; concuerdan dentro de su
+error típico combinado (la mayor diferencia, con 32 celdas, es de 1,8 errores
+típicos combinados).
 
-Un decaimiento por ley de área es brutal porque el área crece de forma
-cuadrática. Por extrapolación, la fracción de bloques realizables cae por
-debajo de uno entre mil hacia las 155 celdas. (Un estudio fuera del sitio
-anterior reportaba un $\alpha \approx 0.085$ más pronunciado y un umbral hacia
-las 80 celdas; los recuentos exactos del repositorio sobre $n \le 3$ dan las
-cifras más suaves de aquí, y el exponente por bloque creciente es compatible con
-que el valor fuera del sitio se alcance en bloques mayores.)
+Se derrumba, y más deprisa que una ley de área: $-\ln \rho$ por celda pasa de
+0,07 con 16 celdas a 0,16 con 48. Se suman dos efectos. Dos celdas vecinas
+llevan la misma pieza en torno al 2,6 % de las veces en un parche
+compatible, cinco veces el azar de 1 entre 196, y dos celdas cualesquiera
+del parche pueden llevar la misma pieza, de modo que el número de ocasiones
+de repetición crece con el cuadrado del tamaño del parche. La fracción de
+parches realizables cae por debajo de uno entre mil hacia las 44 celdas
+(44,2 y 44,4 en las dos ejecuciones, por interpolación log-lineal entre 32 y
+48 celdas). Esa cifra descansa en valores muestreados, no en recuentos
+exactos. Una
+versión anterior de esta página ajustaba $\rho(n) \approx \exp(-0{,}044\, n^2)$
+a los dos puntos exactos y extrapolaba un colapso hacia las 155 celdas; la
+fracción muestreada con 48 celdas queda unas 300 veces por debajo de ese
+ajuste, así que el ajuste y la cifra de 155 celdas quedan retirados.
 
-<Figure caption="Fracción de bloques compatibles en colores realizables con piezas distintas. El exponente es el ajuste por mínimos cuadrados del repositorio sobre los bloques contados con exactitud (n hasta 3); la curva más allá es una extrapolación.">
+<Figure caption="Fracción de parches compatibles en colores realizables con piezas distintas: exacta para bloques cuadrados hasta 3×3 (1, 4 y 9 celdas), muestreada más allá en parches de cuatro celdas de ancho (16, 24, 32 y 48 celdas, al menos 400 000 extracciones cada uno; se traza la primera de dos ejecuciones con semilla).">
   <RhoChart />
 </Figure>
 
@@ -232,7 +243,7 @@ los puzzles de emparejamiento de aristas en general
 ha medido si la instancia 16×16 con piezas reutilizables y marco gris es fácil
 en la práctica.
 
-Ver [por qué el basin-hopping es imposible](/research/why/sigma-cycles).
+Ver [interpolar entre tableros récord fracasa](/research/why/sigma-cycles).
 
 ## El teorema, en breve
 
@@ -245,8 +256,8 @@ $$
 $$
 
 Al tomar logaritmos, $\log \lambda_n$ se vuelve subaditiva, y el lema de
-Fekete da el límite como un ínfimo, que es exactamente la razón por la que la
-curva de arriba decrece:
+Fekete da el límite como un ínfimo, así que cada ancho calculado lo acota por
+arriba:
 
 $$
 h_\infty \;=\; \lim_{n\to\infty}\frac{\log_{10}\lambda_n}{n} \;=\; \inf_n \frac{\log_{10}\lambda_n}{n}.
@@ -256,18 +267,24 @@ La cota superior es la tasa puramente horizontal: ignorar las restricciones
 verticales solo añade bloques, de modo que
 
 $$
-0 \;<\; h_\infty \;\le\; \log_{10}\lambda_H \;=\; 1.6645,
+0 \;\le\; h_\infty \;\le\; \log_{10}\lambda_H \;=\; 1.6645,
 $$
 
 con $\lambda_H = 46.18$ el radio espectral de la matriz de compatibilidad de
-colores en horizontal. La positividad se cumple porque la gramática admite
-exponencialmente muchas cadenas, de modo que la densidad está estrictamente
-comprendida entre cero y 1,6645, medida en torno a 0,67.
+colores en horizontal. Como el límite es un ínfimo, cada ancho calculado es
+una cota superior: $h(6) = 0{,}640$ da $h_\infty \le 0{,}640$. Los incrementos
+$\log_{10}(\lambda_{n+1}/\lambda_n)$ se quedan en 0,4352 del ancho 2 al ancho
+6, así que el límite está cerca de 0,435, junto al valor de campo medio
+$\log_{10}(784/289) = 0{,}433$. La positividad estricta no se sigue de este
+argumento: muchas cadenas unidimensionales no dan por sí solas entropía
+bidimensional.
 
-Lo que el teorema demuestra es que existe un límite positivo y que está acotado
-superiormente por $\log_{10}(46.18) = 1.6645$. Su valor concreto en torno a
-0,67 proviene de un barrido fuera de línea. El exponente de ley de área
-$\alpha \approx 0.044$ se ajusta aquí a partir de los recuentos de bloques
-exactos del repositorio sobre $n \le 3$; su extrapolación a bloques mayores (y
-el umbral de las ~155 celdas) va más allá del rango contado con exactitud. El
-teorema no fija esos valores.
+Lo que el teorema demuestra es que el límite existe y queda por debajo de
+cada valor de banda. Su valor, unos 0,435, se lee en los valores propios de
+las bandas de ancho 1 a 6 (1,6645, 1,0497, 0,8449, 0,7425, 0,6810, 0,6400),
+recalculados por los
+[scripts del tema](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/entropy-area-law/compute/scripts).
+Una versión anterior de esta página daba un límite de unos 0,67; como $h(6)$
+ya queda por debajo, esa cifra es imposible y queda retirada. Las fracciones
+con piezas distintas más allá de 3×3 están muestreadas, no contadas, y el
+teorema no las fija.

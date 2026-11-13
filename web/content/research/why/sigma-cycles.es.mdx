@@ -1,16 +1,18 @@
 ---
-title: Por qué el basin-hopping parece imposible
+title: Interpolar entre tableros récord fracasa
 description: >-
-  Si no puedes mejorar un tablero excelente puliéndolo, quizá puedas saltar a
-  otro tablero excelente. En cada par de récords probado, no puedes, y vale la
-  pena ver la razón estructural que lo explica.
-metaDescription: "Si pulir un gran tablero de Eternity II no lo mejora, quizá puedas saltar a otro; en cada par probado no puedes. La estructura de ciclos entre tableros fuertes, la ley de frontera que grava todo movimiento parcial y las evasiones fallidas, calculadas contra el récord 469 de McGavin."
+  El bucle que convierte un tablero récord en otro es tan grande como entre dos
+  disposiciones aleatorias, y cada paso parcial a lo largo de él puntúa peor
+  que su punto de partida. Caminar entre tableros conocidos queda descartado;
+  los movimientos de perturbar y reoptimizar son otra operación y no se
+  prueban aquí.
+metaDescription: "Entre los tableros récord de Eternity II, los bucles de permutación igualan a los de un modelo nulo aleatorio, y cada prefijo propio de cada bucle grande puntúa peor que su inicio: interpolar entre tableros conocidos fracasa. Ciclos, ley de frontera y evasiones, ante el 469 de McGavin."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 1
 order: 70
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, local-search]
 sources:
   - label: "Anuncio del récord 469 de Peter McGavin: uno de los tableros contra los que se calculan los ciclos (groups.io msg 10045, septiembre de 2020)"
@@ -45,7 +47,11 @@ desplazando cada una al lugar que ocupaba la siguiente, a lo largo de todo un
 bucle. Los matemáticos llaman a ese bucle un ciclo. Recorre el bucle entero y
 llegas al otro tablero.
 
-Aquí está el truco. Entre los mejores tableros, ese bucle es enorme. Pasar de un
+Aquí está el truco. Entre los mejores tableros, ese bucle es enorme, y
+exactamente tan grande como entre dos disposiciones sin relación: una
+reorganización al azar que mantiene esquinas, bordes y piezas interiores en
+sus clases tiene un bucle mayor de 119 celdas de mediana (de 66 a 187 entre
+el 5 % y el 95 %), y los pares de récords tienen una mediana de 119. Pasar de un
 tablero de 464 de Riotte al de 469 de McGavin es un bucle entrelazado de hasta
 189 celdas, junto con unas pocas más cortas, que desplaza casi todas las piezas
 del tablero.
@@ -320,7 +326,8 @@ uno de esos intercambios al 469 de McGavin (las piezas con tuplas de colores
 posiciones de la misma fila) produce un tablero genuinamente distinto que también
 puntúa 469; los dos tableros difieren en exactamente 2 celdas. Ese es
 determinista y verificado sobre ambos tableros. El juego de piezas canónico
-contiene 5 pares gemelos y 114 pares casi gemelos, así que tales movimientos
+contiene 5 pares gemelos y 125 pares casi gemelos salvo rotación (114 en la
+orientación almacenada del archivo), así que tales movimientos
 existen en cantidad, pero son trueques, no ganancias: en nuestros propios
 tableros, intercambiar dos piezas cuyos cuatro colores coinciden como
 multiconjunto pero no en orden cíclico cuesta siempre 4 aristas (ninguna rotación
@@ -399,9 +406,10 @@ entero es un movimiento parcial de bucle bajo otro nombre.
 
 Junto con [el muro de rigidez](/research/why/rigidity-wall), esto cierra de un
 golpe las dos vías de escape evidentes. No puedes salir localmente de un buen
-tablero y tampoco puedes saltar a uno vecino, porque el mejor tablero más
-cercano está a un único movimiento indivisible de muchas celdas, sin ningún paso
-de mejora que te conduzca hasta él. Estos ciclos alcanzan el 469 de McGavin y el
+tablero, y recorrer el bucle de un tablero fuerte conocido a otro nunca pasa
+por un tablero tan bueno como el de partida. Eso descarta interpolar entre
+tableros conocidos. No pone a prueba los movimientos de perturbar y
+reoptimizar, que son otra operación. Estos ciclos alcanzan el 469 de McGavin y el
 470 de Blackwood; leer el mismo muro a través de ambos alfabetos cuenta una sola
 historia. Esta es una explicación plausible de por qué el récord de 470 se
 mantiene desde 2021: los movimientos que lo superarían parecen demasiado grandes

@@ -9,7 +9,7 @@ metaDescription: "A survey of every family of attack tried on Eternity II: syste
 kind: page
 order: 5
 group: Start here
-updated: 2026-11-11
+updated: 2026-11-13
 sources:
   - label: "The community's own summary of two decades of effort: 1.6 TFlops, 10^19 CPU operations, no solution (groups.io message 3511)"
     url: https://groups.io/g/eternity2/message/3511
@@ -46,8 +46,7 @@ measurements where they exist and a plain "unmeasured" where they do not. The
 The families do not all stop at the same height. Only one lineage has reached
 467 to 470 out of 480 matched edges: depth-first backtracking with scheduled
 late mismatches (Verhaard's 467, then Blackwood's 470; see
-[records](/research/records)). The others plateau lower: integer programming at
-420–440, the academic hyper-heuristic at 461,
+[records](/research/records)). The others plateau lower: one integer-programming attempt stalled at 420–440 (a property of that solver, not a bound on integer programming), the academic hyper-heuristic at 461,
 [this project's own experiments](/research/lab/experiments/raphael-anjou) at
 [460–463](/research/records), and several constructions on the
 [dead ends](/research/build/dead-ends) page far below that.
@@ -84,8 +83,7 @@ record lives here.
 - **[Arc consistency](/research/build/reduce/arc-consistency)**. Make every
   cell's candidate list defend itself against its neighbours to a fixed point,
   going beyond one-move-ahead forward checking. Mackworth's AC-3 and its
-  refinements prune hard on small boards; on the full board the reachable
-  pruning fades about two cells out and cannot collapse the branching factor.
+  refinements prune hard on small boards; on the full board, in the committed [DFS study](/research/lab/experiments/raphael-anjou/dfs-study), adding forward checking, AC-3 and per-colour all-different to a dynamic-order search did not raise the score at a 60-second budget.
 - **[All-different, Régin's matching filter](/research/build/reduce/alldiff-regin)**.
   No piece may be used twice: one global constraint over 256 cells, filtered
   completely in polynomial time by bipartite matching. The strongest propagator
@@ -93,16 +91,14 @@ record lives here.
   mismatches.
 - **[No-good learning](/research/build/reduce/nogood-learning)**. A failed
   subtree is a theorem: record it and never re-enter. Transposition tables and
-  mined constraints both pay on small boards; at 16×16 the number of distinct
-  no-goods outruns any memory you can hold.
+  mined constraints both pay on small boards; at 16×16 community measurements put exact table hits near 1 percent while the tables grow without bound. Failed subtrees are reusable in principle; what is open is the exchange rate.
 - **[Restarts and heavy tails](/research/build/backtracking/restarts)**. The same
   backtracker on the same puzzle finishes in runtimes that differ by powers of
   ten, so cut off, reshuffle, and restart. Every record solver since 2007 is a
-  restart portfolio. It changes which boards you reach, not the ceiling.
+  restart portfolio. It changes which boards you reach; whether it changes the ceiling is unmeasured, since nobody has measured the runtime distribution on the full board.
 - **[Meet in the middle](/research/build/exact/meet-in-the-middle)**.
   Enumerate two halves and join them on a shared interface, trading memory for
-  half the exponent. Real on bands of the board; this project's BANDSAW
-  experiment measured where it stops paying at full size.
+  half the exponent. Real on bands of the board; this project's BANDSAW experiment measured it on bands, and its full-size cost is an extrapolation whose inputs are not yet committed.
 - **[Exact cover and dancing links](/research/build/exact/exact-cover-dlx)**.
   Eternity II states cleanly as exact cover, and Knuth's Algorithm X is the
   classic machine for it. It shines on small boards and exhaustive counting;
@@ -125,13 +121,11 @@ of an industrial solver and let a decade of engineering do the search.
 
 - **[SAT and CSP encodings](/research/build/exact/sat-csp-encodings)**.
   Write the puzzle as clauses and hand it to a complete solver. Tried since
-  2008. The solvers stall on the full board, but their verdicts still earn
-  their keep as impossibility proofs on sub-boards.
+  2008. The solvers stall on the full board, but their verdicts still earn their keep as impossibility proofs on sub-boards. Cube-and-conquer, the scheme behind the largest SAT proofs, has no public attempt at scale on the full puzzle.
 - **[LP and ILP relaxations](/research/build/exact/lp-relaxations)**. Write
   it as an integer program and drop the integrality: a linear solver reaches
   zero error in seconds by placing fractions of pieces. The comfort ends the
-  moment pieces must be whole: a plateau at 420–440 edges and an ILP wall at
-  8×8. No integer program has produced a competitive full board.
+  moment pieces must be whole: one 2009 penalty method stalled at 420–440 edges, a modern ILP solved a 10×10 with 6 colours in about 19 minutes, and no integer program has produced a competitive full board.
 
 ## Local and stochastic search
 
@@ -152,16 +146,14 @@ they have so far stopped below the record backtrackers.
   cannot; neither has passed the backtrackers' plateau.
 - **[Beam search](/research/build/construct/beam-search)**. Keep the K most
   promising partial boards alive and grow them cell by cell. The workhorse
-  behind this project's from-scratch builders, and a clean illustration of why
-  breadth alone stalls in the deep interior.
+  behind this project's from-scratch builders, and a clean illustration of why breadth alone stalls in the last rows.
 - **[Evolutionary and genetic approaches](/research/build/local-search/evolutionary)**.
   Breed a population, keep the fittest, recombine survivors. The most natural
   metaphor in the toolbox and the one whose central operator, crossover, fights
   the structure of the puzzle head-on.
 - **[Iterated maps and divide-and-concur](/research/build/exact/iterated-maps)**.
   Split the puzzle into two easy-to-project constraint sets and iterate a map
-  whose fixed points are solutions. Elser's method made the cover of PNAS; on
-  the Eternity II list it was tested once and never marched down.
+  whose fixed points are solutions. Elser's method made the cover of PNAS; no run of it on the full puzzle or on the 10×10 benchmark ladder has been published, positive or negative.
 
 ## Learning from strong boards
 
@@ -228,10 +220,7 @@ community knows where the walls are.
 ## Dead ends
 
 Some ideas sound as good as any above and did not move the score when tried. The
-**[dead ends](/research/build/dead-ends)** page collects them with the reason
-each fails, so you can skip a month of work: symmetry breaking (there is no
-global symmetry to break), probability propagation that fades two cells out,
-and others.
+**[dead ends](/research/build/dead-ends)** page grades each by its evidence (measured, reported, argued, or claim without committed evidence) and keeps the verdicts no committed data backs in a separate list of untested claims, each with the experiment that would settle it. Symmetry breaking is an example of the first kind: there is no global symmetry to break.
 
 ## What the map is telling you
 

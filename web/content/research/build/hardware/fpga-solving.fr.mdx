@@ -13,7 +13,7 @@ metaDescription: "Résolution sur FPGA pour Eternity II : le design 2014 de Mich
 kind: concept
 order: 145
 group: GPU & hardware
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [speed, hardware]
 sources:
   - label: "La première proposition FPGA : la couverture exacte en matériel (groups.io message 2623, 2007)"
@@ -337,11 +337,13 @@ cœurs, 200 MHz, ait été livrée à ses pleins **5×10⁹ placements/s**, et d
 vous ayez rempli un rack de deux mille d'entre elles : **10¹³ placements par
 seconde**, plus que la flotte combinée de toute la communauté n'en a jamais
 aligné. Une année vaut ~3×10⁷ secondes, donc le rack parcourt ~3×10²⁰ nœuds par
-an. L'arbre de recherche du puzzle complet est, à son plateau, large de l'ordre
-de **10⁴⁵ plateaux partiels**
+an. L'arbre de recherche du puzzle complet (avec l'indice de départ) n'est pas
+plat : il s'élargit d'environ 10²⁷ plateaux partiels à la profondeur 50
+jusqu'à un pic d'environ **7×10⁴⁵ plateaux partiels** à la profondeur 161,
+puis se resserre à environ 10⁴¹ vers la profondeur 200
 ([la théorie de la complexité](/research/why/complex-theory) fait cette mesure
-correctement), si bien qu'un parcours exhaustif visite au moins autant de
-nœuds : environ **10²⁴ rack-années**. Trouver une première solution demande
+correctement). Un parcours exhaustif visite au moins autant de nœuds que ce
+pic en compte : environ **2×10²⁵ rack-années**. Trouver une première solution demande
 moins qu'un parcours complet, mais les estimations du site pour ce travail
 atteignent encore 10⁴⁰ nœuds ou plus
 ([page quantique](/research/build/hardware/quantum)), soit environ 10¹⁹

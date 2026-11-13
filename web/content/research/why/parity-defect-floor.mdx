@@ -3,15 +3,15 @@ title: "Why 479 is impossible"
 description: >-
   A counting argument on the official piece set forbids a score of exactly
   479/480: every color's half-edges come in even numbers, and a single broken
-  joint would leave two odd counts. The floor below perfect is 478, and at
-  most 76 one-move near misses can surround any solution.
-metaDescription: "A parity theorem on the official Eternity II piece set: every color's half-edges come in even numbers, so a full board with exactly one broken joint cannot exist. A score of 479/480 is impossible, the floor below perfect is 478, and at most 76 one-move near misses can surround any solution."
+  joint would leave two odd counts. The floor below perfect is 478, and every
+  solution has about 150 one-move neighbours sitting exactly there.
+metaDescription: "A parity theorem on the official Eternity II piece set: every color's half-edges come in even numbers, so a full board with exactly one broken joint cannot exist. A score of 479/480 is impossible, the floor below perfect is 478, and every solution has about 150 one-move neighbours at 478."
 kind: finding
 contribution: theory
 rigor: proven
 tier: 1
 order: 35
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, search-space]
 sources:
   - label: "David Eddy opens the Parity thread: the number of edges of each type is even, and the last-piece consequence (msg 332, June 2007)"
@@ -38,8 +38,8 @@ looks continuous: rung after rung, each occupied by some board somebody has
 built. It has exactly one hole. No legal full placement of the 256 pieces
 scores 479. That is a theorem about the published piece set, provable by
 counting alone, and this page walks the whole argument: the evenness that
-forces it, the defect floor of 2 that follows, and the census that bounds
-how many one-move near misses can surround any solution. It is also one
+forces it, the defect floor of 2 that follows, and the census that counts
+the one-move near misses around every solution. It is also one
 entry in [the theorem sweep](/research/why/theorem-sweep), the survey of
 what can be proven from the bag before any search runs.
 
@@ -112,25 +112,29 @@ time is structurally unable to take it.
 
 A solution exists; the puzzle was constructed from one. What sits right next
 to it at 478? A board one move away from a solution must come from a move
-that breaks exactly two joints, and only two kinds of single move can do
-that. Both are countable in the bag:
+that breaks exactly two joints. Two kinds of single move do that, and both
+are countable in the bag:
 
-- **Twin swaps.** Two interior tiles that agree, in some orientations, on
-  three of their four edges. Placed so the agreeing edges line up, exchanging
-  them disturbs one edge of each: two joints. The set contains exactly
-  **50** such near-twin pairs.
+- **Twin swaps.** Two tiles of the same kind that agree, in some
+  orientations, on three of their four edges. Placed so the agreeing edges
+  line up, exchanging them disturbs one edge of each: two joints. The set
+  contains exactly **125** such near-twin pairs, 50 of them interior, 73
+  edge and 2 corner.
 - **In-place turns.** A tile whose repeated colors let a half-turn or a
   quarter-turn keep two of its four edge colors in position, so turning it
   where it stands breaks exactly the other two joints. The set contains
   **23** half-turn tiles and **3** quarter-turn tiles of this kind.
 
-Adding them up, any solution has at most $50 + 23 + 3 = 76$ defect-2
-neighbours reachable by a single swap or rotation. This is an upper bound
-from the bag: whether a given twin pair actually lines up inside a specific
-solution depends on that solution, so the realized count for the designed
-solution is open. The ceiling stands regardless. Around the very top of the
-ladder, near misses are sparse, a few dozen boards at most, while rungs
-further down are populated astronomically. It is the same scarcity that
+The three quarter-turn tiles are among the 23 and each has more than one
+qualifying turn, so the 23 tiles allow 29 distinct turns. Both kinds of move
+work in every solution. To swap a twin pair, turn each piece into the other's
+orientation: one joint breaks at each cell, wherever the two pieces sit. So
+every solution has about $125 + 29 = 154$ single-move neighbours at 478, a
+floor from the bag and not a ceiling (a pair that happens to sit side by
+side across its differing edge is the one exception). An earlier version of
+this page gave a ceiling of 76 here; it counted interior pairs only and read
+the count as an upper bound, and it is withdrawn. Next to the astronomical
+populations further down, the shell is still small. It is the same scarcity that
 [forbidden patterns](/research/why/forbidden-patterns) show at the 2×2
 scale, read at the summit instead.
 
@@ -166,16 +170,20 @@ near the very end ([msg 346](https://groups.io/g/eternity2/message/346)).
 All of that is true, and the thread stopped there. Pushed one step further,
 the same observation contains the theorem above: the evenness does more than
 make the last piece chancy, it deletes the 479 rung outright, sets the
-defect floor at 2, and caps the one-move shell around every solution at 76.
+defect floor at 2, and puts about 150 one-move boards at 478 around every
+solution.
 
 ## Check it yourself
 
 Every number on this page reduces to a one-pass census of the official set:
 the half-edge counts and their evenness, the 960 exact-fit identity, the
 zero rotationally symmetric tiles, the 4/56/196 corner/edge/interior split,
-the 50/23/3 defect-2 generators, the frame saturation, and the inward demand
-vector. The checker recomputes each value beside its expected one and emits
-a pass flag per claim; all 16 checks pass and the output is byte-stable
+the 50 interior near-twin pairs and the 23 turning tiles, the frame
+saturation, the inward demand vector, and the single-move census (125
+near-twin swaps and 29 turns in place, a floor of 154 neighbours at 478).
+The checker recomputes each value beside its expected one and emits a pass
+flag per claim; all 21 checks pass (`all_ok: true` in the committed
+[census results](https://github.com/raphael-anjou/eternity2/blob/main/research/topics/parity-defect-floor/results/census.json)) and the output is byte-stable
 across runs. The
 [article, checker source and results are on GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/parity-defect-floor),
 and the reproduction block on this page points at the same topic. One

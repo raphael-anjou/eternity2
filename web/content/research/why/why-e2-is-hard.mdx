@@ -5,14 +5,15 @@ description: >-
   property with random solved boards painted with the same colour counts. No
   rotation-symmetric piece and 5 twin pairs are ordinary; zero
   rotation-duplicate pairs is rare (about 1.4% of painted sets); the zero-slack
-  colour budget is automatic; a 307-of-480 cap holds if nothing rotates.
-metaDescription: "The Eternity II piece set against random painted sets: no rotation-symmetric piece (half of painted sets have none), 5 twin pairs (painted mean 6.6), zero rotation-duplicate pairs (only about 1.4% of painted sets), an automatic zero-slack budget, a 307-of-480 fixed-orientation cap."
+  colour budget is automatic. A 307-of-480 cap if nothing rotates describes
+  the file's stored orientation, not the pieces.
+metaDescription: "The Eternity II piece set against random painted sets: no rotation-symmetric piece (half of painted sets have none), 5 twin pairs (painted mean 6.6), zero rotation-duplicate pairs (about 1.4% of painted sets); the 307-of-480 fixed-orientation cap belongs to the file's stored orientation."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 1
 order: 15
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure]
 sources:
   - label: "Adversarial piece set: article, source and results (GitHub)"
@@ -65,8 +66,8 @@ checking them.
 | Axis | Measurement | Against random painted sets |
 | --- | --- | --- |
 | Rotation symmetry | 256 of 256 pieces have all four rotations distinct | ordinary: about 54% of painted sets also have none (mean 0.63) |
-| Twins | 251 distinct edge-colour multisets; 5 twin pairs and 114 near-twin pairs in 32,640 pairings; zero pairs equal up to rotation | 5 twins is ordinary (mean 6.6); zero rotation-duplicate pairs is rare (about 1.4%, mean 4.1) |
-| Fixed-orientation cap | at most 307 of 480 joins can match if no piece rotates | not compared; rotation is structurally necessary here |
+| Twins | 251 distinct edge-colour multisets; 5 twin pairs in 32,640 pairings; 125 near-twin pairs up to rotation (114 counted in the stored orientation); zero pairs equal up to rotation | 5 twins is ordinary (mean 6.6); zero rotation-duplicate pairs is rare (about 1.4%, mean 4.1) |
+| Fixed-orientation cap | at most 307 of 480 joins can match if no piece leaves its stored orientation | a property of the file: random fixed orientations cap near 402 |
 | Colour budget | all 22 colours have even side counts; pairing capacity sums to 480 | automatic for every painted board |
 | Palette split | 17 interior colours, 5 border-join colours | the separation is automatic; the counts were chosen |
 
@@ -98,8 +99,10 @@ Ignore edge order and ask which pieces carry the same four-colour budget. The
 (2,3), (5,14), (7,51), (109,110) and (171,181) in the research numbering, and
 in each pair the shared colours sit in a different cyclic order, so no piece
 repeats, even up to rotation. Loosening the question to near-twins, pairs
-sharing 3 of their 4 same-position edges in the stored orientation, adds 114
-pairs in 79 groups. Against the random-painted baseline, 5 twin pairs is
+of the same kind that agree on three of their four sides after some
+rotation, adds 125 pairs: 50 interior, 73 edge, 2 corner. (Counted in the
+stored orientation only, the figure is 114 pairs in 79 groups; it describes
+how the file writes the pieces down.) Against the random-painted baseline, 5 twin pairs is
 ordinary: painted sets average 6.6, and 35% have 5 or fewer. The striking
 number is the one before it: zero pairs of pieces that repeat up to rotation,
 where painted sets average 4.1 and only about 1.4% have none. That is the
@@ -114,12 +117,17 @@ joins could possibly match. Colour by colour, horizontal joins can use at most
 the smaller of the east-facing and west-facing supplies, and vertical joins
 the smaller of the north-facing and south-facing supplies. The sum caps at
 **307 of 480**. That is a counting bound, not a search result: no arrangement
-of unrotated pieces, anywhere on the board, can beat it. A pipeline that fixes
-orientations early therefore concedes at least 173 joins before search
-begins, and 307 sits far below every high board on the
-[records page](/research/records). Both numbers here count matched edges
-between adjacent pieces with the outer rim excluded, the convention used
-across this site.
+of unrotated pieces, anywhere on the board, can beat it. The number belongs
+to the published orientation, which stores every interior piece with its
+smallest colour on top and every edge piece with grey on top. Random fixed
+orientations of all 256 pieces cap near 402 (2,000 draws, standard deviation
+10, lowest 369), and the orientations of a solution cap at 480. So 307 says
+the file's orientation is far from a solution's; it does not price a
+pipeline that fixes orientations some other way. An earlier version of this
+page read it as a cost of at least 173 joins for any pipeline that fixes
+orientations early; that reading is withdrawn. These numbers count matched
+edges between adjacent pieces with the outer rim excluded, the convention
+used across this site.
 
 ### A colour budget with zero slack
 
@@ -177,8 +185,9 @@ Each axis closes a standard door.
   distinct.
 - **Duplicate tricks.** No free doubling of solutions: 5 near-misses in
   32,640 pairings, none of them a true duplicate.
-- **Orientation shortcuts.** Fixing rotations early concedes 173 of 480 joins
-  by a counting argument, before any search runs.
+- **Orientation shortcuts.** No piece is symmetric, so every rotation is a
+  real choice; the 307 cap of the stored file shows only that the published
+  orientation is far from a solution's.
 - **Supply arguments.** Budgets are even and exactly sufficient, as on every
   painted board, so counting colours prunes nothing.
 - **Cheap sub-communities.** Nothing softer than the frame-versus-interior

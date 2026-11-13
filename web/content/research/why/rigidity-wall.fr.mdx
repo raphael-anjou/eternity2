@@ -10,10 +10,10 @@ metaDescription: "Sur les plateaux records d'Eternity II testés, reremplir une 
 kind: finding
 contribution: theory
 tier: 1
-rigor: proven
+rigor: measured
 author: raphael-anjou
 order: 45
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, local-search, exact-methods]
 complexity:
   time: "une résolution PLNE par région ; de ~70 s (48 cellules) à ~1800 s (halo-1 conjoint de 59 cellules) sur CBC"
@@ -130,7 +130,9 @@ reste.
 Même les mouvements conçus pour paraître gratuits échouent. Certaines paires
 de pièces partagent trois de leurs quatre couleurs d'arêtes ; les échanger
 semble presque neutre. Sur le 469 de la communauté, les 114 échanges simples
-de ce type ont tous été essayés : exactement un conserve le score de 469 (et
+de ce type ont tous été essayés (les paires qui partagent trois couleurs
+d'arête dans l'orientation stockée du fichier ; à rotation près, il y en a
+125) : exactement un conserve le score de 469 (et
 produit le seul plateau jumeau connu), 2 donnent 468 et 111 donnent 467. Les
 6 441 doubles échanges : aucun n'atteint 470, le meilleur donne 468. Sur
 6 555 perturbations construites précisément pour être presque neutres en
@@ -225,8 +227,10 @@ clairsemées expirent.
 
 L'unique région laissée avec un écart, les quatre rangées supérieures, 64
 cellules, donne encore un résultat *rigoureux* : une borne duale de 123 contre
-les 116 du sortant, de sorte que même le cas non fermé ne peut dépasser le mur
-que de peu (cela implique une borne de ≤ 476 à l'échelle du plateau).
+les 116 du sortant, de sorte que résoudre à nouveau ces rangées, le reste du 469 de
+McGavin restant fixe, gagne au plus 7 arêtes : aucun plateau qui garde le 469
+intact hors de ses quatre rangées du haut ne dépasse 476. Cela ne dit rien des
+plateaux qui diffèrent ailleurs.
 
 Toutes les résolutions n'ont pas abouti, et le registre garde aussi
 celles-là. La résolution conjointe halo-2 de 54 cellules sur le 469 est
@@ -254,9 +258,11 @@ soutient, énoncée comme telle : l'ensemble de niveau 459 est une union
 disjointe de nombreux points rigides, et le dépasser exige un réagencement à
 l'échelle du plateau ou un autre départ, jamais une retouche locale.
 
-Le badge indique *prouvé* plutôt que *conjecturé* pour les régions
-effectivement fermées ; l'énoncé général sur *tous* les plateaux reste une
-conjecture, étayée par chaque région testée à ce jour.
+La page est classée *mesurée* : chaque région fermée est un certificat de
+solveur, mais les exécutions PLNE du tableau sont des résultats de carnet pas
+encore versionnés ici, et seule la reproduction SAT au rayon 4 l'est. L'énoncé
+général sur *tous* les plateaux reste une conjecture, étayée par chaque région
+testée à ce jour.
 
 ## Aucun échange astucieux n'existe non plus
 
@@ -581,8 +587,8 @@ Nous avons [reproduit ce test SAT](https://github.com/raphael-anjou/eternity2/tr
 sur cinq plateaux publics, avec notre propre encodeur et un témoin positif pour
 nous assurer qu'une région concordante revient satisfiable. Sur les quatre
 plateaux records de la communauté, du 467 de Verhaard au 470 de Blackwood, et le
-464 de Riotte (le record strict à cinq indices de l'époque, depuis porté à 465
-par sa [flotte distribuée](/research/community/five-clue-fleet)), chaque
+464 de Riotte (le record strict à cinq indices de l'époque, dépassé depuis, d'abord
+par sa [flotte distribuée](/research/community/five-clue-fleet) ; voir [Records et solveurs](/research/records)), chaque
 résolution qui aboutit
 est UNSAT jusqu'à un halo de rayon 4 au sens de Chebyshev (cette reproduction
 mesure la région libérée par rayon de Chebyshev, alors que les échelles SAT du
@@ -622,8 +628,9 @@ en 0,17 s. Les 38 cellules encore épinglées au halo 10 sont essentiellement
 les deux rangées du haut plus 3 des 5 indices. Les deux rangées supérieures
 de ce plateau sont donc, à elles seules, prouvées incompatibles avec toute
 solution parfaite : tout 480 doit différer de ce plateau quelque part dans
-ces 38 cellules. C'est moins particulier qu'il n'y paraît : avec au plus environ $10^7$
-solutions (voir
+ces 38 cellules. C'est moins particulier qu'il n'y paraît : avec environ $10^7$
+solutions attendues sans indice, une estimation du premier moment et non une
+borne (voir
 [le comptage des solutions](/research/build/analysis/solution-counting)),
 presque n'importe quel squelette fixe de 38 cellules est incompatible avec
 toutes, si bien que cela montre combien peu d'un plateau doit rester épinglé
@@ -687,10 +694,11 @@ prouvé impossible. Une solution exige une autre bordure.
 
 L'attente sous l'hypothèse nulle donne le même verdict. Il existe environ
 $10^{37{,}6}$ placements de cadre valides (voir
-[la pureté de l'anneau](/research/why/ring-purity)) pour au plus environ
-$1{,}15\times10^{7}$ solutions, chacune avec une seule bordure : une bordure
-légale prise au hasard accueille un 480 avec une probabilité inférieure à
-environ $10^{-30}$, et neuf bordures UNSAT sur neuf, c'est ce que donneraient
+[la pureté de l'anneau](/research/why/ring-purity)) pour environ
+$1{,}15\times10^{7}$ solutions attendues sans indice (une estimation du
+premier moment, non une borne), chacune avec une seule bordure : selon cette
+estimation, une bordure légale prise au hasard accueille un 480 avec une
+probabilité de l'ordre de $10^{-30}$, et neuf bordures UNSAT sur neuf, c'est ce que donneraient
 n'importe quelles neuf bordures. Aucun témoin sur des bordures aléatoires ou
 à bas score n'a été lancé. Le résultat montre que polir à l'intérieur d'une
 bordure fixée ne peut pas atteindre 480 ; il ne montre pas que les bordures
@@ -698,7 +706,7 @@ records sont particulières.
 
 ## Pourquoi le mur existe
 
-La page jusqu'ici prouve le mur ; voici ce qui se rapproche le plus d'une
+La page jusqu'ici documente le mur sur les plateaux testés ; voici ce qui se rapproche le plus d'une
 raison. Modélisez l'ensemble des plateaux à score fixé comme un graphe dont
 les arêtes sont des mouvements touchant au plus $k$ cellules, et demandez le
 plus petit $k$ qui le connecte : le rayon de connectivité. Sur de petites
@@ -745,8 +753,9 @@ pièces n'en a essentiellement aucune.)
 
 <Callout kind="insight" title="La pièce suivante du tableau">
   Si vous ne pouvez pas améliorer un plateau localement, peut-être pouvez-vous
-  sauter d'un bon plateau à un autre. Cela échoue aussi, pour une raison
-  connexe : [voyez pourquoi le saut de bassin est impossible](/research/why/sigma-cycles).
+  cheminer d'un bon plateau à un autre. Entre les plateaux records connus, cela
+  échoue aussi, pour une raison connexe : [l'interpolation entre plateaux
+  records échoue](/research/why/sigma-cycles).
 </Callout>
 
 *Les preuves utilisent la programmation en nombres entiers sur des régions de

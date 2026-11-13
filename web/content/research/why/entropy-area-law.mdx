@@ -1,5 +1,5 @@
 ---
-title: Entropy and the area law
+title: Entropy and the use-once rule
 description: >-
   Eternity II has two rules: edges must match, and each piece is used once.
   Without the second, locally valid patches are abundant; with it, the
@@ -10,7 +10,7 @@ contribution: theory
 rigor: measured
 tier: 2
 order: 50
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure]
 related:
   - /research/why/phase-transition
@@ -19,19 +19,20 @@ related:
   - /research/why/piece-theft
   - /research/build/analysis/solution-counting
 repro:
-  kind: exact
-  cmd: just research-entropy-area-law
+  kind: seeded
+  cmd: just research-entropy-area-law && just research-entropy-area-law-scripts
   topic: entropy-area-law
   scope: >-
-    The command reproduces exactly, in-repo: the horizontal bound lambdaH and
-    the width-1 and width-2 entropy densities h(1), h(2) from the row-transfer
-    eigenvalues; the interior block counts A(n) for n up to 4 and the
-    distinct-piece counts B(n) for n up to 3 (B(2)=4059952 cross-checks the
-    subgrid-placement-counts table); and the area-law exponent alpha near 0.044
-    fit over that range. The wider-strip points h(3), h(4) and the limit
-    h_infinity near 0.67 are still carried from an offline sweep, and the rho(n)
-    curve and the ~155-cell collapse point beyond n=3 are extrapolations of the
-    in-repo fit, not exact counts.
+    Exact: the first recipe computes the horizontal bound lambdaH, h(1) and
+    h(2) from the row-transfer eigenvalues, the interior block counts A(n) for
+    n up to 4 and the distinct-piece counts B(n) for n up to 3 (B(2)=4059952
+    cross-checks the subgrid-placement-counts table); the second recipe
+    computes h(1) to h(6) by power iteration. Sampled, seeded: the second
+    recipe also draws the distinct-piece fractions of 4-wide patches in two
+    runs with different seeds and interpolates the 1e-3 crossing in each; they
+    reproduce given the seeds, not as exact counts. The results file carries
+    the script values verbatim with their source named; withdrawn values
+    appear there only under a "withdrawn" key, each with the reason.
 sources:
   - label: "Fekete's subadditivity lemma, the theorem behind the entropy limit h∞ existing at all"
     url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
@@ -56,10 +57,15 @@ import { useIsClient } from "@/lib/utils";
 import { EntropyScarcityLab } from "@/components/research/EntropyScarcityLab";
 import data from "@/data/entropy-area-law.json";
 
-export const rhoCurve = Array.from({ length: 13 }, (_, i) => {
-  const n = i + 1;
-  return { cells: n * n, rho: Math.exp(-data.areaLawExponent * n * n) };
-});
+export const rhoPoints = [
+  { cells: 1, rho: 1 },
+  { cells: 4, rho: 0.892166 },
+  { cells: 9, rho: 0.64768 },
+  { cells: 16, rho: 0.3263 },
+  { cells: 24, rho: 0.106 },
+  { cells: 32, rho: 0.02383 },
+  { cells: 48, rho: 0.000375 },
+];
 
 export function EntropyChart() {
   const isClient = useIsClient();
@@ -72,8 +78,8 @@ export function EntropyChart() {
             <XAxis
               dataKey="width"
               type="number"
-              domain={[1, 4]}
-              tickCount={4}
+              domain={[1, 6]}
+              tickCount={6}
               label={{ value: "strip width n", position: "insideBottom", offset: -8, fontSize: 12 }}
               fontSize={12}
             />
@@ -107,13 +113,13 @@ export function RhoChart() {
     <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
       {isClient ? (
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <LineChart data={rhoCurve} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+          <LineChart data={rhoPoints} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis
               dataKey="cells"
               type="number"
-              domain={[0, 170]}
-              tickCount={7}
+              domain={[0, 50]}
+              tickCount={6}
               label={{
                 value: "patch size (cells)",
                 position: "insideBottom",
@@ -124,7 +130,7 @@ export function RhoChart() {
             />
             <YAxis
               scale="log"
-              domain={[1e-7, 1]}
+              domain={[1e-4, 1]}
               allowDataOverflow
               tickFormatter={(n) => Number(n).toExponential(0)}
               width={52}
@@ -139,7 +145,7 @@ export function RhoChart() {
               dataKey="rho"
               stroke="#f59e0b"
               strokeWidth={2}
-              dot={false}
+              dot={{ r: 3 }}
               isAnimationActive={false}
             />
           </LineChart>
@@ -164,40 +170,42 @@ the true two-dimensional value as the strip widens.
 
 ## The grammar's entropy, width by width
 
-<Figure caption="Decreasing toward the limit ≈ 0.67. The first two points are computed exactly here; the rest from an offline sweep.">
+<Figure caption="Decreasing toward a limit near 0.44. Each added row multiplies the count by about 2.72 (10 to the power 0.435), so h(n) is close to 0.435 + 1.23/n; the widths shown are still far from the limit.">
   <EntropyChart />
 </Figure>
 
-## Then the area law bites
+## Then the use-once rule bites
 
 Now put the use-each-piece-once rule back, and ask how often a color-valid
-$n \times n$ patch actually uses distinct pieces. Call it $\rho(n)$. We count
-it exactly, in-repo: for each interior block size we count $A(n)$, the
-color-valid fillings when pieces may repeat, and $B(n)$, those that use
-distinct pieces, and take $\rho(n) = B(n)/A(n)$. It collapses, and it
-collapses in the area, not the perimeter:
+patch actually uses distinct pieces. Call it $\rho$. For square blocks we
+count it exactly, in-repo: for each interior block size $n$ we count $A(n)$,
+the color-valid fillings when pieces may repeat, and $B(n)$, those that use
+distinct pieces, and take $\rho(n) = B(n)/A(n)$. That gives 0.892 at 2×2 and
+0.648 at 3×3, with $B(2) = 4{,}059{,}952$ matching the in-repo sub-grid
+reference table. At $n=4$ the reusable count $A(4)$ is already
+$6.3\times10^{16}$, past exact distinct enumeration in reasonable time.
+Beyond that we sample: drawing color-valid patches four cells wide uniformly
+at random (exactly, through their completion counts) gives $\rho = 0.33$ at
+16 cells, 0.11 at 24, 0.024 at 32 and 0.0004 at 48. Two runs with different
+seeds give 0.3263 and 0.3261, 0.1060 and 0.1071, 0.0238 and 0.0244, 0.000375
+and 0.000389; they agree within their combined standard error (the largest
+gap, at 32 cells, is 1.8 combined standard errors).
 
-$$
-\rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.044.
-$$
+It collapses, and faster than an area law: $-\ln \rho$ per cell rises from
+0.07 at 16 cells to 0.16 at 48. Two effects add. Side-by-side cells hold the
+same piece about 2.6% of the time in a color-valid patch, five times the
+chance level of 1 in 196, and any two cells of the patch can hold the same
+piece, so the number of chances for a repeat grows with the square of the
+patch size. The fraction of realizable patches drops below one in a thousand
+near 44 cells (44.2 and 44.4 in the two runs, by log-linear interpolation
+between 32 and 48 cells). That figure rests on sampled values, not on exact
+counts. An earlier version of this page fitted
+$\rho(n) \approx \exp(-0.044\, n^2)$ to the two exact points and
+extrapolated a collapse near 155 cells; the sampled fraction at 48 cells is
+about 300 times below that fit, so the fit and the 155-cell figure are
+withdrawn.
 
-The exponent is fit by least squares over the exactly-counted range: $A$ and
-$B$ are computed here for $n$ up to $3$ (and $A$ up to $4$), with
-$B(2) = 4{,}059{,}952$ matching the in-repo sub-grid reference table. The
-per-block exponent is still rising over that small range (0.029 at $n=2$,
-0.048 at $n=3$), so 0.044 is a lower estimate of the large-patch value. At
-$n=4$ the reusable count $A(4)$ is already $6.3\times10^{16}$, past exact
-distinct enumeration in reasonable time, so the curve past $n=3$ is an
-extrapolation of the fit.
-
-An area-law decay is brutal because area grows quadratically. Extrapolating,
-the fraction of realizable patches drops below one in a thousand near 155
-cells. (An earlier off-site study reported a steeper $\alpha \approx 0.085$ and
-an ~80-cell collapse; the exact in-repo counts over $n \le 3$ give the gentler
-figures here, with the rising per-block exponent consistent with the off-site
-value being reached at larger blocks.)
-
-<Figure caption="Fraction of color-valid patches realizable with distinct pieces. The exponent is the in-repo least-squares fit over the exactly-counted blocks (n up to 3); the curve past that point is an extrapolation.">
+<Figure caption="Fraction of color-valid patches realizable with distinct pieces: exact for square blocks up to 3×3 (1, 4 and 9 cells), sampled beyond for patches four cells wide (16, 24, 32 and 48 cells, at least 400,000 draws each; first of two seeded runs shown).">
   <RhoChart />
 </Figure>
 
@@ -225,7 +233,7 @@ edge-matching puzzles in general
 Whether the reusable-tile 16×16 instance with a grey frame is easy in
 practice has not been measured.
 
-See [why basin-hopping is impossible](/research/why/sigma-cycles).
+See [interpolating between record boards fails](/research/why/sigma-cycles).
 
 ## The theorem, briefly
 
@@ -238,7 +246,7 @@ $$
 $$
 
 Taking logs makes $\log \lambda_n$ subadditive, and Fekete's lemma gives the
-limit as an infimum, which is exactly why the curve above decreases:
+limit as an infimum, so every computed width bounds it from above:
 
 $$
 h_\infty \;=\; \lim_{n\to\infty}\frac{\log_{10}\lambda_n}{n} \;=\; \inf_n \frac{\log_{10}\lambda_n}{n}.
@@ -248,17 +256,23 @@ The upper bound is the purely horizontal rate: ignoring vertical constraints
 only adds patches, so
 
 $$
-0 \;<\; h_\infty \;\le\; \log_{10}\lambda_H \;=\; 1.6645,
+0 \;\le\; h_\infty \;\le\; \log_{10}\lambda_H \;=\; 1.6645,
 $$
 
 with $\lambda_H = 46.18$ the spectral radius of the horizontal
-color-compatibility matrix. Positivity holds because the grammar supports
-exponentially many chains, so the density is strictly between zero and
-1.6645, measured near 0.67.
+color-compatibility matrix. Because the limit is an infimum, every computed
+width is an upper bound: $h(6) = 0.640$ gives $h_\infty \le 0.640$. The
+increments $\log_{10}(\lambda_{n+1}/\lambda_n)$ sit at 0.4352 from width 2 to
+width 6, so the limit is close to 0.435, next to the mean-field value
+$\log_{10}(784/289) = 0.433$. Strict positivity does not follow from this
+argument: many one-dimensional chains do not by themselves give
+two-dimensional entropy.
 
-What the theorem proves is that a positive limit exists and is bounded above
-by $\log_{10}(46.18) = 1.6645$. Its specific value near 0.67 is carried from an
-offline sweep. The area-law exponent $\alpha \approx 0.044$ is fit here from the
-exact in-repo block counts over $n \le 3$; its extrapolation to larger patches
-(and the ~155-cell collapse) goes past the range counted exactly. The theorem
-does not fix those numbers.
+What the theorem proves is that the limit exists and lies below every strip
+value. Its value, about 0.435, is read from the strip eigenvalues for widths
+1 to 6 (1.6645, 1.0497, 0.8449, 0.7425, 0.6810, 0.6400), recomputed by the
+[topic's scripts](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/entropy-area-law/compute/scripts).
+An earlier version of this page gave the limit as about 0.67; since $h(6)$ is
+already below that, the figure is impossible and is withdrawn. The
+distinct-piece fractions beyond 3×3 are sampled, not counted, and the theorem
+does not fix them.

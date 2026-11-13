@@ -13,7 +13,7 @@ metaDescription: "Eternity II as an integer program: relaxed, the LP hits zero e
 kind: concept
 order: 160
 group: Exact methods
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [exact-methods]
 sources:
   - label: "The max-clique framing: 262,144 placement vertices, find a clique of 256 (groups.io message 627, 2007)"
@@ -264,9 +264,12 @@ $8 + 168 + 784 = 960 = 480 \times 2$. The instance has zero slack; every
 non-border side must find a partner.
 
 The LP over this pairing graph tells its story in three steps. Freeze every
-piece in one fixed orientation and the bound is 307.00, integral and matching
-a closed-form count, but unsound for the real puzzle because rotations are
-disallowed. Let sides pair freely across rotations (21,636 pairing variables,
+piece in the orientation the published piece file stores it in and the bound
+is 307.00, integral and matching a closed-form count, but unsound for the real
+puzzle because rotations are disallowed. The 307 describes that stored
+orientation, not the pieces: random fixed orientations of all 256 pieces cap
+near 402 (2,000 draws, standard deviation 9.6), and a solution's orientations
+allow 480. Let sides pair freely across rotations (21,636 pairing variables,
 one degree constraint per side) and the LP reaches 480.00 exactly, with 132
 fractional pairings; adding per-piece pairing budgets changes nothing. Add
 rotation consistency, one relaxed rotation variable per piece coupled to the
@@ -298,7 +301,7 @@ they do not. The LP optimum is 480.0 and, this time solved to integer
 optimality as well, the integer optimum is also 480.0: for every colour
 there is a whole-rotation assignment putting its edges on the right sides
 to spend the full $\lfloor N_k/2 \rfloor$ budget. That adds a fourth rung
-to the ladder above (fixed rotations 307, free pairing 480.00 fractional,
+to the ladder above (stored rotations 307, free pairing 480.00 fractional,
 rotation-consistent 480.00 fractional, and now even integral rotations
 480 at the supply level). Rotation flexibility is never the binding
 constraint; the obstruction is positional, which cell, next to which

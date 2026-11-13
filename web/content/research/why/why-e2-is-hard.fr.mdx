@@ -5,15 +5,16 @@ description: >-
   chaque propriété à des plateaux résolus peints au hasard avec les mêmes
   comptes de couleurs. Aucune pièce symétrique et 5 paires jumelles, c'est
   ordinaire ; aucune paire dupliquée par rotation, c'est rare (environ 1,4 %
-  des jeux peints) ; le budget de couleurs sans jeu est automatique ; un
-  plafond de 307 sur 480 tient si rien ne tourne.
-metaDescription: "Le jeu de pièces d'Eternity II face à des jeux peints au hasard : aucune pièce symétrique (la moitié des jeux peints non plus), 5 paires jumelles (moyenne 6,6), aucune paire dupliquée par rotation (1,4 % des jeux peints), un budget sans jeu automatique, un plafond de 307 sur 480."
+  des jeux peints) ; le budget de couleurs sans jeu est automatique. Le
+  plafond de 307 sur 480 si rien ne tourne décrit l'orientation stockée dans
+  le fichier, pas les pièces.
+metaDescription: "Les pièces d'Eternity II face à des jeux peints au hasard : aucune pièce symétrique (la moitié des jeux peints non plus), 5 paires jumelles (moyenne 6,6), aucune paire dupliquée par rotation (1,4 % des jeux peints) ; le plafond de 307 sur 480 à orientation fixe tient à l'orientation du fichier."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 1
 order: 15
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure]
 sources:
   - label: "Le jeu de pièces adverse : article, code source et résultats (GitHub)"
@@ -68,8 +69,8 @@ nombres et les contrôler sont un seul et même geste.
 | Axe | Mesure | Face à des jeux peints au hasard |
 | --- | --- | --- |
 | Symétrie de rotation | 256 pièces sur 256 ont leurs quatre rotations distinctes | ordinaire : environ 54 % des jeux peints n'en ont aucune non plus (moyenne 0,63) |
-| Jumelles | 251 multiensembles de couleurs distincts ; 5 paires jumelles et 114 quasi-jumelles sur 32 640 appariements ; aucune paire égale à rotation près | 5 jumelles, c'est ordinaire (moyenne 6,6) ; aucune paire dupliquée par rotation, c'est rare (environ 1,4 %, moyenne 4,1) |
-| Plafond à orientation fixe | au plus 307 joints sur 480 peuvent s'apparier si aucune pièce ne tourne | non comparé ; la rotation est ici structurellement nécessaire |
+| Jumelles | 251 multiensembles de couleurs distincts ; 5 paires jumelles sur 32 640 appariements ; 125 paires quasi-jumelles à rotation près (114 comptées dans l'orientation stockée) ; aucune paire égale à rotation près | 5 jumelles, c'est ordinaire (moyenne 6,6) ; aucune paire dupliquée par rotation, c'est rare (environ 1,4 %, moyenne 4,1) |
+| Plafond à orientation fixe | au plus 307 joints sur 480 peuvent s'apparier si aucune pièce ne quitte son orientation stockée | propriété du fichier : des orientations fixes tirées au hasard plafonnent vers 402 |
 | Budget de couleurs | les 22 couleurs ont toutes un nombre pair de côtés ; la capacité d'appariement somme à 480 | automatique pour tout plateau peint |
 | Palette scindée | 17 couleurs intérieures, 5 couleurs de joints de bordure | la séparation est automatique ; les comptes ont été choisis |
 
@@ -105,8 +106,10 @@ exactement 5 paires coïncident, les pièces (2,3), (5,14), (7,51), (109,110) et
 (171,181) dans la numérotation de recherche, et dans chaque paire les couleurs
 partagées occupent un ordre cyclique différent, si bien qu'aucune pièce ne se
 répète, même à rotation près. En relâchant la question vers les
-quasi-jumelles, les paires partageant 3 de leurs 4 bords à même position dans
-l'orientation stockée, on ajoute 114 paires en 79 groupes. Rapportée aux
+quasi-jumelles, les paires de même nature qui s'accordent sur trois de leurs
+quatre côtés après une rotation, on ajoute 125 paires : 50 intérieures, 73 de
+bord, 2 de coin. (Comptées dans la seule orientation stockée, elles sont 114
+en 79 groupes ; ce chiffre décrit la façon dont le fichier note les pièces.) Rapportée aux
 Face à la référence peinte au hasard, 5 paires jumelles, c'est ordinaire : les
 jeux peints en ont 6,6 en moyenne, et 35 % en ont 5 ou moins. Le nombre
 frappant est celui d'avant : aucune paire de pièces qui se répète à rotation
@@ -124,12 +127,17 @@ utilisent au plus la plus petite des offres tournées vers l'est et vers
 l'ouest, et les joints verticaux la plus petite des offres nord et sud. La
 somme plafonne à **307 sur 480**. C'est une borne de comptage, pas un résultat
 de recherche : aucun arrangement de pièces non tournées, où que ce soit sur le
-plateau, ne peut la dépasser. Un pipeline qui fixe les orientations tôt
-concède donc au moins 173 joints avant même de chercher, et 307 se situe très
-en dessous de tous les hauts plateaux de la
-[page des records](/research/records). Les deux nombres comptent ici les bords
-appariés entre pièces adjacentes, pourtour extérieur exclu, la convention en
-usage sur tout ce site.
+plateau, ne peut la dépasser. Ce nombre appartient à l'orientation publiée,
+qui range chaque pièce intérieure avec sa plus petite couleur en haut et
+chaque pièce de bord avec le gris en haut. Des orientations fixes tirées au
+hasard pour les 256 pièces plafonnent vers 402 (2 000 tirages, écart type 10,
+minimum 369), et les orientations d'une solution plafonnent à 480. Le 307 dit
+donc que l'orientation du fichier est loin de celle d'une solution ; il ne
+chiffre pas le coût d'un pipeline qui fixerait les orientations autrement.
+Une version antérieure de cette page y lisait une perte d'au moins 173
+joints pour tout pipeline qui fixe les orientations tôt ; cette lecture est
+retirée. Ces nombres comptent les bords appariés entre pièces adjacentes,
+pourtour extérieur exclu, la convention en usage sur tout ce site.
 
 ### Un budget de couleurs sans aucun jeu
 
@@ -195,8 +203,9 @@ Chaque axe ferme une porte standard.
   sont toutes distinctes.
 - **Astuces de doublons.** Aucun doublement gratuit des solutions : 5
   quasi-coïncidences sur 32 640 appariements, aucune n'étant un vrai doublon.
-- **Raccourcis d'orientation.** Fixer les rotations tôt concède 173 joints sur
-  480 par un argument de comptage, avant toute recherche.
+- **Raccourcis d'orientation.** Aucune pièce n'est symétrique, donc chaque
+  rotation est un vrai choix ; le plafond de 307 du fichier montre seulement
+  que l'orientation publiée est loin de celle d'une solution.
 - **Arguments d'offre.** Des budgets pairs et exactement suffisants, comme sur
   tout plateau peint : compter les couleurs n'élague rien.
 - **Sous-communautés bon marché.** Rien de plus tendre que la coupure

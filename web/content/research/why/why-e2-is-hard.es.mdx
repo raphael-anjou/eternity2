@@ -5,15 +5,16 @@ description: >-
   cada propiedad con tableros resueltos pintados al azar con los mismos
   recuentos de colores. Ninguna pieza simétrica y 5 parejas gemelas es lo
   normal; ninguna pareja duplicada por rotación es raro (alrededor del 1,4 %
-  de los juegos pintados); el presupuesto de color sin holgura es automático;
-  un tope de 307 sobre 480 se cumple si nada gira.
-metaDescription: "El juego de piezas de Eternity II frente a juegos pintados al azar: ninguna pieza simétrica (la mitad de los pintados tampoco), 5 parejas gemelas (media 6,6), ninguna pareja duplicada por rotación (1,4 % de los pintados), un presupuesto sin holgura automático, un tope de 307 sobre 480."
+  de los juegos pintados); el presupuesto de color sin holgura es automático.
+  El tope de 307 sobre 480 si nada gira describe la orientación almacenada en
+  el archivo, no las piezas.
+metaDescription: "Las piezas de Eternity II frente a juegos pintados al azar: ninguna pieza simétrica (la mitad de los pintados tampoco), 5 parejas gemelas (media 6,6), ninguna pareja duplicada por rotación (1,4 % de los pintados); el tope de 307 sobre 480 con orientación fija se debe a la orientación del archivo."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 1
 order: 15
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure]
 sources:
   - label: "El conjunto de piezas adverso: artículo, código fuente y resultados (GitHub)"
@@ -69,8 +70,8 @@ reproducir los números y verificarlos son el mismo gesto.
 | Eje | Medición | Frente a juegos pintados al azar |
 | --- | --- | --- |
 | Simetría de rotación | 256 de 256 piezas tienen sus cuatro rotaciones distintas | normal: alrededor del 54 % de los juegos pintados tampoco tiene ninguna (media 0,63) |
-| Gemelas | 251 multiconjuntos de colores distintos; 5 parejas gemelas y 114 casi gemelas entre 32 640 emparejamientos; ninguna pareja igual salvo rotación | 5 gemelas es normal (media 6,6); ninguna pareja duplicada por rotación es raro (alrededor del 1,4 %, media 4,1) |
-| Tope con orientación fija | como mucho 307 de 480 uniones pueden casar si ninguna pieza gira | sin comparar; aquí la rotación es estructuralmente necesaria |
+| Gemelas | 251 multiconjuntos de colores distintos; 5 parejas gemelas entre 32 640 emparejamientos; 125 parejas casi gemelas salvo rotación (114 contadas en la orientación almacenada); ninguna pareja igual salvo rotación | 5 gemelas es normal (media 6,6); ninguna pareja duplicada por rotación es raro (alrededor del 1,4 %, media 4,1) |
+| Tope con orientación fija | como mucho 307 de 480 uniones pueden casar si ninguna pieza sale de su orientación almacenada | propiedad del archivo: orientaciones fijas al azar dan un tope cercano a 402 |
 | Presupuesto de color | los 22 colores tienen un número par de lados; la capacidad de emparejamiento suma 480 | automático en todo tablero pintado |
 | Paleta dividida | 17 colores interiores, 5 colores de uniones del borde | la separación es automática; los recuentos se eligieron |
 
@@ -106,8 +107,10 @@ distintos: exactamente 5 parejas coinciden, las piezas (2,3), (5,14), (7,51),
 (109,110) y (171,181) en la numeración de investigación, y en cada pareja los
 colores compartidos ocupan un orden cíclico diferente, de modo que ninguna
 pieza se repite, ni siquiera salvo rotación. Al relajar la pregunta hacia las
-casi gemelas, parejas que comparten 3 de sus 4 bordes en la misma posición en
-la orientación almacenada, se añaden 114 parejas en 79 grupos. Frente a los
+casi gemelas, parejas del mismo tipo que coinciden en tres de sus cuatro
+lados tras algún giro, se añaden 125 parejas: 50 interiores, 73 de borde, 2
+de esquina. (Contadas solo en la orientación almacenada son 114 en 79 grupos;
+esa cifra describe cómo el archivo anota las piezas.) Frente a los
 Frente a la referencia pintada al azar, 5 parejas gemelas es lo normal: los
 juegos pintados tienen 6,6 de media, y un 35 % tiene 5 o menos. El número
 llamativo es el anterior: ninguna pareja de piezas que se repita salvo
@@ -124,12 +127,18 @@ uniones podrían casar. Color por color, las uniones horizontales usan como
 mucho la menor de las ofertas orientadas al este y al oeste, y las verticales
 la menor de las ofertas norte y sur. La suma tiene un tope de **307 sobre
 480**. Es una cota de conteo, no un resultado de búsqueda: ninguna disposición
-de piezas sin girar, en ningún lugar del tablero, puede superarla. Una cadena
-que fija las orientaciones pronto concede por tanto al menos 173 uniones antes
-de empezar a buscar, y 307 queda muy por debajo de todos los tableros altos de
-la [página de récords](/research/records). Los dos números cuentan aquí bordes
-casados entre piezas adyacentes, excluido el perímetro exterior, la convención
-usada en todo este sitio.
+de piezas sin girar, en ningún lugar del tablero, puede superarla. El número
+pertenece a la orientación publicada, que guarda cada pieza interior con su
+color más pequeño arriba y cada pieza de borde con el gris arriba.
+Orientaciones fijas sorteadas para las 256 piezas dan un tope cercano a 402
+(2000 sorteos, desviación típica 10, mínimo 369), y las orientaciones de una
+solución dan 480. Así que 307 dice que la orientación del archivo está lejos
+de la de una solución; no pone precio a una cadena que fije las
+orientaciones de otro modo. Una versión anterior de esta página leía ahí un
+coste de al menos 173 uniones para cualquier cadena que fije las
+orientaciones pronto; esa lectura queda retirada. Estos números cuentan
+bordes casados entre piezas adyacentes, excluido el perímetro exterior, la
+convención usada en todo este sitio.
 
 ### Un presupuesto de color con holgura cero
 
@@ -192,8 +201,9 @@ Cada eje cierra una puerta estándar.
   son todas distintas.
 - **Trucos de duplicados.** Ninguna duplicación gratuita de soluciones: 5
   casi coincidencias entre 32 640 emparejamientos, ninguna un duplicado real.
-- **Atajos de orientación.** Fijar las rotaciones pronto concede 173 de 480
-  uniones por un argumento de conteo, antes de cualquier búsqueda.
+- **Atajos de orientación.** Ninguna pieza es simétrica, así que cada giro es
+  una elección real; el tope de 307 del archivo solo muestra que la
+  orientación publicada está lejos de la de una solución.
 - **Argumentos de oferta.** Presupuestos pares y exactamente suficientes, como
   en todo tablero pintado: contar colores no poda nada.
 - **Subcomunidades baratas.** No existe nada más blando que el corte

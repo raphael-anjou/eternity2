@@ -4,10 +4,10 @@ description: >-
   The open frontier of Eternity II in one place: every angle still worth a run,
   the wall it attacks, what has been tried and where it stopped, and whether it
   is a newcomer-tractable target or a hard, well-mapped one.
-metaDescription: "The open frontier of Eternity II on one board: the 470-to-480 gap, the strict five-clue 465 target, Owen's unsolved hint-free 10x10 set_2, crossing a rigidity basin, the meet-in-the-middle memory wall, and a diversity axis beyond parallel tempering. Each angle paired with its wall."
+metaDescription: "The open frontier of Eternity II on one board: the 470-to-480 gap, the strict five-clue target, Owen's unsolved hint-free 10x10 set_2, crossing a rigidity basin, the meet-in-the-middle memory wall, and a diversity axis beyond parallel tempering. Each angle paired with its wall."
 kind: reference
 order: 35
-updated: 2026-11-11
+updated: 2026-11-13
 topics: []
 sources:
   - label: "eternity2 mailing-list archive (groups.io): where the open targets are announced and discussed"
@@ -58,27 +58,27 @@ under [just throw more compute at it](/research/build/dead-ends).
 great deal is known about why it resists, which is exactly why a fresh crossing
 would be a headline.
 
-## The strict five-clue 465-to-466 target
+## The strict five-clue target, one edge at a time
 
-<Callout kind="open" title="Can a board that honours all five official clues beat 465?">
+<Callout kind="open" title="Can a board that honours all five official clues beat the strict record?">
   The strict five-clue line is tracked separately from the open 470 line,
   because [most progress on the open record was made without the clues](/research/build/clue-puzzles).
-  The best board respecting all five placements is 465.
+  The best board respecting all five placements is kept on [the records page](/research/records).
 </Callout>
 
 **Wall.** [Rigidity](/research/why/rigidity-wall) again, plus the clue
 placements narrow the reachable region: fewer boards satisfy all five, so the
 haystack is smaller but so is the needle count.
 
-**Tried, and where it stopped.** The 465 is the standing strict-line mark on
-the [clue puzzles](/research/build/clue-puzzles) page, reached in August 2026 by
-the community's [distributed fleet](/research/community/five-clue-fleet), which
-is still running and whose stated target is exactly this one. The project's own
+**Tried, and where it stopped.** The strict line moved three times in 2026 (the
+dates and boards are on [the records page](/research/records)); the community's
+[distributed fleet](/research/community/five-clue-fleet) is still running and its
+stated target is exactly this one. The project's own
 strict builds and re-squeezes reach the 460 class but not past it, as charted in
 the [wall-and-method map](/research/why/walls-and-methods).
 
 **Entry tag.** Hard, well-mapped, but a smaller step than the 470-to-480 gap:
-465 to 466 is a single edge, on a line where the reachable region is tighter
+the next strict mark is a single edge away, on a line where the reachable region is tighter
 and therefore easier to reason about than the open record. It is also the one
 open problem on this page with a running, joinable search behind it.
 
@@ -111,21 +111,22 @@ a first attempt, climb the 7×7 to 9×9
 ## Crossing a rigidity basin
 
 <Callout kind="open" title="Is there any local path from one record basin to another?">
-  The record basins tested so far (three to four, including a 469) are proven
-  locally optimal by MIP out to a multi-cell halo; whether every record board is
+  The record basins tested so far (three to four, including a 469) are measured
+  locally optimal by MIP out to a multi-cell halo (runs not committed); whether every record board is
   equally rigid is untested. The open question is whether any sequence of small,
   legal moves reaches a different basin at all.
 </Callout>
 
 **Wall.** [Rigidity](/research/why/rigidity-wall), stated in its sharpest form,
-and [why basin-hopping looks impossible](/research/why/sigma-cycles): the step
-from one great board to a better one is one giant, indivisible swap with no
-gradient to follow.
+and [interpolating between record boards fails](/research/why/sigma-cycles): the
+loop from one great board to another is one giant swap, and every partial step
+along it scores worse than its start.
 
-**Tried, and where it stopped.** The rigidity theorem records MIP proofs of
-halo-optimality across several basins, and the search for a short escape chain
+**Tried, and where it stopped.** The rigidity page records MIP
+halo-optimality certificates across several basins (notebook runs, not
+committed), and the search for a short escape chain
 between basins failed for a structural reason set out on
-[why basin-hopping looks impossible](/research/why/sigma-cycles). The
+[interpolating between record boards fails](/research/why/sigma-cycles). The
 [recombine two good boards](/research/build/dead-ends) entry is the same wall
 from the crossover side.
 
@@ -178,32 +179,37 @@ this one has no charted attempt list waiting to be beaten: a genuinely new
 diversity mechanism is an idea nobody has planted yet, which makes it the most
 speculative entry here and the one least constrained by prior work.
 
-## Is local rigidity a consequence of the area-law distinctness collapse?
+## Does the distinct-piece collapse bear on local rigidity?
 
-<Callout kind="open" title="Do the record boards freeze because distinct partial boards collapse, or is that a coincidence of scale?">
-  The smallest moves that separate the best known boards and the scale at which
-  genuinely distinct partial boards collapse are both a patch of low hundreds of
-  cells. The open question is whether that is a causal link, rigidity following
-  from the area law, or two independent facts that happen to share a length
-  scale.
+<Callout kind="open" title="Is there any link between the record boards freezing and the collapse of distinct-piece patches?">
+  This question was first asked because the two seemed to share a scale, a
+  patch of low hundreds of cells. They do not. Among colour-valid patches
+  four cells wide, the share that uses distinct pieces falls below one in a
+  thousand near 44 cells, not 155 as first extrapolated. The loops that
+  separate the best known boards have a median of 119 cells, the same as
+  between two random reshuffles of the pieces. What remains open is whether
+  the collapse, measured on small free-boundary patches, says anything about
+  rigidity at all.
 </Callout>
 
 **Wall.** [Rigidity](/research/why/rigidity-wall) and
-[the area law](/research/why/entropy-area-law). Rigidity is established
-independently, by MIP halo-optimality proofs and a committed SAT halo; the area
-law is a distinctness estimate. A reduction of one to the other would tie the
-two together, but nothing on-site derives it.
+[the distinct-piece fraction](/research/why/entropy-area-law). Rigidity is
+measured independently, on the boards tested, by MIP halo optimality runs
+and a committed SAT halo; the distinct-piece fraction is counted exactly up
+to 3×3 and sampled up to 48 cells. A reduction of one to the other would tie
+the two together, but nothing on-site derives it.
 
-**Tried, and where it stopped.** The [area-law page](/research/why/entropy-area-law)
-observes the shared scale and links onward to
-[why basin-hopping looks impossible](/research/why/sigma-cycles); it does not
-claim rigidity is caused by the collapse. The rigidity result is exact and
-region-by-region, and stands on its own without invoking the area law. No page
-asserts the causal bridge, which is exactly why it belongs here as a question.
+**Tried, and where it stopped.** The coincidence of scale that motivated the
+question was checked and withdrawn: the collapse point came from a fit that
+the sampled fractions refute, and the loop sizes between record boards match
+a random null ([interpolating between record boards fails](/research/why/sigma-cycles)).
+The rigidity result is region by region and stands without invoking the
+collapse. No page asserts a causal bridge, and no measurement now suggests
+one.
 
-**Entry tag.** Hard, well-mapped. Both endpoints are among the most studied
-walls in the section; the open part is the edge between them, and closing it
-either way would reframe how the two walls are read.
+**Entry tag.** Unattended, premise withdrawn. Kept so that the withdrawn
+coincidence is not rediscovered as a lead; a link would need a mechanism
+that works on boards with a fixed frame, not a shared length scale.
 
 ## Does the hardness peak produce the no-forced-moves branching profile?
 

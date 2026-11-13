@@ -3,16 +3,16 @@ title: The hard region follows the fill order
 description: >-
   Fill a board in a fixed order and the top three quarters go in freely; the
   leftover is, by construction, the end of the order. On forty generated
-  boards a row-major search stalls at a median of 12 of 16 rows and more
-  budget does not move it. Whether some cells are hard under every order is
-  not yet tested.
-metaDescription: "On forty solvable 16x16 boards a row-major exact-match search fills a median 12 of 16 rows, then stalls whatever the budget. The leftover sits at the end of the fill order by construction; whether any region is hard under every order has not been tested."
+  boards a row-major search stalls at a median of 12 of 16 rows, and 2.7
+  times more budget leaves it within one row, as an ordinary exponential tree
+  would. Whether some cells are hard under every order is not yet tested.
+metaDescription: "On forty solvable 16x16 boards a row-major exact-match search fills a median 12 of 16 rows, then stalls; 2.7 times more budget moves it by at most one row. The leftover sits at the end of the fill order by construction; whether any region is hard under every order has not been tested."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 3
 order: 82
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, search-space]
 sources: []
 related:
@@ -141,9 +141,9 @@ intrinsically hard would take several unrelated orders (column-major, spiral,
 reversed, random) and a measure of how much the cells each one leaves unsolved
 overlap. That comparison has not been run yet.
 
-## The stall is a wall, not a slow start
+## More budget, same frontier
 
-One more check separates a wall from a search that simply ran short of nodes.
+One more check asks whether a larger budget moves the frontier.
 Rerun eight of the boards at four million nodes, roughly 2.7 times the sweep
 budget, and compare the frontier against the same seeds in the main run.
 
@@ -154,9 +154,12 @@ budget, and compare the frontier against the same seeds in the main run.
 
 The frontier does not climb with the budget. Four of the eight boards move up one
 row, one moves down one row, and three do not move at all, all inside a single row
-of jitter, and the leftover stays entirely in the bottom band. The search is not
-slow; it is stopped, and it is stopped at the last region it tries to fill. That
-is the budget-insensitive failure the conjecture predicts, reproduced directly.
+of jitter, and the leftover stays entirely in the bottom band. This test
+cannot tell a wall from an ordinary exponential tree. If the tree grows by a
+factor $b$ per cell at the frontier, a 2.7 times larger budget buys about
+$\log 2.7 / \log b$ more cells, less than one cell whenever $b$ exceeds 2.7,
+so a frontier that stays inside one row is what an ordinary tree also gives.
+A test with power needs budgets spread over several decades.
 
 ## What this does and does not settle
 
@@ -175,9 +178,12 @@ official set is the separate, unmeasured claim.
 The **too globally coupled** half is an empirical ceiling tied to the official
 piece set's scarcity, the coupling that lets a scarce piece spent up top
 [starve a cell far below](/research/why/piece-theft). Our boards come from the
-kit's framed generator, which is planted-solvable and plausibly admits many
-solutions, where the real puzzle's first-moment estimate is about 14,702 with
-the centre clue (see [solution counting](/research/build/analysis/solution-counting)).
+kit's framed generator, which is planted-solvable and, like the official set
+without clues, expected to admit many solutions: the first-moment estimate
+behind [solution counting](/research/build/analysis/solution-counting) gives
+about $10^{7}$ for a random framed 16x16 board with 17 interior and 5 frame
+colours and no clues, against about $1.15\times10^{7}$ for the official set
+with no clues (about 14,702 once the centre clue is fixed).
 Localization holds for any board under a sequential fill, because the leftover
 has to live somewhere and a row-major sweep puts it at the bottom, so the
 generated family is an adequate test of localization; it is not a test of the

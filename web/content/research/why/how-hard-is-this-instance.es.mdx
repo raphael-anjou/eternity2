@@ -9,13 +9,12 @@ description: >-
   Una medición con tableros plantados pone cifras a la elección del
   solucionador: una DFS con reinicios choca con un muro aproximadamente un
   tamaño de tablero antes que CP-SAT, y ambos muros se mueven con el número de
-  colores, cerca del tamaño en que los tableros cruzan el umbral de una
-  solución esperada.
+  colores.
 metaDescription: "El emparejamiento de aristas es NP-completo como familia, pero un tablero 16x16 fijo es una constante. Junto a SAT, DLX y PLE, una medición con tableros plantados muestra a CP-SAT alejando el muro un tamaño más que una DFS; ambos muros siguen al número de colores."
 kind: concept
 contribution: exposition
 order: 25
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [exact-methods]
 sources:
   - label: 'Demaine & Demaine 2007, "Jigsaw Puzzles, Edge Matching, and Polyomino Packing: Connections and Complexity" (Graphs and Combinatorics 23): el emparejamiento de aristas es NP-completo'
@@ -256,10 +255,12 @@ construidas a partir de una solución conocida, con cinco celdas de la solución
 fijadas como pistas, puntuadas con la convención de aristas emparejadas sin
 contar el borde exterior (una resolución completa a tamaño $N$ vale
 exactamente $2N(N-1)$ aristas emparejadas: 264 en 12×12, 480 en 16×16). Los
-tableros plantados no son el Eternity II canónico; plausiblemente admiten
-muchísimas soluciones, mientras que la estimación del primer momento del puzzle
-real es de unas 14 702 con la pieza central y de alrededor de una con las
-cinco pistas. Lo que ofrecen es una escalera de instancias resolubles por construcción
+tableros plantados no son el Eternity II canónico. A estos tamaños están
+mucho más restringidos que el puzzle real: la misma estimación del primer
+momento que da unas 14 702 soluciones a Eternity II con la pieza central da
+unas $10^{-41}$ a un tablero 12×12 aleatorio con 17 colores interiores y
+cinco pistas, así que un tablero plantado de ese tamaño casi seguro solo
+tiene la suya. Lo que ofrecen es una escalera de instancias resolubles por construcción
 que dos paradigmas de búsqueda distintos pueden atacar lado a lado.
 
 En este banco, a 22 colores en total (17 interiores y 5 de borde, el reparto
@@ -319,15 +320,16 @@ todos; menos colores arrastra a ambos paradigmas hacia abajo a la vez, de
 modo que las mediciones tomadas a 26 colores favorecen a todos los
 solucionadores de la carrera.
 
-La posición de los muros coincide con el tamaño en que estos tableros cruzan el
-umbral de una solución esperada para su número de colores. Una estimación
-burda del primer momento para el interior solo, $m! \cdot 4^m / c^{j}$ con
-$m = (N-2)^2$ piezas, $j = 2(N-2)(N-3)$ uniones internas y $c$ colores
-interiores, cruza el uno entre N = 12 y N = 13 con 17 colores interiores
-($10^{-3.3}$ en 12, $10^{3.1}$ en 13) y hacia N = 16 con 21 ($10^{-6.2}$ en 15,
-$10^{2.4}$ en 16). Con 17 colores interiores es justo donde CP-SAT se ralentiza
-y empieza a agotar sus límites. Ambos solucionadores chocan cerca de ese cruce,
-y CP-SAT aleja el muro uno o dos tamaños respecto a la DFS con reinicios. Con
+Los muros no están en el tamaño en que se espera una solución. Contando
+todas las uniones, marco y costuras incluidos, con la misma fórmula del
+primer momento que da 14 702 para Eternity II, un tablero con 17 colores
+interiores y sin pistas espera $10^{-28}$ soluciones en 12×12, $10^{-6}$ en
+15×15 y $10^{7}$ en 16×16; con cinco pistas la esperanza queda por debajo de
+uno en todos los tamaños hasta 16×16 ($10^{-7}$ ahí). Ambos solucionadores
+fallan en tableros que casi seguro tienen una sola solución, y CP-SAT aleja
+el muro uno o dos tamaños respecto a la DFS con reinicios. Una versión
+anterior de esta página situaba el cruce entre 12×12 y 13×13 con una fórmula
+que omitía las uniones de costura y el marco; esa posición queda retirada. Con
 cinco semillas por tamaño, una sola implementación de DFS y sondas de una sola
 semilla en los peldaños grandes, estos datos no permiten decir qué parte del
 acantilado corresponde al paradigma de búsqueda y qué parte a la posición de

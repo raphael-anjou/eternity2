@@ -4,15 +4,15 @@ description: >-
   Un argumento de conteo sobre el juego de piezas oficial prohíbe una
   puntuación de exactamente 479/480: las semiaristas de cada color vienen en
   cantidades pares, y una sola unión rota dejaría dos cuentas impares. El
-  suelo bajo lo perfecto es 478, y a lo sumo 76 cuasi-soluciones a un
-  movimiento pueden rodear una solución.
-metaDescription: "Un teorema de paridad sobre el juego de piezas oficial de Eternity II: las semiaristas de cada color vienen en cantidades pares, así que un tablero con una sola unión rota no puede existir. 479/480 es imposible, el suelo bajo lo perfecto es 478, y a lo sumo 76 cuasi-soluciones rodean una solución."
+  suelo bajo lo perfecto es 478, y toda solución tiene unos 150 vecinos a un
+  movimiento situados justo ahí.
+metaDescription: "Un teorema de paridad sobre el juego oficial de Eternity II: las semiaristas de cada color vienen en cantidades pares, así que un tablero con una sola unión rota no puede existir. 479/480 es imposible, el suelo bajo lo perfecto es 478, y toda solución tiene unos 150 vecinos a un movimiento en 478."
 kind: finding
 contribution: theory
 rigor: proven
 tier: 1
 order: 35
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, search-space]
 sources:
   - label: "David Eddy abre el hilo Parity: el número de aristas de cada tipo es par, y la consecuencia sobre la última pieza (msg 332, junio de 2007)"
@@ -40,8 +40,8 @@ ocupado por algún tablero que alguien ha construido. Tiene exactamente un
 hueco. Ninguna colocación completa legal de las 256 piezas puntúa 479. Es un
 teorema sobre el juego de piezas publicado, demostrable solo con contar, y
 esta página recorre el argumento entero: la paridad que lo fuerza, el suelo
-de defecto de 2 que se sigue, y el censo que acota cuántas cuasi-soluciones
-a un movimiento pueden rodear una solución. Es también una entrada de
+de defecto de 2 que se sigue, y el censo que cuenta las cuasi-soluciones a
+un movimiento alrededor de cada solución. Es también una entrada de
 [el barrido de teoremas](/research/why/theorem-sweep), el repaso de lo que
 puede demostrarse a partir de la bolsa antes de lanzar búsqueda alguna.
 
@@ -118,28 +118,31 @@ cada vez es estructuralmente incapaz de darlo.
 
 Una solución existe; el rompecabezas se construyó a partir de una. ¿Qué hay
 justo al lado, en 478? Un tablero a un movimiento de una solución debe venir
-de un movimiento que rompa exactamente dos uniones, y solo dos clases de
-movimiento único pueden hacerlo. Ambas se cuentan en la bolsa:
+de un movimiento que rompa exactamente dos uniones. Dos clases de
+movimiento único lo hacen, y ambas se cuentan en la bolsa:
 
-- **Intercambios de gemelas.** Dos fichas interiores que coinciden, en
+- **Intercambios de gemelas.** Dos fichas del mismo tipo que coinciden, en
   ciertas orientaciones, en tres de sus cuatro bordes. Colocadas de modo que
   los bordes coincidentes queden alineados, intercambiarlas perturba un
-  borde de cada una: dos uniones. El juego contiene exactamente **50** de
-  estas parejas cuasi-gemelas.
+  borde de cada una: dos uniones. El juego contiene exactamente **125** de
+  estas parejas cuasi-gemelas: 50 interiores, 73 de borde y 2 de esquina.
 - **Giros en el sitio.** Una ficha cuyos colores repetidos permiten que un
   medio giro o un cuarto de giro conserve dos de sus cuatro colores de borde
   en posición, de modo que girarla donde está rompe exactamente las otras
   dos uniones. El juego contiene **23** fichas de medio giro y **3** fichas
   de cuarto de giro de este tipo.
 
-Sumándolos, cualquier solución tiene a lo sumo $50 + 23 + 3 = 76$ vecinos de
-defecto 2 alcanzables con un solo intercambio o giro. Es una cota superior
-salida de la bolsa: que una pareja de gemelas dada quede realmente alineada
-dentro de una solución concreta depende de esa solución, así que la cuenta
-realizada para la solución de los diseñadores sigue abierta. El techo se
-mantiene de todos modos. Alrededor de la cima de la escalera, las
-cuasi-soluciones son dispersas, unas pocas decenas de tableros a lo sumo,
-mientras que los peldaños más abajo están poblados astronómicamente. Es la
+Las tres fichas de cuarto de giro están entre las 23 y cada una admite más
+de un giro útil, así que las 23 fichas dan 29 giros distintos. Las dos
+clases de movimiento funcionan en toda solución. Para intercambiar dos
+gemelas basta dar a cada pieza la orientación de la otra: se rompe una unión
+en cada casilla, estén donde estén las dos piezas. Toda solución tiene, por
+tanto, unos $125 + 29 = 154$ vecinos a un movimiento en 478, un suelo salido
+de la bolsa y no un techo (la única excepción es una pareja colocada lado a
+lado por su borde distinto). Una versión anterior de esta página daba aquí
+un techo de 76; esa cifra solo contaba las parejas interiores y leía un
+suelo como cota superior, y queda retirada. Frente a las poblaciones
+astronómicas de los peldaños más bajos, la cáscara sigue siendo pequeña. Es la
 misma escasez que
 [los patrones prohibidos](/research/why/forbidden-patterns) muestran a
 escala 2×2, leída en la cumbre.
@@ -181,18 +184,21 @@ muy cerca del final
 Todo eso es cierto, y el hilo se detuvo ahí. Empujada un paso más allá, la
 misma observación contiene el teorema de arriba: la paridad hace más que
 volver azarosa la última pieza, borra el peldaño 479 de raíz, fija el suelo
-de defecto en 2, y limita a 76 la cáscara a un movimiento alrededor de cada
-solución.
+de defecto en 2, y sitúa unos 150 tableros a un movimiento, en 478,
+alrededor de cada solución.
 
 ## Compruébelo usted mismo
 
 Cada número de esta página se reduce a un censo en una pasada del juego
 oficial: las cuentas de semiaristas y su paridad, la identidad de ajuste
 exacto 960, el cero fichas simétricas por rotación, la partición 4/56/196 en
-esquinas/bordes/interior, los generadores de defecto 2 en 50/23/3, la
-saturación del marco y el vector de demanda hacia el interior. El
+esquinas/bordes/interior, las 50 parejas cuasi-gemelas interiores y las 23
+fichas que giran, la saturación del marco y el vector de demanda hacia el
+interior, además del censo de movimientos únicos (125 intercambios de
+cuasi-gemelas y 29 giros en el sitio, un mínimo de 154 vecinos en 478). El
 verificador recalcula cada valor junto a su valor esperado y emite una
-bandera de éxito por afirmación; las 16 comprobaciones pasan y la salida es
+bandera de éxito por afirmación; las 21 comprobaciones pasan (`all_ok: true`
+en los [resultados del censo](https://github.com/raphael-anjou/eternity2/blob/main/research/topics/parity-defect-floor/results/census.json) versionados) y la salida es
 idéntica byte a byte entre ejecuciones.
 [El artículo, el código del verificador y los resultados están en GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/parity-defect-floor),
 y el bloque de reproducción de esta página apunta al mismo tema. Una

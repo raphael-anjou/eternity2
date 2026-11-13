@@ -9,7 +9,7 @@ metaDescription: "Un panorama de chaque famille d'attaque tentée sur Eternity I
 kind: page
 order: 5
 group: Start here
-updated: 2026-11-11
+updated: 2026-11-13
 sources:
   - label: "Le bilan que la communauté dresse elle-même de deux décennies d'effort : 1,6 TFlops, 10^19 opérations CPU, aucune solution (groups.io, message 3511)"
     url: https://groups.io/g/eternity2/message/3511
@@ -48,8 +48,7 @@ L'[étagère des techniques](/research/build/techniques) est l'index de ces page
 Les familles ne calent pas toutes à la même hauteur. Une seule lignée a atteint
 467 à 470 arêtes accordées sur 480 : le retour arrière en profondeur avec des
 désaccords tardifs planifiés (le 467 de Verhaard, puis le 470 de Blackwood ; voir
-les [records](/research/records)). Les autres plafonnent plus bas : la
-programmation en nombres entiers vers 420–440, l'hyper-heuristique académique à
+les [records](/research/records)). Les autres plafonnent plus bas : une tentative de programmation en nombres entiers a calé vers 420–440 (une propriété de ce solveur, pas une borne sur la programmation en nombres entiers), l'hyper-heuristique académique à
 461, [les propres expériences de ce projet](/research/lab/experiments/raphael-anjou)
 à [460–463](/research/records), et plusieurs constructions de la page
 [impasses](/research/build/dead-ends) bien en dessous.
@@ -89,9 +88,7 @@ détient un record vit ici.
 - **[Cohérence d'arc](/research/build/reduce/arc-consistency)**. Faire en sorte que
   la liste de candidats de chaque case se défende contre ses voisines jusqu'à un
   point fixe, au-delà du simple contrôle anticipé à un coup. L'AC-3 de Mackworth et
-  ses raffinements élaguent fortement sur les petits plateaux ; sur le plateau
-  complet, l'élagage atteignable s'estompe à environ deux cases de distance et ne
-  parvient pas à effondrer le facteur de branchement.
+  ses raffinements élaguent fortement sur les petits plateaux ; sur le plateau complet, dans l'[étude DFS](/research/lab/experiments/raphael-anjou/dfs-study) versée au dépôt, ajouter le contrôle anticipé, l'AC-3 et le tous-différents par couleur à une recherche à ordre dynamique n'a pas relevé le score à un budget de 60 secondes.
 - **[Tous-différents, le filtre de couplage de Régin](/research/build/reduce/alldiff-regin)**.
   Aucune pièce ne peut servir deux fois : une seule contrainte globale sur 256
   cases, filtrée intégralement en temps polynomial par couplage biparti. Le
@@ -100,17 +97,15 @@ détient un record vit ici.
 - **[Apprentissage de no-goods](/research/build/reduce/nogood-learning)**. Un
   sous-arbre échoué est un théorème : le consigner et ne jamais y revenir. Tables de
   transposition et contraintes minées paient toutes deux sur les petits plateaux ;
-  en 16×16, le nombre de no-goods distincts dépasse toute mémoire que l'on puisse
-  détenir.
+  en 16×16, des mesures de la communauté placent les correspondances exactes en table vers 1 %, tandis que les tables grossissent sans limite. Les sous-arbres échoués sont réutilisables en principe ; ce qui reste ouvert, c'est le taux de change.
 - **[Redémarrages et queues lourdes](/research/build/backtracking/restarts)**. Le
   même solveur à retour arrière sur le même puzzle termine en des temps d'exécution
   qui diffèrent de plusieurs puissances de dix ; alors on coupe, on rebat les
   cartes, et on relance. Tout solveur record depuis 2007 est un portefeuille de
-  redémarrages. Cela change les plateaux que l'on atteint, pas le plafond.
+  redémarrages. Cela change les plateaux que l'on atteint ; on ignore si cela change le plafond, car personne n'a mesuré la distribution des temps d'exécution sur le plateau complet.
 - **[Rencontre au milieu](/research/build/exact/meet-in-the-middle)**. Énumérer
   deux moitiés et les joindre sur une interface commune, en échangeant de la mémoire
-  contre la moitié de l'exposant. Réel sur des bandes du plateau ; l'expérience
-  BANDSAW de ce projet a mesuré où cela cesse de payer à pleine taille.
+  contre la moitié de l'exposant. Réel sur des bandes du plateau ; l'expérience BANDSAW de ce projet l'a mesuré sur des bandes, et son coût à pleine taille est une extrapolation dont les données ne sont pas encore versées.
 - **[Couverture exacte et dancing links](/research/build/exact/exact-cover-dlx)**.
   Eternity II s'énonce proprement comme une couverture exacte, et l'algorithme X de
   Knuth en est la machine classique. Il brille sur les petits plateaux et le
@@ -135,14 +130,11 @@ mener la recherche.
 
 - **[Encodages SAT et CSP](/research/build/exact/sat-csp-encodings)**. Écrire le
   puzzle sous forme de clauses et le confier à un solveur complet. Tenté depuis
-  2008. Les solveurs calent sur le plateau complet, mais leurs verdicts gagnent
-  encore leur place comme preuves d'impossibilité sur des sous-plateaux.
+  2008. Les solveurs calent sur le plateau complet, mais leurs verdicts gagnent encore leur place comme preuves d'impossibilité sur des sous-plateaux. Le cube-and-conquer, à l'origine des plus grandes preuves SAT, n'a fait l'objet d'aucune tentative publique à grande échelle sur le puzzle complet.
 - **[Relaxations PL et PLNE](/research/build/exact/lp-relaxations)**. L'écrire comme
   un programme en nombres entiers et abandonner l'intégralité : un solveur linéaire
   atteint une erreur nulle en quelques secondes en plaçant des fractions de pièces.
-  Le confort s'arrête à l'instant où les pièces doivent être entières : un plateau à
-  420–440 arêtes et un mur PLNE dès le 8×8. Aucun programme en nombres entiers n'a
-  produit de plateau complet compétitif.
+  Le confort s'arrête à l'instant où les pièces doivent être entières : une méthode de pénalités de 2009 a calé vers 420–440 arêtes, une PLNE moderne a résolu un 10×10 à 6 couleurs en 19 minutes environ, et aucun programme en nombres entiers n'a produit de plateau complet compétitif.
 
 ## Recherche locale et stochastique
 
@@ -168,8 +160,7 @@ arrière.
 - **[Recherche par faisceau](/research/build/construct/beam-search)**. Maintenir en
   vie les K plateaux partiels les plus prometteurs et les faire croître case par
   case. Le cheval de trait derrière les constructeurs partant de zéro de ce projet,
-  et une illustration nette de pourquoi la largeur seule cale dans l'intérieur
-  profond.
+  et une illustration nette de pourquoi la largeur seule cale dans les dernières rangées.
 - **[Approches évolutionnaires et génétiques](/research/build/local-search/evolutionary)**.
   Élever une population, garder les plus aptes, recombiner les survivants. La
   métaphore la plus naturelle de la boîte à outils, et celle dont l'opérateur
@@ -177,8 +168,7 @@ arrière.
 - **[Applications itérées et divide-and-concur](/research/build/exact/iterated-maps)**.
   Scinder le puzzle en deux ensembles de contraintes faciles à projeter et itérer
   une application dont les points fixes sont des solutions. La méthode d'Elser a fait
-  la couverture de PNAS ; sur la liste Eternity II, elle a été testée une fois et
-  jamais menée à son terme.
+  la couverture de PNAS ; aucun essai sur le puzzle complet ni sur l'échelle de référence 10×10 n'a été publié, ni positif ni négatif.
 
 ## Apprendre des plateaux forts
 
@@ -250,9 +240,7 @@ que la communauté sait où sont les murs.
 
 Certaines idées sonnent aussi bien que n'importe laquelle ci-dessus et n'ont pas
 fait bouger le score quand on les a essayées. La page **[impasses](/research/build/dead-ends)**
-les rassemble avec la raison de l'échec de chacune, pour vous épargner un mois de
-travail : brisure de symétrie (il n'y a pas de symétrie globale à briser),
-propagation de probabilités qui s'estompe à deux cases de distance, et d'autres.
+classe chacune selon sa preuve (mesuré, rapporté, argumenté, ou affirmation sans preuve dans le dépôt) et range à part, comme affirmations non vérifiées, les verdicts qu'aucune donnée versée n'appuie, chacun avec l'expérience qui le trancherait. La brisure de symétrie relève du premier cas : il n'y a pas de symétrie globale à briser.
 
 ## Ce que la carte vous dit
 

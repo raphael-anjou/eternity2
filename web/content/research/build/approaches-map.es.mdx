@@ -9,7 +9,7 @@ metaDescription: "Un panorama de cada familia de ataque probada en Eternity II: 
 kind: page
 order: 5
 group: Start here
-updated: 2026-11-11
+updated: 2026-11-13
 sources:
   - label: "El balance que la propia comunidad hace de dos décadas de esfuerzo: 1,6 TFlops, 10^19 operaciones de CPU, ninguna solución (groups.io, mensaje 3511)"
     url: https://groups.io/g/eternity2/message/3511
@@ -48,8 +48,7 @@ simple «no medido» allí donde faltan. El
 Las familias no se atascan todas a la misma altura. Un solo linaje ha llegado a
 467–470 aristas casadas de 480: el backtracking en profundidad con desajustes
 tardíos programados (el 467 de Verhaard y después el 470 de Blackwood; consulta
-los [récords](/research/records)). Los demás se estancan más abajo: la
-programación entera en 420–440, la hiperheurística académica en 461,
+los [récords](/research/records)). Los demás se estancan más abajo: un intento de programación entera se atascó en 420–440 (una propiedad de ese solucionador, no una cota de la programación entera), la hiperheurística académica en 461,
 [los propios experimentos de este proyecto](/research/lab/experiments/raphael-anjou)
 en [460–463](/research/records), y varias construcciones de la página de
 [callejones sin salida](/research/build/dead-ends) muy por debajo.
@@ -88,9 +87,7 @@ que ostenta un récord vive aquí.
 - **[Consistencia de arco](/research/build/reduce/arc-consistency)**. Hacer que la
   lista de candidatos de cada celda se defienda frente a sus vecinas hasta un
   punto fijo, más allá del simple control anticipado a un movimiento. El AC-3 de
-  Mackworth y sus refinamientos podan con fuerza en los tableros pequeños; en el
-  tablero completo, la poda alcanzable se desvanece a unas dos celdas de distancia
-  y no logra colapsar el factor de ramificación.
+  Mackworth y sus refinamientos podan con fuerza en los tableros pequeños; en el tablero completo, en el [estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study) publicado en el repositorio, añadir control anticipado, AC-3 y all-different por color a una búsqueda de orden dinámico no elevó la puntuación con un presupuesto de 60 segundos.
 - **[All-different, el filtro de emparejamiento de Régin](/research/build/reduce/alldiff-regin)**.
   Ninguna pieza puede usarse dos veces: una sola restricción global sobre 256
   celdas, filtrada por completo en tiempo polinómico mediante emparejamiento
@@ -99,17 +96,14 @@ que ostenta un récord vive aquí.
 - **[Aprendizaje de no-goods](/research/build/reduce/nogood-learning)**. Un
   subárbol fallido es un teorema: regístralo y no vuelvas a entrar nunca. Las
   tablas de transposición y las restricciones minadas rinden ambas en los
-  tableros pequeños; en 16×16, el número de no-goods distintos desborda cualquier
-  memoria que puedas retener.
+  tableros pequeños; en 16×16, mediciones de la comunidad sitúan los aciertos exactos en tabla cerca del 1 por ciento, mientras las tablas crecen sin límite. Los subárboles fallidos son reutilizables en principio; lo que sigue abierto es el tipo de cambio.
 - **[Reinicios y colas pesadas](/research/build/backtracking/restarts)**. El mismo
   backtracker sobre el mismo puzzle termina en tiempos de ejecución que difieren
   en varias potencias de diez, así que corta, baraja de nuevo y reinicia. Todo
-  solucionador récord desde 2007 es una cartera de reinicios. Cambia qué tableros
-  alcanzas, no el techo.
+  solucionador récord desde 2007 es una cartera de reinicios. Cambia qué tableros alcanzas; si cambia el techo no se ha medido, porque nadie ha medido la distribución de tiempos de ejecución en el tablero completo.
 - **[Encuentro en el medio](/research/build/exact/meet-in-the-middle)**. Enumerar
   dos mitades y unirlas en una interfaz compartida, cambiando memoria por la mitad
-  del exponente. Real en bandas del tablero; el experimento BANDSAW de este
-  proyecto midió dónde deja de rendir a tamaño completo.
+  del exponente. Real en bandas del tablero; el experimento BANDSAW de este proyecto lo midió en bandas, y su coste a tamaño completo es una extrapolación cuyos datos aún no están publicados.
 - **[Cobertura exacta y dancing links](/research/build/exact/exact-cover-dlx)**.
   Eternity II se enuncia limpiamente como cobertura exacta, y el Algoritmo X de
   Knuth es la máquina clásica para ello. Brilla en los tableros pequeños y en el
@@ -134,14 +128,11 @@ búsqueda.
 - **[Codificaciones SAT y CSP](/research/build/exact/sat-csp-encodings)**.
   Escribir el puzzle en forma de cláusulas y entregarlo a un solucionador
   completo. Intentado desde 2008. Los solucionadores se atascan en el tablero
-  completo, pero sus veredictos siguen ganándose el sitio como pruebas de
-  imposibilidad en subtableros.
+  completo, pero sus veredictos siguen ganándose el sitio como pruebas de imposibilidad en subtableros. El cube-and-conquer, detrás de las mayores demostraciones SAT, no tiene ningún intento público a escala sobre el puzzle completo.
 - **[Relajaciones LP y ILP](/research/build/exact/lp-relaxations)**. Escribirlo
   como un programa entero y abandonar la integralidad: un solucionador lineal
   alcanza error cero en segundos colocando fracciones de piezas. La comodidad
-  termina en el instante en que las piezas deben ser enteras: una meseta en
-  420–440 aristas y un muro ILP ya en el 8×8. Ningún programa entero ha producido
-  un tablero completo competitivo.
+  termina en el instante en que las piezas deben ser enteras: un método de penalizaciones de 2009 se atascó en 420–440 aristas, una ILP moderna resolvió un 10×10 con 6 colores en unos 19 minutos, y ningún programa entero ha producido un tablero completo competitivo.
 
 ## Búsqueda local y estocástica
 
@@ -164,8 +155,7 @@ oficial se han detenido hasta ahora por debajo de los backtrackers récord.
 - **[Búsqueda por haz](/research/build/construct/beam-search)**. Mantener con vida
   los K tableros parciales más prometedores y hacerlos crecer celda a celda. El
   caballo de tiro tras los constructores desde cero de este proyecto, y una
-  ilustración nítida de por qué la anchura por sí sola se atasca en el interior
-  profundo.
+  ilustración nítida de por qué la anchura por sí sola se atasca en las últimas filas.
 - **[Enfoques evolutivos y genéticos](/research/build/local-search/evolutionary)**.
   Criar una población, quedarse con los más aptos, recombinar a los
   supervivientes. La metáfora más natural de la caja de herramientas y aquella cuyo
@@ -173,8 +163,7 @@ oficial se han detenido hasta ahora por debajo de los backtrackers récord.
 - **[Mapas iterados y divide-and-concur](/research/build/exact/iterated-maps)**.
   Escindir el puzzle en dos conjuntos de restricciones fáciles de proyectar e
   iterar un mapa cuyos puntos fijos son soluciones. El método de Elser hizo la
-  portada de PNAS; en la lista de Eternity II se probó una vez y nunca se llevó
-  hasta el final.
+  portada de PNAS; no se ha publicado ninguna ejecución sobre el puzzle completo ni sobre la escalera de referencia de 10×10, ni positiva ni negativa.
 
 ## Aprender de los tableros fuertes
 
@@ -247,10 +236,7 @@ dónde están los muros.
 
 Algunas ideas suenan tan bien como cualquiera de las anteriores y no movieron la
 puntuación cuando se probaron. La página **[callejones sin salida](/research/build/dead-ends)**
-las reúne con la razón por la que cada una falla, para ahorrarte un mes de
-trabajo: ruptura de simetría (no hay ninguna simetría global que romper),
-propagación de probabilidades que se desvanece a dos celdas de distancia, y
-otras.
+clasifica cada una según su evidencia (medido, reportado, argumentado, o afirmación sin evidencia en el repositorio) y deja aparte, como afirmaciones no comprobadas, los veredictos que ningún dato publicado respalda, cada uno con el experimento que lo zanjaría. La ruptura de simetría es un ejemplo del primer tipo: no hay ninguna simetría global que romper.
 
 ## Lo que el mapa te dice
 

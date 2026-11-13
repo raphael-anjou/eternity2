@@ -1,14 +1,16 @@
 ---
-title: Callejones sin salida
+title: Callejones sin salida y afirmaciones no comprobadas
 description: >-
-  Enfoques que probamos que parecen prometedores y no mueven la aguja en
-  Eternity II, documentados con lo que encontramos para que inviertas tu tiempo
-  en otra parte.
-metaDescription: "Enfoques sobre Eternity II atractivos pero que no mueven la puntuación: bases de datos de patrones triviales en la raíz, reducción de retículos que resuelve la mitad fácil, colonias de hormigas que aprenden ruido, y dos docenas más, cada uno con su mecanismo de fracaso."
+  Enfoques que no movieron la puntuación en Eternity II, cada uno clasificado
+  según la solidez de su evidencia. Trece veredictos se apoyan en datos
+  publicados en el repositorio, una fuente pública con nombre o una
+  derivación; otros veintidós se enuncian sin evidencia que un lector pueda
+  abrir, y aparecen aparte con el experimento que zanjaría cada uno.
+metaDescription: "Enfoques de Eternity II que no movieron la puntuación, cada uno con su grado de evidencia (medido, reportado, argumentado o sin evidencia en el repositorio) y el alcance de su veredicto: trece callejones establecidos y veintidós afirmaciones no comprobadas con el experimento que zanjaría cada una."
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "Cierre de eternity2.net: 1,6 TFlops, 10^19 operaciones de CPU, ninguna solución (groups.io message 3511)"
@@ -25,39 +27,113 @@ sources:
     url: https://arxiv.org/abs/2411.09238
   - label: "Mena, Belanger, Linderman, Snoek: Learning Latent Permutations with Gumbel-Sinkhorn Networks (ICLR 2018)"
     url: https://arxiv.org/abs/1802.08665
+  - label: "Resultado publicado: órbitas de rotación y multiconjuntos gemelos del juego oficial (adversarial-piece-set, invariants.json)"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/topics/adversarial-piece-set/results/invariants.json
+  - label: "Resultado publicado: la rejilla del estudio DFS, diez variantes con esquinas fijadas, 60 s, un núcleo (dfs-study, report.md)"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/dfs-study/results/report.md
+  - label: "Resultado publicado: compleciones con el marco primero y control de semillas sobre un mismo marco (frame-is-not-the-basin)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/frame-is-not-the-basin
+  - label: "Resultado publicado: multigrafo de colores del marco, grados y prueba euleriana (ring-purity, ring_purity.json)"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/topics/ring-purity/results/ring_purity.json
+  - label: "Resultado publicado: conteos exactos de factibilidad de colocaciones de 2 celdas, en L y 2x2 (forbidden-patterns, feasibility.json)"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/topics/forbidden-patterns/results/feasibility.json
+  - label: "Resultado publicado: calibración de la escalera difícil, incluida la prueba de multiconjunto en la costura del marco (hard-ladder, CALIBRATION.md)"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/hard-ladder/CALIBRATION.md
 related:
   - /research/build/run-it-yourself
   - /research/records
   - /research/open-problems
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/why/frame-is-not-the-basin
+  - /research/build/exact/sat-csp-encodings
+  - /research/build/hardware/gpu-solving
+  - /research/lab/experiments/raphael-anjou/repair-study/findings
 ---
 
-Enfoques que probamos que parecen prometedores y no mueven la aguja en
-Eternity II. Ninguno es una mala idea en general; simplemente no resuelven
-este puzzle. Documentamos lo que encontramos para que inviertas tu tiempo en
-otra parte.
+Enfoques prometedores que no movieron la puntuación en Eternity II, cada uno
+con la solidez de su evidencia. Ninguno es una mala idea en general. La
+mayoría de los veredictos de abajo aún no están establecidos: de 35 entradas,
+4 están medidas con datos publicados en el repositorio, 5 las reporta una
+fuente pública con nombre, 4 se argumentan con una derivación y 22 se apoyan
+en ejecuciones cuyos datos no están en el repositorio. Solo los tres
+primeros grupos se llaman aquí callejones sin salida; el cuarto aparece
+aparte, entrada por entrada, con el experimento que lo zanjaría.
 
-Cada entrada abre su veredicto con una etiqueta de firmeza: **Demostrado**
-significa que un teorema o un cálculo exacto cierra la puerta; **Medido**
-significa que lo ejecutamos (o lo hizo la comunidad) y lo vimos fracasar;
-**Reportado** significa que otro investigador lo ejecutó y documentó el
-fracaso, y nosotros no lo hemos vuelto a ejecutar. Cuando el veredicto proviene
-de nuestras propias ejecuciones, la página «por qué» enlazada lleva el comando
-de reproducción exacto, y [ejecútalo tú mismo](/research/build/run-it-yourself)
-detalla la puesta a punto; cuando la comunidad llegó allí primero, citamos el
-mensaje de archivo.
+## Grados de evidencia
 
-## Romper la simetría
+Cada entrada abre con uno de cuatro grados, e indica el alcance de su
+veredicto (tamaños de tablero, presupuestos, motores) cuando la evidencia lo
+da.
+
+- **Medido**: datos publicados en este repositorio respaldan el veredicto. La
+  entrada enlaza el archivo de resultados y nombra su comando de
+  reproducción; [ejecútalo tú mismo](/research/build/run-it-yourself) detalla
+  la puesta a punto.
+- **Reportado**: una fuente pública con nombre (un mensaje de la lista o un
+  artículo) lo afirma, y la entrada la enlaza. Aquí no se vuelve a ejecutar
+  nada.
+- **Argumentado**: el veredicto se sigue de una derivación, dada en la entrada
+  o en una página enlazada. Vale bajo los supuestos que la entrada enuncia.
+- **Afirmación sin evidencia en el repositorio**: se describe una ejecución, pero sus datos no están en el
+  repositorio y ninguna fuente pública la reporta (un informe privado cuenta
+  aquí también). Estas entradas tienen el estado de *afirmación no
+  comprobada*, no de callejón sin salida.
+
+| Entrada | Grado | Alcance del veredicto |
+| --- | --- | --- |
+| Romper la simetría | Medido | juego de piezas oficial, exacto |
+| Invariantes sobre las celdas colocadas | Argumentado | invariantes estáticos, búsqueda estricta sin discordancias |
+| Más cómputo | Reportado | búsqueda exhaustiva en la red de 2007 a 2008; la caza de récords en GPU sigue abierta |
+| Conteo por redes de tensores | Argumentado | contracción simple; la variante remendada no se ha probado a escala completa |
+| Primero los colores, luego las piezas | Reportado | arreglos de colores interiores, enumeración en la lista de 2023 a 2025 |
+| Reducción de retículos | Argumentado | esta codificación de la colocación |
+| Enumerar los clústeres locales | Reportado | clústeres de 2×2 a 4×4 cosidos de forma exacta |
+| Ampliar el vocabulario de las discordancias | Medido | 60 s en un núcleo, una familia de motores |
+| Forzar un borde diverso | Medido | un solo productor en haz, con techo cerca de 440 |
+| Empezar por el centro | Medido | búsqueda en profundidad estricta, 60 s en un núcleo |
+| Macropiezas 2×2 | Reportado | bloques 2×2 como reducción de dominio, 2008 |
+| Poda por oferta de borde | Reportado | búsqueda estricta en un 8×8, 2008; búsqueda tolerante a discordancias sin probar |
+| Poda por patrones prohibidos | Argumentado | búsqueda estricta en las aristas |
+| Survey propagation | Afirmación sin evidencia en el repositorio | un 4×4 generado, tres ajustes |
+| Ordenar por propagación de creencias | Afirmación sin evidencia en el repositorio | no indicado |
+| Ordenar por flexibilidad futura | Afirmación sin evidencia en el repositorio | tablero oficial, un hilo, 10 s × 3 |
+| Cotas por relajación | Afirmación sin evidencia en el repositorio | tablero oficial con el borde fijado, un solucionador, 30 min |
+| Bases de datos de patrones | Afirmación sin evidencia en el repositorio | solo la raíz del tablero vacío |
+| Aprender en tableros pequeños | Afirmación sin evidencia en el repositorio | una sola arquitectura |
+| Descenso de gradiente blando | Afirmación sin evidencia en el repositorio | cuatro semillas de un solo programa |
+| Una fila perfecta a la vez | Afirmación sin evidencia en el repositorio | una ejecución, haz de anchura 32 |
+| Construir desde ambos extremos | Afirmación sin evidencia en el repositorio | dos variantes, haz de anchura 32 |
+| Cube and conquer | Afirmación sin evidencia en el repositorio | informe privado, una configuración |
+| Tableros generados por transformer | Afirmación sin evidencia en el repositorio | informe privado, un modelo |
+| Colonia de hormigas | Afirmación sin evidencia en el repositorio | una semilla para la mejor configuración |
+| MCTS con prior barato | Afirmación sin evidencia en el repositorio | un port, una escalera |
+| Recombinar dos buenos tableros | Afirmación sin evidencia en el repositorio | informe privado; un injerto |
+| Decodificar las discordancias | Afirmación sin evidencia en el repositorio | un tablero de 459 |
+| Discordancias como defectos físicos | Afirmación sin evidencia en el repositorio | un tablero de 459 |
+| 480 falso y reparación | Afirmación sin evidencia en el repositorio | informe privado |
+| Sembrar la reparación con un prefijo exacto | Afirmación sin evidencia en el repositorio | una semilla, un programa, un preajuste |
+| Codificar las estrategias humanas | Afirmación sin evidencia en el repositorio | seis semillas por orden |
+| Anillos concéntricos | Afirmación sin evidencia en el repositorio | un programa, una ejecución por presupuesto |
+| Tabla de transposición compartida | Afirmación sin evidencia en el repositorio | una ejecución de ocho trabajadores |
+| Cierre euleriano del borde | Afirmación sin evidencia en el repositorio | una prueba sobre un millón de bordes parciales |
+
+## Callejones sin salida establecidos
+
+Estos trece veredictos se apoyan en datos publicados en el repositorio, una
+fuente pública con nombre o una derivación. Cada uno vale dentro del alcance
+que enuncia, y no más allá.
+
+### Romper la simetría
 
 *Suponer que el tablero posee simetrías de rotación o de espejo y fijar algunas
 piezas para reducir la búsqueda.*
 
-**Demostrado.** El juego oficial se construyó sin piezas con simetría de
+**Medido.** El juego oficial se construyó sin piezas con simetría de
 rotación y sin duplicados, y la única pista central fija la orientación. No hay
 ninguna simetría global que romper, así que fijar esquinas solo hace una
 elección arbitraria, no una elección gratuita. [Por qué esto es un muro →](/research/why/rare-color-geography)
 
-La ausencia va más allá de las rotaciones y los duplicados. También buscamos
-simetría por reetiquetado de colores: una enumeración exhaustiva de todas las
+La ausencia va más allá de las rotaciones y los duplicados. Una parte es una afirmación sin evidencia en el repositorio, porque la enumeración no tiene salida publicada: para la simetría por reetiquetado de colores, una enumeración exhaustiva de todas las
 permutaciones de colores que podrían enviar el juego de piezas sobre sí mismo
 (salvo rotación) encuentra solo la identidad, porque cada uno de los 22
 colores no grises tiene un perfil de adyacencia único a través de las piezas.
@@ -68,19 +144,21 @@ confinados a la banda del borde, aparecen 24 veces cada uno; los 17 colores
 interiores se reparten en 5 que aparecen 48 veces y 12 que aparecen 50, en
 total 960 semiaristas, dos veces las 480 aristas.)
 
-## Comprobar invariantes sobre las celdas ya colocadas
+Evidencia: las comprobaciones de rotación y de duplicados están publicadas ([invariants.json](https://github.com/raphael-anjou/eternity2/blob/main/research/topics/adversarial-piece-set/results/invariants.json): 1 024 rotaciones de pieza distintas, ninguna fija bajo una rotación; comando de reproducción en [por qué Eternity II es difícil](/research/why/why-e2-is-hard)), y también el censo de colores ([color-geography.json](https://github.com/raphael-anjou/eternity2/blob/main/research/topics/rare-color-geography/results/color-geography.json)). Alcance: el juego oficial de 256 piezas, exacto.
+
+### Comprobar invariantes sobre las celdas ya colocadas
 
 *Descomponer el juego de piezas según su estructura de reetiquetado de colores
 y podar la búsqueda con invariantes calculados sobre la parte del tablero ya
 colocada.*
 
-**Medido**, con un mecanismo cercano a una demostración. En un backtracker que
+**Argumentado**, por el argumento de construcción que sigue. En un backtracker que
 solo coloca piezas concordantes, la región colocada satisface siempre
 cualquier restricción que mencione únicamente celdas colocadas: la búsqueda
 impone esos invariantes por construcción, de modo que un podador que inspecciona
 lo que ya está sobre el tablero nunca se dispara. Probamos tres variantes de
 la idea y ninguna podó una sola rama; no hay aceleraciones ni puntuaciones que
-reportar porque los podadores literalmente nunca se dispararon. Una variante
+reportar porque los podadores literalmente nunca se dispararon (esa prueba no tiene datos publicados; el argumento no los necesita). Una variante
 con recorrido en espiral fue además peor, no mejor, porque perdía el buen
 ordenamiento de la región inicial. El alcance que conviene retener: esto
 refuta los invariantes estáticos sobre la región colocada bajo una búsqueda
@@ -91,34 +169,365 @@ o vivir dentro de una búsqueda que tolere discordancias. Compárese con la
 comprobación de oferta de borde más abajo: aquella se dispara demasiado tarde;
 estas no se disparan nunca.
 
-## Basta con lanzarle más cómputo
+Evidencia: la derivación son las primeras frases de esta entrada; una búsqueda que nunca coloca una discordancia mantiene satisfecha por construcción toda restricción sobre celdas colocadas. Alcance: invariantes estáticos sobre la región colocada en búsqueda estricta sin discordancias; ni las comprobaciones hacia adelante, ni la búsqueda tolerante a discordancias.
 
-*Ejecutar el mismo solucionador SAT o de búsqueda en una máquina más grande, una
-GPU, una FPGA o hardware cuántico.*
+### Basta con lanzarle más cómputo
 
-**Medido.** El muro no es la frecuencia de reloj, es qué tan bien está
-codificado el problema y cómo está conformado el espacio de búsqueda. Los
-solucionadores SAT sobre GPU dan, en el mejor caso, una pequeña aceleración
-constante; los recocidos cuánticos no muestran ninguna ventaja a la escala que
-esto necesitaría. El mismo algoritmo, más rápido, choca contra el mismo muro un
-poco antes. La comunidad ejecutó este experimento a gran escala: la grilla de
-eternity2.net lanzó 1,6 teraflops y más de $10^{19}$ operaciones de CPU sobre el
-puzzle, y luego cerró sin una solución
-([msg 3511](https://groups.io/g/eternity2/message/3511)). Y la esperanza
-cuántica se ha vuelto a plantear con regularidad, de
+*Ejecutar el mismo solucionador SAT o de búsqueda en una máquina más grande,
+una GPU, una FPGA o hardware cuántico.*
+
+**Reportado**, para la búsqueda exhaustiva. La comunidad hizo este
+experimento a escala: la red eternity2.net dedicó 1,6 teraflops y más de
+$10^{19}$ operaciones de CPU al puzzle en 2007 y 2008, y luego cerró sin una
+solución ([msg 3511](https://groups.io/g/eternity2/message/3511)). Blackwood,
+autor del récord vigente, reportó que los solucionadores SAT, las GPU y las
+cachés de 2×2 precalculadas no le ayudaron a superarlo
+([Récords y solucionadores](/research/records)). La razón se argumenta en
+[por qué una computadora más rápida no ayuda](/research/why/prune-vs-speed):
+una aceleración por un factor constante desplaza un árbol exponencial en una
+constante, mientras que la poda cambia lo rápido que crece. La esperanza
+cuántica reaparece con regularidad, de
 [2007](https://groups.io/g/eternity2/message/1446) a
-[2024](https://groups.io/g/eternity2/message/11407). El techo contra el que esto
-se mide es el récord vigente de 470/480; Blackwood, que lo estableció, informó de
-que los solucionadores SAT, las GPU y las cachés de 2×2 preresueltas no lo
-ayudaron a superarlo ([Récords y solucionadores](/research/records)).
-[Por qué esto es un muro →](/research/why/prune-vs-speed)
+[2024](https://groups.io/g/eternity2/message/11407), y nadie ha ejecutado el
+puzzle en hardware cuántico ni en un simulador
+([enfoques cuánticos](/research/build/hardware/quantum)).
 
-## Propagación por sondeo (survey propagation)
+Alcance: la búsqueda exhaustiva, con el hardware de la red de 2007 a 2008. No
+cubre la caza de récords, donde más velocidad compra más intentos, ni un
+solucionador GPU afinado: los ports a GPU medidos corren de diez a cien veces
+más rápido que un núcleo de CPU, no se ha publicado ningún solucionador GPU
+afinado para el tablero completo, y si una campaña larga en GPU movería el
+récord sigue abierto ([resolver en GPU](/research/build/hardware/gpu-solving)).
+
+### Conteo por redes de tensores
+
+*Tratar el tablero como una red de tensores y contraerla para contar o puntuar
+los coloreados consistentes en las fronteras.*
+
+**Argumentado.** Solo puede imponer que las aristas en contacto concuerden, no
+que cada pieza se use exactamente una vez. Ese punto ciego es enorme: los coloreados
+consistentes en las fronteras que cuenta superan con mucho a las soluciones
+reales, de las que la estimación de primer momento espera unas 14 702 con la
+pista inicial y alrededor de una con las cinco pistas
+([conteo de soluciones](/research/build/analysis/solution-counting)). El paso de mensajes local
+sencillamente no puede ver la regla global de una pieza por celda. [Por qué esto es un muro →](/research/why/entropy-area-law)
+
+Una enmienda, afirmación sin evidencia en el repositorio (ejecuciones de cuaderno, nada publicado): el punto ciego puede
+remendarse, a pequeña escala. Añadir una penalización lagrangiana por pieza
+sobre la contracción recupera la unicidad lo bastante bien como para resolver
+por completo puzzles generados de 4×4 (un segundo) y 6×6 (cinco minutos),
+verificados con piezas únicas y totalmente concordantes. El muro de coste
+llega mucho antes del 16×16: el primer intento a escala completa agotó la
+memoria en torno a 3 GB y murió, y el truncamiento necesario para caber puede
+descartar demasiado como para que el remiendo conserve sentido. Es un intento
+único, así que la variante remendada queda sin validar a escala completa, no
+demostrada imposible; el veredicto argumentado de arriba se refiere a la
+contracción simple. Imponer la unicidad mediante multiplicadores necesita
+marginales internas precisas, y la precisión al número de colores del 16×16
+exige una dimensión de enlace cuya memoria y cómputo se disparan.
+
+Evidencia: el argumento es el primer párrafo; una contracción sobre los colores de las aristas no tiene ninguna variable que cuente cuántas veces se usa una pieza. Alcance: la contracción simple. Lo que zanjaría la variante remendada: una ejecución publicada de la contracción con penalización lagrangiana sobre una escalera de tableros generados (6×6 a 10×10), con memoria y tasa de resolución.
+
+### Resolver primero los colores, colocar las piezas después
+
+*Reformular el tablero como un grafo de líneas sobre los colores, resolver un
+arreglo de adyacencias de colores que sea consistente en las aristas en todas
+partes, y luego esperar que ese arreglo sea más fácil de convertir en un
+teselado real que resolver directamente por piezas.*
+
+**Reportado.** Es una idea limpia, explorada en la lista de 2023 a 2025: reducir el
+puzzle a qué color se encuentra con qué, resolver ese objeto más pequeño y
+usarlo como andamiaje. El problema es que el objeto más pequeño no es pequeño.
+Enumerar solo los arreglos de colores interiores para E2 deja unas
+$6.6\times10^{11}$ permutaciones, y el 17×17 se dispara a $2.97\times10^{13}$
+([msg 11182](https://groups.io/g/eternity2/message/11182)), y cada una de ellas
+todavía tiene que verificarse contra una asignación real de piezas, porque un
+arreglo consistente en colores no tiene por qué ser teselable en absoluto por
+las 256 piezas reales. Es el punto ciego de la red de tensores con otro disfraz:
+satisfacer las adyacencias de colores es necesario pero está lejos de ser
+suficiente, y la restricción de usar cada pieza una sola vez, la que hace el
+trabajo de verdad, es precisamente lo que la vista de solo colores descarta. El
+propio resumen del autor tras la enumeración fue que uno «pasaría mucho tiempo
+solo validando uno» de los arreglos contra todas sus permutaciones de colores
+internos. [Por qué esto es un muro →](/research/why/entropy-area-law)
+
+Evidencia: los conteos y el veredicto del autor vienen del [msg 11182](https://groups.io/g/eternity2/message/11182); aquí no se vuelve a ejecutar nada. Alcance: los arreglos de colores interiores tal como se enumeraron en la lista de 2023 a 2025.
+
+### Reducción de retículos (LLL) sobre las ecuaciones de colocación
+
+*Codificar la colocación como ecuaciones enteras 0/1, tomar el retículo
+núcleo, reducirlo (LLL o BKZ) y buscar la solución como un problema del vector
+más cercano: la maquinaria detrás de los célebres ataques a mochilas y
+programas enteros.*
+
+**Argumentado** (los argumentos centrales son estructurales; las cifras de la sonda de abajo no tienen datos publicados y no pesan en el veredicto). Tres puertas se cierran por turno. Primero, la parte que un ataque
+de retículo maneja limpiamente, cada celda recibe una pieza y cada pieza una
+celda, es un sistema de asignación totalmente unimodular, resoluble en tiempo
+polinómico por el algoritmo húngaro; nuestros experimentos de recuperación (10
+de 10 instancias plantadas de 2×2 y 3×3 recuperadas exactamente, siguiendo la
+reformulación de retículo núcleo de Aardal, Hurkens y Lenstra) muestran al
+método resolviendo un problema que nunca fue difícil. Segundo, la parte que sí
+es difícil, los colores enfrentados deben concordar, es una restricción
+condicional («bilineal») sin una inmersión fiel en igualdades lineales que no
+pase por una explosión combinatoria de variables auxiliares, lo que borra la
+ventaja del retículo. Tercero, el sistema de oferta de colores no es una
+mochila: cada coeficiente vale exactamente 1, así que los ataques clásicos de
+suma de subconjuntos de baja densidad (Lagarias y Odlyzko 1985; Coster y
+colegas 1992) ni siquiera aplican, y un ataque LLL sobre la inmersión de pesos
+unitarios degenera en enumeración pura. La sonda de escala coincide: el LLL
+exacto en enteros sobre solo el núcleo de asignación fácil tardó 0,35 s en 2×2
+y 42,6 s en 3×3, y fue detenido pasados 175 s en 4×4 (dimensión del núcleo
+993); el esqueleto completo del 16×16 rondaría las 262 000 variables. (Esos
+tiempos son de una implementación exacta en Python puro, un enunciado práctico
+más que asintótico; los argumentos estructurales cargan con el veredicto.) Los
+subretículos por color se reducen barato, menos de medio segundo, pero 12 de
+los 60 vectores más cortos examinados en 3×3 ya exigen que una pieza ocupe dos
+celdas: omiten exactamente las restricciones que importan. La dureza del
+puzzle vive en una forma de problema, emparejamiento bilineal más distinción
+global, de la que las herramientas de reducción de retículos no son nativas;
+el subproblema del que son nativas ya es polinómico.
+
+Alcance: los tres argumentos estructurales valen para cualquier ataque por retículos sobre esta codificación de la colocación. Los conteos de recuperación y los tiempos son una afirmación sin evidencia en el repositorio.
+
+### Enumerar primero los clústeres locales
+
+*Listar todo clúster 3×3 o 4×4 válido, y luego coser los clústeres entre sí en un
+tablero completo.*
+
+**Reportado.** Los conteos se disparan antes de ayudar. En una ejecución cuyos datos no están publicados, los clústeres válidos en torno a una sola región ya llegaban a las decenas de
+millones, y combinar cuatro esquinas alcanza el orden de $10^{12}$ tuplas
+disjuntas en piezas. Te quedas sin tiempo y sin disco mucho antes de que las
+restricciones poden nada. La idea no deja de redescubrirse. A finales de 2024,
+las «macropiezas» 2×2 volvieron a surgir, con unos 4 millones de bloques antes
+incluso de que entre la disjunción de piezas
+([msg 11428](https://groups.io/g/eternity2/message/11428)), y los veteranos
+remitieron a años de trabajo 2×2 anterior presente en el archivo
+([msg 11429](https://groups.io/g/eternity2/message/11429)).
+[Por qué esto es un muro →](/research/why/rigidity-wall)
+
+Evidencia: [msg 11428](https://groups.io/g/eternity2/message/11428) (unos 4 millones de bloques 2×2 antes de la disjunción de piezas) y [msg 11429](https://groups.io/g/eternity2/message/11429); los [números de referencia](/research/reference) publicados cuentan colocaciones solo para bloques pequeños. Alcance: clústeres de 2×2 a 4×4 cosidos de forma exacta.
+
+### Ampliar el vocabulario de las discordancias
+
+*Todo solucionador de la familia de backtrackers poseedora de récords puede
+dejar a lo sumo una arista discordante por celda; por construcción su índice ni
+siquiera puede representar una celda que rompe dos veces. Sin embargo, los
+mejores tableros comunitarios producidos por búsqueda local sí contienen
+cuatro o cinco de esas celdas de doble rotura. Construir entonces la misma
+búsqueda sobre el espacio más ancho donde una celda puede cargar dos roturas,
+y cazar donde nadie más puede.*
+
+**Medido**, con un presupuesto corto. En el [estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study) publicado en el repositorio ([informe](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/dfs-study/results/report.md), `just experiments dfs-study`), permitir hasta dos aristas rotas en una misma celda dio una media de 428,5 aristas concordantes (mejor 435) frente a 431,3 (mejor 435) para la escalera de una rotura por celda, sobre diez variantes con esquinas fijadas del puzzle oficial, a 60 segundos en un núcleo. El A/B emparejado más largo y el censo de abajo apuntan en la misma dirección, pero sus datos no están publicados. Un
+A/B emparejado de 54 rondas, 27 pares con semillas emparejadas a través de
+tres formas de calendario y dos direcciones de barrido a 600 segundos × 4
+hilos por ronda, dio 20 empates, 4 victorias para el motor ancho y 3 para el
+clásico, cada diferencia dentro de ±3 aristas concordantes, con distribuciones
+mín/mediana/máx por forma idénticas (415/420/425 en ambos brazos para una
+forma). El motor ancho visitó de 0,87 a 0,94 veces los nodos para los mismos
+resultados. Un censo exhaustivo aparte, detrás de un prefijo de 208 celdas de
+un tablero comunitario de 464 (puntuación a cinco pistas; contexto en la
+[página de récords](/research/records)), encontró exactamente cuatro
+completaciones con siete o menos discordancias totales: el propio 464 y tres
+variantes de una celda a 462 y 463, y ninguna usaba una celda de doble rotura.
+El mecanismo: el espacio ancho es explorable pero nunca forzado. Con el
+presupuesto de discordancias repartido por todo el tablero, la búsqueda casi
+nunca tiene dos unidades de margen restantes en una misma celda, así que gasta
+su presupuesto igual que el motor clásico; y en la región casi perfecta del
+final de partida, el estrato de doble rotura está vacío sin más. Las celdas de
+doble rotura conocidas de los tableros comunitarios están en mitad del tablero
+y las crearon movimientos de reparación de búsqueda local, no ningún recorrido
+en profundidad. Alcance: un empate a igual tiempo de reloj para una familia de
+motores sobre el puzzle oficial, no una prueba de que el estrato ancho esté
+vacío en todas partes; la hipótesis de partida, que la meseta comunitaria es
+un muro de representabilidad, queda degradada a conjetura sin sustento, no
+refutada.
+
+Alcance de la parte medida: 60 segundos en un núcleo, diez variantes con esquinas fijadas, una semilla, una familia de motores.
+
+### Forzar un borde diverso y luego rellenar
+
+*El borde es un subpuzzle más pequeño. Resolver primero muchos marcos válidos
+distintos, bajo la teoría de que la variedad en el marco siembra variedad en
+todo el tablero.*
+
+**Medido**, para un solo productor. Con un haz fijo tolerante a roturas (anchura 128), 28 bordes aleatorios totalmente concordantes se completaron todos entre 434 y 441 sobre 480 (puntuación estricta, las cinco pistas colocadas), y completar cada borde con varias semillas no muestra ningún efecto del borde: la dispersión entre bordes no es mayor que la dispersión entre semillas sobre un mismo borde (F = 1,24). Ver [el marco no es la cuenca](/research/why/frame-is-not-the-basin) (resultados publicados, `just research-frame-is-not-the-basin`). Una segunda medición publicada explica una parte: un borde perfecto no garantiza un interior utilizable, ya que 180 de 500 marcos perfectos (36 por ciento) dejaban al menos una celda interior que ninguna pieza interior podía llenar; el mismo estudio muestra que el marco tampoco es rígido, porque intercambios libres de piezas de borde revivieron 60 de 60 marcos muertos ([marco fluido](/research/lab/experiments/raphael-anjou/pipelines/fluid-frame), `just research-frame-manifold`). Así que esta entrada refuta la diversidad de borde como palanca de puntuación para un productor, no el marco como objeto de estudio. Un informe privado de William Millilaw, sin rastro público, describe el mismo resultado, en estos términos. El
+borde es la parte fácil: desde cero ya es variado y rápido de colocar. El
+recurso escaso es el relleno interior, donde las piezas escasean y las
+discordancias se concentran. Forzar la diversidad del marco gasta esfuerzo donde
+no hay escasez y no compra nada donde sí la hay. Es un tema recurrente también en
+los propios experimentos de este proyecto: el marco vale sorprendentemente poco
+([STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged) mide exactamente cuán poco), y
+el daño de la fase final cae en las esquinas interiores
+([MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic)).
+
+Otras dos ejecuciones apuntan en la misma dirección; sus datos no están publicados, así que sus cifras son una afirmación sin evidencia en el repositorio. Primero, el
+catálogo de bordes: una búsqueda acotada en tiempo (120 segundos,
+explícitamente no exhaustiva; el conteo verdadero se desconoce) produjo 75 173
+anillos de borde completos e internamente válidos. Al dar al solucionador una
+muestra de 500 marcos fijados, el 47 % agotó la búsqueda en menos de 200
+milisegundos bajo propagación básica, y prácticamente todos fueron rechazados
+de plano en cuanto la propagación completa corrió contra las piezas pista
+oficiales. Un anillo que se cierra sobre sí mismo solo satisface la
+concordancia por pares alrededor del contorno; la factibilidad conjunta con
+las pistas y la restricción interior de usar cada pieza una vez es una
+condición mucho más fuerte, y prácticamente ninguno de los anillos catalogados
+la cumple.
+
+Segundo, bordes perfectos como semillas. Generamos 5 000 bordes perfectos
+distintos con piezas únicas por programación dinámica (las 60 celdas del borde
+colocadas, cada arista del borde concordante), muestreamos 100 de forma
+uniforme, y dimos a cada uno el mismo pipeline: un relleno interior de 60
+segundos por propagación de restricciones, y luego un pulido de 60 segundos
+por búsqueda local. Mejor puntuación de todo el lote: 436/480 aristas
+concordantes; cerca de la mitad de los arranques quedó entre 420 y 427, un
+cuarto entre 380 y 419, y ninguno por encima de 437. Los tableros de la clase
+455 a 460 de la misma época (puntuación estricta, las cinco pistas colocadas)
+salieron todos de un productor en profundidad que no fija el borde primero. El
+pulido usó una sola semilla y 60 segundos por arranque, así que esto es un
+filtro barato, no una refutación exhaustiva: bajo un pulido corto a igual
+presupuesto, ninguno de los 100 arranques borde-primero quedó a menos de 20
+aristas de lo que alcanza la búsqueda directa. Un borde perfecto
+sobrecompromete el interior; el relleno optimiza después dentro del perfil de
+colores interior que el borde permite, y esa familia toca techo muy por debajo
+de las mejores cuencas.
+
+Alcance: un solo productor interior, con techo cerca de 440; no se ha probado si un productor cercano a los récords vería un efecto del borde.
+
+### Empezar por el centro y crecer hacia afuera
+
+*El centro tiene la mayor libertad de rotación: empezar ahí y dejar que las
+restricciones se acumulen mientras creces hacia el borde.*
+
+**Medido**, sobre el tablero oficial. En el [estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study) publicado en el repositorio ([informe](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/dfs-study/results/report.md)), una búsqueda en profundidad estricta que avanza en espiral desde el centro hacia afuera promedió 24,5 aristas concordantes a 60 segundos en un núcleo, frente a 376,6 del orden fila a fila, sobre diez variantes con esquinas fijadas del puzzle oficial. Borde-primero obtuvo 66,6 en la misma rejilla, así que la lección medida es que el orden fila a fila venció a ambos, no que borde-primero sea bueno. En puzzles pequeños generados, cuyos datos no están publicados, la comparación fue en la misma dirección. Cara a cara sobre puzzles generados
+de 5×5 a 8×8 contra los órdenes fila-a-fila y borde-primero, el
+centro-hacia-afuera perdió cada una de las seis configuraciones: típicamente
+de 10 a 100 veces más lento, fracasó de plano en cuatro de las seis dentro de
+presupuestos donde borde-primero terminaba (un 5×5 atascado en la profundidad
+22 de 25 tras 2 millones de nodos en un puzzle que borde-primero resolvía en
+2 000 nodos), y fue unas 60 veces más lento en uno que sí resolvió; el caso
+8×8 fue el peor de los tres órdenes probados. En esos puzzles pequeños, con los órdenes de barrido de un solo solucionador, la dirección
+y la magnitud fueron uniformes en los seis casos. El mecanismo: la libertad es
+la enemiga de la propagación. El borde suministra restricciones duras e
+inmediatas (las aristas grises); el centro no suministra ninguna, así que una
+búsqueda centro-hacia-afuera se compromete con colores arbitrarios sin manera
+de detectar pronto la infactibilidad. Más libertad significa menos poda, no
+una búsqueda más rápida. En su lugar: la página del
+[orden de relleno](/research/build/backtracking/fill-order) cubre los órdenes
+que sí ayudan.
+
+Alcance: búsqueda en profundidad estricta, 60 segundos en un núcleo, diez variantes con esquinas fijadas del puzzle oficial. Las cifras en tableros pequeños de arriba son las de la ejecución no publicada.
+
+### Precalcular macropiezas 2×2 (o mayores)
+
+*Resolver cada bloque 2×2 una vez, almacenar los válidos y colocar cuatro celdas
+a la vez para que la búsqueda sea más corta.*
+
+**Reportado.** Markus Zajc lo trabajó a fondo en 2008: construir las macropiezas
+solo desplaza el trabajo, no lo elimina. Cambias un conjunto pequeño de piezas
+individuales por un conjunto muy grande de bloques 2×2, así que colocar un bloque
+es más rápido pero el número de tableros parciales distintos no cambia, todavía
+del orden de $10^{40}$ donde necesita ser $10^{4}$. Una aceleración de 10× o 100×
+en un árbol fuera de alcance sigue estando fuera de alcance
+([msg 5883](https://groups.io/g/eternity2/message/5883)). Las macropiezas son una
+ganancia real de factor constante para un solucionador rápido, y por eso el
+[terreno de juego del orden de bloques](/playground/paths) las admite, solo que
+no son una reducción de dominio, y únicamente una reducción de dominio movería la
+aguja. El techo contra el que esto se mide es el récord vigente de 470/480:
+Blackwood informó de que las cachés de 2×2 preresueltas no lo ayudaron a
+superarlo ([Récords y solucionadores](/research/records)). En su lugar: la única
+palanca gratuita que sí encoge el árbol es el
+[orden de relleno](/research/build/backtracking/fill-order).
+
+Evidencia: [msg 5883](https://groups.io/g/eternity2/message/5883) (Markus Zajc, 2008); no se vuelve a ejecutar aquí. Alcance: los bloques 2×2 como reducción de dominio; como aceleración por un factor constante sí funcionan.
+
+### Poda por oferta de borde (la prueba «lollypop»)
+
+*Antes de recursar, contar la demanda restante de colores de borde frente a las
+piezas todavía disponibles; si la oferta no puede satisfacer la demanda, cortar
+la rama temprano.*
+
+**Reportado.** Markus Zajc implementó esta prueba de oferta-frente-a-demanda como
+complemento de su solucionador de restricciones y la evaluó en el 8×8: cortaba
+alrededor del 0,0014 % de las pruebas mientras añadía un 8 % al tiempo de
+ejecución, una pérdida neta clara. La razón es instructiva: en casi toda rama
+donde la comprobación de oferta de borde habría fracasado, la propagación de
+restricciones ordinaria *ya* ha fracasado un paso o dos antes, así que la
+contabilidad extra paga por un corte que el solucionador estaba a punto de hacer
+gratis ([msg 6060](https://groups.io/g/eternity2/message/6060)). Una regla de
+poda solo ayuda si se dispara antes de las comprobaciones que ya ejecutas, no
+después. En su lugar: la idea de oferta-frente-a-demanda rinde cuando se funde en
+la propagación que se dispara primero, el
+[filtro de emparejamiento all-different](/research/build/reduce/alldiff-regin).
+
+Diecisiete años después la misma idea se volvió a ejecutar en el motor de este proyecto, sobre todos los colores en lugar de solo el borde; esa ejecución no tiene datos publicados, así que sus cifras son una afirmación sin evidencia en el repositorio: llevar la cuenta de cuántas
+aristas de pieza de cada color quedan sin colocar, y cortar la rama cuando una
+celda de la frontera demanda un color cuya oferta está agotada. Puzzle
+oficial, un solo hilo, una ejecución de 10 segundos: la base visitó 630
+millones de nodos a 63 millones de nodos por segundo; con la comprobación, 388
+millones a 39 millones, en torno a un 40 % menos de rendimiento para la misma
+profundidad máxima (192) y la misma mejor puntuación (344 aristas
+concordantes). Cero poda adicional, y la razón es ahora precisa: un índice de
+candidatos indexado por (color superior, color izquierdo) ya *es* este
+propagador. Si colocar una pieza agotara un color que una celda próxima
+demanda, la cubeta de candidatos de esa celda queda simplemente vacía un paso
+después y la búsqueda retrocede de todos modos; la comprobación explícita paga
+en cada nodo por un corte que el índice hace gratis.
+
+Una variante dinámica de presupuestos por color (tampoco publicada) no rindió mejor sobre un
+backtracker estricto: para cada color, llevar la cuenta de cuántas de sus
+semiaristas están ya permanentemente discordantes, y podar todo tablero
+parcial que ya no pueda alcanzar la puntuación objetivo para ese color. A
+través de 15 instantáneas profundas de estados de búsqueda reales
+(profundidades 195 a 212 de 256 celdas) se disparó cero veces: un solucionador
+que nunca coloca una pieza discordante solo crea parciales que todavía no
+pueden violar el presupuesto, y para cuando el presupuesto mordería, la
+propagación ordinaria ya cortó la rama. (Sobre una búsqueda tolerante a
+discordancias la comprobación queda aquí sin probar.) Una no-lección vecina:
+ordenar todos los candidatos globalmente por un peso de rareza de color, el
+mismo orden en cada celda, no es una heurística informada en absoluto; equivale
+a un reetiquetado fijo de las piezas y no añade información.
+
+Una prueba afín sobre el anillo está medida: en la escalera difícil generada, añadir a un solucionador con propagación una prueba de equilibrio de multiconjuntos en la costura del marco dejó los conteos de nodos sin cambios en las 50 instancias de calibración ([CALIBRATION.md](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/hard-ladder/CALIBRATION.md), filas `scb-gacolor_ac3` y `scb-gacolor_ac3_ns1`). Alcance: búsqueda estricta; las cifras reportadas son de un 8×8 en 2008; la búsqueda tolerante a discordancias no se ha probado.
+
+### Poda por patrones prohibidos durante la búsqueda
+
+*Demostramos que un conjunto de combinaciones de piezas 2×2 no puede aparecer
+en ningún tablero totalmente concordante. El siguiente paso obvio: comprobar
+cada parche 2×2 completado durante la búsqueda en profundidad y podar cuando
+esté prohibido.*
+
+**Argumentado**: vacuo por construcción. Una comprobación empírica (24 tableros, 225 parches cada uno, 5 400 parches completados, ninguno prohibido; datos no publicados) concuerda con el argumento. La prueba de
+patrones prohibidos pregunta si cuatro piezas pueden concordar internamente
+bajo alguna rotación; pero una búsqueda estrictamente concordante solo
+completa un 2×2 después de haber hecho concordar ya sus cuatro aristas
+internas, así que cada parche que completa es factible por construcción y la
+comprobación no puede dispararse nunca. El poder discriminante del teorema es
+sobre subconjuntos de piezas, lo que exigiría una integración de comprobación
+hacia adelante que pruebe los parches antes de que sus celdas se rellenen, y
+en un barrido fila a fila la versión barata de esa comprobación ya la hace
+implícitamente el índice de candidatos. El teorema en sí sigue siendo cierto y
+útil en otros lugares: véanse los
+[patrones prohibidos](/research/why/forbidden-patterns). La misma moraleja
+final que la entrada lollypop: una poda que se dispara después de tus
+comprobaciones existentes vale exactamente nada.
+
+Evidencia: el argumento está en esta entrada, y los conteos del teorema están publicados ([feasibility.json](https://github.com/raphael-anjou/eternity2/blob/main/research/topics/forbidden-patterns/results/feasibility.json)). Alcance: búsqueda estricta que solo completa un 2×2 después de hacer concordar sus aristas internas.
+
+## Afirmado pero no establecido
+
+Estas veintidós entradas describen ejecuciones cuyos datos no están en el
+repositorio, o un informe privado sin rastro público. Cada una puede ser un
+callejón sin salida, pero nada que un lector pueda abrir lo muestra todavía,
+así que cada una lleva el estado de *afirmación no comprobada*. Los números
+que contienen son los de la propia ejecución, sin verificar. Cada entrada
+termina con el experimento que la zanjaría.
+
+### Propagación por sondeo (survey propagation)
 
 *El método de paso de mensajes que resolvió enormes instancias SAT aleatorias al
 encontrar clústeres de soluciones.*
 
-**Medido** (una instancia 4×4, tres ajustes) más un argumento heurístico.
+**Afirmación no comprobada.** Un 4×4 generado y tres ajustes, sin datos publicados, más un argumento heurístico y un comentario de foro de 2008.
 Supone que el problema se parece localmente a un árbol. Eternity II es una
 grilla con un ciclo corto en cada bloque 2×2, lo que rompe esa suposición,
 aunque el paso de mensajes sobre grafos con bucles funciona en algunos problemas
@@ -136,7 +545,7 @@ que sí rinde en esta grilla es exacta, no probabilística; la
 
 Más tarde intentamos nosotros mismos el rescate obvio: paso de mensajes más
 una penalización lagrangiana por pieza destinada a restaurar la restricción de
-uso único, sobre un 4×4 generado. Medido, y no converge. La marginal de al
+uso único, sobre un 4×4 generado. No convergió en esa ejecución. La marginal de al
 menos una pieza colapsa a exactamente cero en todas partes, y una vez que una
 marginal llega a cero ningún multiplicador puede revivirla: la brecha de
 dualidad nunca se cierra, con el residuo estancado en torno a 1,2 a 1,7 a lo
@@ -149,23 +558,27 @@ instructiva: el mismo truco lagrangiano funciona cuando el paso interno es una
 contracción exacta costosa y fracasa cuando es un paso de mensajes barato. La
 precisión de las marginales internas es todo el juego.
 
-## Ordenar los movimientos por propagación de creencias
+**Lo que lo zanjaría:** survey propagation y su rescate lagrangiano ejecutados sobre una escalera publicada de tableros generados (6×6 a 10×10 cerca del número crítico de colores), midiendo la polarización de las marginales y el éxito de la decimación frente a un backtracker simple.
+
+### Ordenar los movimientos por propagación de creencias
 
 *Ejecutar propagación de creencias sobre los colores y usar sus indicaciones por
 celda para decidir qué pieza probar primero.*
 
-**Medido.** Las indicaciones salen casi uniformes, así que apenas clasifican a
+**Afirmación no comprobada.** Ningún dato del enfrentamiento de abajo está publicado, y la página enlazada mide cuántos vecinos posibles tiene cada pieza, no la propagación de creencias. Las indicaciones salen casi uniformes, así que apenas clasifican a
 los candidatos. Cuando la enfrentamos cara a cara, elegir el siguiente
 movimiento al azar rendía igual o mejor, porque un orden informado fijo tiende a
 repetir los mismos errores. [Por qué esto es un muro →](/research/why/no-forced-moves)
 
-## Ordenar los candidatos por flexibilidad futura
+**Lo que lo zanjaría:** un enfrentamiento publicado del orden de valores por propagación de creencias contra el orden aleatorio y el orden por defecto en la escalera difícil generada, medido en nodos hasta la primera solución.
+
+### Ordenar los candidatos por flexibilidad futura
 
 *Preordenar cada lista de candidatos para probar primero las piezas cuyas
 aristas inferior y derecha abren más opciones aguas abajo: una heurística de
 orden de movimientos que no cuesta nada al resolver.*
 
-**Medido.** Sobre el puzzle oficial, un solo hilo, 10 segundos × 3 ejecuciones
+**Afirmación no comprobada.** Las ejecuciones de abajo no están publicadas. Sobre el puzzle oficial, un solo hilo, 10 segundos × 3 ejecuciones
 contra una base afinada: misma profundidad máxima (192), misma mejor
 puntuación (344 aristas concordantes), mismo patrón de visita de nodos, y el
 rendimiento cayó de 84 u 85 millones a 80 millones de nodos por segundo, en
@@ -183,62 +596,14 @@ generados con distribuciones de colores uniformes. La misma lección que la
 entrada de propagación de creencias de arriba, desde un ángulo más barato: los
 órdenes estáticos informados no baten a los valores por defecto aquí.
 
-## Conteo por redes de tensores
+**Lo que lo zanjaría:** las ejecuciones de 10 segundos publicadas con su hardware, y repetidas con varios programas y sobre puzzles generados con colores uniformes.
 
-*Tratar el tablero como una red de tensores y contraerla para contar o puntuar
-los coloreados consistentes en las fronteras.*
-
-**Demostrado.** Solo puede imponer que las aristas en contacto concuerden, no
-que cada pieza se use exactamente una vez. Ese punto ciego es enorme: los coloreados
-consistentes en las fronteras que cuenta superan con mucho a las soluciones
-reales, de las que la estimación de primer momento espera unas 14 702 con la
-pista inicial y alrededor de una con las cinco pistas
-([conteo de soluciones](/research/build/analysis/solution-counting)). El paso de mensajes local
-sencillamente no puede ver la regla global de una pieza por celda. [Por qué esto es un muro →](/research/why/entropy-area-law)
-
-Una enmienda de trabajo de cuaderno posterior: el punto ciego puede
-remendarse, a pequeña escala. Añadir una penalización lagrangiana por pieza
-sobre la contracción recupera la unicidad lo bastante bien como para resolver
-por completo puzzles generados de 4×4 (un segundo) y 6×6 (cinco minutos),
-verificados con piezas únicas y totalmente concordantes. El muro de coste
-llega mucho antes del 16×16: el primer intento a escala completa agotó la
-memoria en torno a 3 GB y murió, y el truncamiento necesario para caber puede
-descartar demasiado como para que el remiendo conserve sentido. Es un intento
-único, así que la variante remendada queda sin validar a escala completa, no
-demostrada imposible; el veredicto Demostrado de arriba se refiere a la
-contracción simple. Imponer la unicidad mediante multiplicadores necesita
-marginales internas precisas, y la precisión al número de colores del 16×16
-exige una dimensión de enlace cuya memoria y cómputo se disparan.
-
-## Resolver primero los colores, colocar las piezas después
-
-*Reformular el tablero como un grafo de líneas sobre los colores, resolver un
-arreglo de adyacencias de colores que sea consistente en las aristas en todas
-partes, y luego esperar que ese arreglo sea más fácil de convertir en un
-teselado real que resolver directamente por piezas.*
-
-**Medido.** Es una idea limpia, explorada en la lista de 2023 a 2025: reducir el
-puzzle a qué color se encuentra con qué, resolver ese objeto más pequeño y
-usarlo como andamiaje. El problema es que el objeto más pequeño no es pequeño.
-Enumerar solo los arreglos de colores interiores para E2 deja unas
-$6.6\times10^{11}$ permutaciones, y el 17×17 se dispara a $2.97\times10^{13}$
-([msg 11182](https://groups.io/g/eternity2/message/11182)), y cada una de ellas
-todavía tiene que verificarse contra una asignación real de piezas, porque un
-arreglo consistente en colores no tiene por qué ser teselable en absoluto por
-las 256 piezas reales. Es el punto ciego de la red de tensores con otro disfraz:
-satisfacer las adyacencias de colores es necesario pero está lejos de ser
-suficiente, y la restricción de usar cada pieza una sola vez, la que hace el
-trabajo de verdad, es precisamente lo que la vista de solo colores descarta. El
-propio resumen del autor tras la enumeración fue que uno «pasaría mucho tiempo
-solo validando uno» de los arreglos contra todas sus permutaciones de colores
-internos. [Por qué esto es un muro →](/research/why/entropy-area-law)
-
-## Cotas por relajación
+### Cotas por relajación
 
 *Resolver la relajación de programación lineal para obtener un techo ajustado de
 cuántas aristas puede hacer concordar un tablero.*
 
-**Medido.** La relajación permite que las piezas sean fraccionarias y se
+**Afirmación no comprobada** para las cotas de abajo: el techo de la LP cerca de 478 y la ejecución MIP de 30 minutos son mediciones de cuaderno sin datos publicados, como dice la [página de LP](/research/build/exact/lp-relaxations). Solo el tiempo del 4×4 es reportado, del archivo. La relajación permite que las piezas sean fraccionarias y se
 repartan entre celdas, lo que finge concordancias que ningún tablero real puede
 tener. Para la LP de aristas
 casadas con el borde de un buen tablero fijado (formulación en la
@@ -270,14 +635,16 @@ convencional puede siquiera encontrar factible en media hora; los modelos
 enteros de región restringida y de corpus restringido sí funcionan, y ahí es
 donde estos solucionadores se ganan el pan.
 
-## Bases de datos de patrones (la heurística del cubo de Rubik)
+**Lo que lo zanjaría:** la resolución LP condicional con el borde de un buen tablero fijado, y la ejecución MIP con su registro del solucionador, publicadas para poder volver a comprobar el techo y el estado del solucionador.
+
+### Bases de datos de patrones (la heurística del cubo de Rubik)
 
 *Precalcular, para cada pequeño parche de celdas, el número mínimo de
 correcciones de aristas que exige cualquier completación, y sumar esos costes
 por parche en una heurística admisible: la técnica que descifró el cubo de
 Rubik y el juego del 15.*
 
-**Medido (solo en la raíz).** En el tablero vacío, por cálculo directo, la cota
+**Afirmación no comprobada**, como veredicto sobre el método. Lo establecido es trivial: en el tablero vacío, toda cota admisible devuelve 480 en un puzzle que tiene solución. En el tablero vacío, por cálculo directo, la cota
 no lleva ninguna información. Cada arista potencial puede concordar por sí sola,
 así que la cota superior por arista sale en 480, el máximo, y la cota por parche
 2×2 (225 parches × 4 aristas internas, corregida por sobreconteo) también vale
@@ -297,61 +664,30 @@ como el [filtro de emparejamiento todos-distintos](/research/build/reduce/alldif
 y las [relajaciones LP e ILP](/research/build/exact/lp-relaxations), que
 codifican la restricción global de unicidad.
 
-## Reducción de retículos (LLL) sobre las ecuaciones de colocación
+**Lo que lo zanjaría:** bases de patrones indexadas por los colores de la frontera y las piezas restantes, medidas en número de nodos frente a la mejor base de la escalera difícil generada.
 
-*Codificar la colocación como ecuaciones enteras 0/1, tomar el retículo
-núcleo, reducirlo (LLL o BKZ) y buscar la solución como un problema del vector
-más cercano: la maquinaria detrás de los célebres ataques a mochilas y
-programas enteros.*
-
-**Demostrado** (los argumentos centrales son estructurales; la sonda de escala
-es medida). Tres puertas se cierran por turno. Primero, la parte que un ataque
-de retículo maneja limpiamente, cada celda recibe una pieza y cada pieza una
-celda, es un sistema de asignación totalmente unimodular, resoluble en tiempo
-polinómico por el algoritmo húngaro; nuestros experimentos de recuperación (10
-de 10 instancias plantadas de 2×2 y 3×3 recuperadas exactamente, siguiendo la
-reformulación de retículo núcleo de Aardal, Hurkens y Lenstra) muestran al
-método resolviendo un problema que nunca fue difícil. Segundo, la parte que sí
-es difícil, los colores enfrentados deben concordar, es una restricción
-condicional («bilineal») sin una inmersión fiel en igualdades lineales que no
-pase por una explosión combinatoria de variables auxiliares, lo que borra la
-ventaja del retículo. Tercero, el sistema de oferta de colores no es una
-mochila: cada coeficiente vale exactamente 1, así que los ataques clásicos de
-suma de subconjuntos de baja densidad (Lagarias y Odlyzko 1985; Coster y
-colegas 1992) ni siquiera aplican, y un ataque LLL sobre la inmersión de pesos
-unitarios degenera en enumeración pura. La sonda de escala coincide: el LLL
-exacto en enteros sobre solo el núcleo de asignación fácil tardó 0,35 s en 2×2
-y 42,6 s en 3×3, y fue detenido pasados 175 s en 4×4 (dimensión del núcleo
-993); el esqueleto completo del 16×16 rondaría las 262 000 variables. (Esos
-tiempos son de una implementación exacta en Python puro, un enunciado práctico
-más que asintótico; los argumentos estructurales cargan con el veredicto.) Los
-subretículos por color se reducen barato, menos de medio segundo, pero 12 de
-los 60 vectores más cortos examinados en 3×3 ya exigen que una pieza ocupe dos
-celdas: omiten exactamente las restricciones que importan. La dureza del
-puzzle vive en una forma de problema, emparejamiento bilineal más distinción
-global, de la que las herramientas de reducción de retículos no son nativas;
-el subproblema del que son nativas ya es polinómico.
-
-## Aprender una heurística en tableros pequeños
+### Aprender una heurística en tableros pequeños
 
 *Entrenar una red neuronal en puzzles pequeños y luego transferirla al 16×16
 completo para guiar la búsqueda.*
 
-**Medido**, una sola arquitectura de modelo. Entrenamos un modelo que clavaba los tableros pequeños y lo vimos
+**Afirmación no comprobada**: una sola arquitectura de modelo, sin modelo, datos ni evaluación publicados. Entrenamos un modelo que clavaba los tableros pequeños y lo vimos
 derrumbarse en el real. Aprende de movimientos candidatos filtrados de una
 forma, y luego se le pregunta sobre movimientos filtrados de forma muy distinta,
 y los colores del puzzle completo nunca aparecieron en el entrenamiento. Con esta
 arquitectura la destreza no cruzó la brecha de tamaño y color; otras
 arquitecturas siguen sin probarse. [Por qué esto es un muro →](/research/why/rigidity-wall)
 
-## Descenso de gradiente sobre un tablero blando
+**Lo que lo zanjaría:** un modelo publicado, sus datos de entrenamiento y una evaluación de la transferencia entre tamaños de tablero y números de colores, y después una segunda arquitectura.
+
+### Descenso de gradiente sobre un tablero blando
 
 *Hacer el tablero diferenciable: una matriz piezas-a-celdas doblemente
 estocástica por normalización de Sinkhorn más softmax de rotación por celda,
 maximizar la esperanza de aristas concordantes por descenso de gradiente con
 recocido de temperatura, y luego redondear a un tablero real.*
 
-**Medido**, cuatro semillas de un solo programa de recocido Sinkhorn. La brecha
+**Afirmación no comprobada**: cuatro semillas de un solo programa Sinkhorn, sin datos publicados. La brecha
 de relajación fue grande en todas las ejecuciones. La puntuación blanda sube a
 367/480, pero el mejor tablero redondeado marca 336 aristas concordantes
 (otras semillas 324 y 325, mejor de 4), y el redondeo empeora a medida que la
@@ -375,29 +711,14 @@ ablandarla finge concordancias que ninguna permutación real puede honrar. Es
 un tercer modo de fracaso en la familia del aprendizaje; véase
 [cuándo colapsa el aprendizaje](/research/build/learning/when-learning-collapses).
 
-## Enumerar primero los clústeres locales
+**Lo que lo zanjaría:** el optimizador y sus ejecuciones publicados, y luego variados en programas y en el paso de redondeo.
 
-*Listar todo clúster 3×3 o 4×4 válido, y luego coser los clústeres entre sí en un
-tablero completo.*
-
-**Medido.** Los conteos se disparan antes de ayudar. Cuando lo intentamos, los
-clústeres válidos en torno a una sola región ya llegaban a las decenas de
-millones, y combinar cuatro esquinas alcanza el orden de $10^{12}$ tuplas
-disjuntas en piezas. Te quedas sin tiempo y sin disco mucho antes de que las
-restricciones poden nada. La idea no deja de redescubrirse. A finales de 2024,
-las «macropiezas» 2×2 volvieron a surgir, con unos 4 millones de bloques antes
-incluso de que entre la disjunción de piezas
-([msg 11428](https://groups.io/g/eternity2/message/11428)), y los veteranos
-remitieron a años de trabajo 2×2 anterior presente en el archivo
-([msg 11429](https://groups.io/g/eternity2/message/11429)).
-[Por qué esto es un muro →](/research/why/rigidity-wall)
-
-## Construir el tablero una fila perfecta a la vez
+### Construir el tablero una fila perfecta a la vez
 
 *Construir fila a fila, usando emparejamiento bipartito exacto para elegir la
 mejor fila posible dadas las aristas de color que expone la fila anterior.*
 
-**Medido.** Cada fila es localmente óptima; el tablero muere igual. En nuestra
+**Afirmación no comprobada.** Una sola ejecución determinista, no publicada. Cada fila es localmente óptima; el tablero muere igual. En nuestra
 prueba la construcción chocó contra un muro hacia la fila 10 de 16, con
 294/480 aristas concordantes, y las filas 11 en adelante infactibles sin más:
 las primeras filas localmente óptimas consumen exactamente las piezas cuyos
@@ -415,13 +736,15 @@ previsión conjunta entre filas: la
 [búsqueda en haz](/research/build/construct/beam-search) de tablero completo
 que nuestros constructores usan de verdad.
 
-## Construir desde ambos extremos y encontrarse en el medio
+**Lo que lo zanjaría:** una ejecución publicada con anchuras de haz de 32, 256 y 1 024 que registre dónde muere la construcción.
+
+### Construir desde ambos extremos y encontrarse en el medio
 
 *Hacer crecer el tablero de arriba hacia abajo y de abajo hacia arriba a la
 vez y unir las mitades en una fila central: cada mitad recibe la parte más
 fácil, anclada al borde.*
 
-**Medido.** La unión lo mata. Con haces superior e inferior independientes de
+**Afirmación no comprobada.** Dos variantes con una sola anchura de haz, no publicadas. La unión lo mata. Con haces superior e inferior independientes de
 anchura 32, la sola disjunción de piezas fracasó en más del 99,9 % de los
 emparejamientos: 0 pares válidos de 1 024. Una segunda variante garantizaba la
 disjunción relanzando un haz ascendente dedicado por cada estado superior,
@@ -440,35 +763,37 @@ cubre las versiones de unión exacta, no la construcción bidireccional en
 general. El primo en métodos exactos de esta idea tiene su propia página:
 [meet in the middle](/research/build/exact/meet-in-the-middle).
 
-## Cube and conquer
+**Lo que lo zanjaría:** las dos variantes de unión exacta publicadas, y después una unión suavizada (unas pocas discordancias de interfaz permitidas, luego reparación) y una costura en diagonal.
+
+### Cube and conquer
 
 *Dividir la instancia SAT en millones de subcasos (cubos), resolver cada uno de
 forma independiente y recombinar. La técnica que resolvió el número de Schur
 cinco y el problema de los tripletes pitagóricos.*
 
-**Reportado.** William Millilaw la probó exhaustivamente en mayo de 2026 y no
-despeja el tablero. En 16×16 la fase de cubos no particiona la instancia en nada
+**Afirmación no comprobada.** La única fuente es un informe privado de William Millilaw (mayo de 2026) sin rastro público que un lector pueda abrir, y ninguna fuente pública ni del repositorio reporta un cube-and-conquer a escala sobre el puzzle completo ([codificaciones SAT y CSP](/research/build/exact/sat-csp-encodings)). Ese informe dice que no despeja el tablero. En 16×16 la fase de cubos no particiona la instancia en nada
 tratable sin un preprocesamiento pesado, y el paso de conquista (un
 solucionador con anticipación sobre cada cubo) era en sí mismo más lento que
 ejecutar kissat directamente. En ese montaje (una
 implementación, un generador de cubos con anticipación más kissat, una
 codificación y un presupuesto) el método funcionó hasta alrededor de 8×8 y no
 escaló más allá; otros generadores de cubos, codificaciones y presupuestos
-siguen sin probarse. Se une a la larga
+siguen sin probarse. Si el informe se confirma, se une a la larga
 estirpe de métodos exactos que chocan contra el mismo muro que la programación
 entera y la decisión SAT, sin un asidero para superarlo. En su lugar:
 [qué muro detiene a qué método](/research/why/walls-and-methods) confronta cada
 ataque exacto con la barrera en la que muere, para ver por qué
 es probable que este se detenga ahí.
 
-## Generar tableros con un transformer
+**Lo que lo zanjaría:** una ejecución publicada de cube-and-conquer sobre el tablero completo (generador de cubos, codificación, presupuesto y registros del solucionador), o sobre una escalera de subtableros generados para situar dónde deja de escalar.
+
+### Generar tableros con un transformer
 
 *Entrenar un modelo tipo GPT sobre un corpus de tableros, condicionarlo a una
 puntuación objetivo y hacer que emita tableros nuevos de alta puntuación que la
 búsqueda nunca encontró.*
 
-**Reportado.** William Millilaw recorrió el arco completo en mayo de 2026 y cada
-etapa falló por su propia razón. Un modelo de 51 millones de parámetros aprendió
+**Afirmación no comprobada.** Un informe privado de William Millilaw (mayo de 2026), sin rastro público que un lector pueda abrir, dice que cada etapa falló por su propia razón. Un modelo de 51 millones de parámetros aprendió
 la gramática de un tablero (cada pieza usada una vez, 96 por ciento
 estructuralmente válido) pero no la física: sin condicionar, sus tableros
 promediaban unas 250 aristas concordantes, cerca del azar. Condicionar a una
@@ -485,7 +810,9 @@ con el resultado de la
 página: la imitación aprende la distribución que se le muestra y no puede
 inventar la estructura rara que un récord necesita.
 
-## Construcción por colonia de hormigas (rastros de feromonas)
+**Lo que lo zanjaría:** un modelo, un corpus de entrenamiento y un registro de muestreo publicados, con los duplicados del corpus contados para la prueba de memorización.
+
+### Construcción por colonia de hormigas (rastros de feromonas)
 
 *Una colonia de agentes construye cada uno un tablero completo de forma
 codiciosa-aleatoria; un campo de feromonas sobre las decisiones (celda, pieza,
@@ -494,7 +821,7 @@ rotación) se refuerza a lo largo de los caminos de los mejores finalistas
 recorte), con la esperanza de que los rastros concentren las construcciones
 futuras en regiones globalmente consistentes.*
 
-**Medido**, tres fracasos de profundidad. El techo autónomo fue de 296/480
+**Afirmación no comprobada**: tres fracasos descritos, sin datos publicados. El techo autónomo fue de 296/480
 aristas concordantes, el mejor sobre las configuraciones barridas (mejor
 configuración con una semilla, escala de prueba de concepto), por debajo
 incluso de una base simple de búsqueda ancha. Encender el aprendizaje por
@@ -514,7 +841,9 @@ estaba en un buen camino» es ruido. La feromona amplifica a un ganador de
 lotería temprano arbitrario y la colonia converge prematuramente en una cuenca
 mediocre.
 
-## Búsqueda de árbol Monte Carlo con un prior barato (el trasplante del TSP)
+**Lo que lo zanjaría:** la colonia, las configuraciones barridas y varias semillas por configuración publicadas, con el control de reinicios aleatorios.
+
+### Búsqueda de árbol Monte Carlo con un prior barato (el trasplante del TSP)
 
 *Un resultado de 2024 mostró que, para el problema del viajante, un MCTS
 fuerte con un prior sin parámetros iguala a los mapas de calor neuronales
@@ -524,7 +853,7 @@ fielmente el motor subyacente
 movimiento de gira k-opt al análogo exacto en asignación, una reubicación
 cíclica de k piezas siempre factible.*
 
-**Medido**, dos negativos limpios. Como refinador: la fase de intercambios por
+**Afirmación no comprobada**: dos negativos descritos, sin datos publicados. Como refinador: la fase de intercambios por
 pares es un motor de reparación sólido (tableros dañados de 452 aristas
 concordantes hasta 295 recuperan exactamente 452) pero nunca supera su punto
 de partida, y el movimiento estrella estilo k-opt es completamente inerte; a
@@ -549,15 +878,16 @@ búsqueda en sí tiene forma de TSP. En este puzzle, la
 [anchura de haz](/research/build/construct/beam-search) bruta sigue siendo el
 mejor uso del mismo tiempo de reloj.
 
-## Recombinar dos buenos tableros
+**Lo que lo zanjaría:** el port, su rejilla de hiperparámetros y las ejecuciones en la escalera frente al haz de anchura 2048 a igual tiempo de reloj, publicados.
+
+### Recombinar dos buenos tableros
 
 *Tomar dos tableros de alta puntuación, conservar las celdas en las que
 coinciden y usar el cruce por partición para empalmar las regiones en desacuerdo
 en un hijo al menos tan bueno como ambos padres. El operador genético con una
 garantía de tunelización en problemas pseudobooleanos.*
 
-**Reportado.** William Millilaw lo implementó y lo evaluó sobre pares de
-tableros que puntuaban 455 y más. Degenera. La restricción de permutación (una
+**Afirmación no comprobada.** Un informe privado de William Millilaw, sin rastro público que un lector pueda abrir, dice que lo implementó y lo evaluó sobre pares de tableros de 455 y más. Degenera. La restricción de permutación (una
 pieza no puede reutilizarse) obliga a las regiones en desacuerdo a fusionarse en
 un único componente en el momento en que las cierras bajo la unicidad de piezas,
 de modo que el operador colapsa en «elegir al mejor padre» en más del 99 por
@@ -567,7 +897,7 @@ puntuación de los padres, nunca por encima. Es la misma lección que el
 recombinación: los buenos tableros se alojan todos en una única cuenca estrecha,
 así que mezclarlos produce más de lo mismo en lugar de algo nuevo.
 
-La versión de trasplante fracasa de la misma manera, desde el otro extremo.
+La versión de trasplante (una ejecución, sin datos publicados) fracasó de la misma manera, desde el otro extremo.
 Tomamos un parcial nuestro de 442 aristas concordantes y un tablero terminado
 de 459 (puntuación estricta, las cinco pistas colocadas) e injertamos las
 colocaciones del donante sobre la mayor región de desacuerdo, 71 celdas: la
@@ -584,42 +914,9 @@ celdas justo fuera de la costura, e iterar esa exigencia se expande hasta que
 «trasplantar una región» se ha convertido en «reconstruir medio tablero». Los
 buenos tableros no se descomponen en partes intercambiables.
 
-## Ampliar el vocabulario de las discordancias
+**Lo que lo zanjaría:** el cruce por partición ejecutado sobre los tableros récord públicos, con el código y los resultados par por par publicados.
 
-*Todo solucionador de la familia de backtrackers poseedora de récords puede
-dejar a lo sumo una arista discordante por celda; por construcción su índice ni
-siquiera puede representar una celda que rompe dos veces. Sin embargo, los
-mejores tableros comunitarios producidos por búsqueda local sí contienen
-cuatro o cinco de esas celdas de doble rotura. Construir entonces la misma
-búsqueda sobre el espacio más ancho donde una celda puede cargar dos roturas,
-y cazar donde nadie más puede.*
-
-**Medido.** A igual tiempo de reloj, el vocabulario más ancho no gana nada. Un
-A/B emparejado de 54 rondas, 27 pares con semillas emparejadas a través de
-tres formas de calendario y dos direcciones de barrido a 600 segundos × 4
-hilos por ronda, dio 20 empates, 4 victorias para el motor ancho y 3 para el
-clásico, cada diferencia dentro de ±3 aristas concordantes, con distribuciones
-mín/mediana/máx por forma idénticas (415/420/425 en ambos brazos para una
-forma). El motor ancho visitó de 0,87 a 0,94 veces los nodos para los mismos
-resultados. Un censo exhaustivo aparte, detrás de un prefijo de 208 celdas de
-un tablero comunitario de 464 (puntuación a cinco pistas; contexto en la
-[página de récords](/research/records)), encontró exactamente cuatro
-completaciones con siete o menos discordancias totales: el propio 464 y tres
-variantes de una celda a 462 y 463, y ninguna usaba una celda de doble rotura.
-El mecanismo: el espacio ancho es explorable pero nunca forzado. Con el
-presupuesto de discordancias repartido por todo el tablero, la búsqueda casi
-nunca tiene dos unidades de margen restantes en una misma celda, así que gasta
-su presupuesto igual que el motor clásico; y en la región casi perfecta del
-final de partida, el estrato de doble rotura está vacío sin más. Las celdas de
-doble rotura conocidas de los tableros comunitarios están en mitad del tablero
-y las crearon movimientos de reparación de búsqueda local, no ningún recorrido
-en profundidad. Alcance: un empate a igual tiempo de reloj para una familia de
-motores sobre el puzzle oficial, no una prueba de que el estrato ancho esté
-vacío en todas partes; la hipótesis de partida, que la meseta comunitaria es
-un muro de representabilidad, queda degradada a conjetura sin sustento, no
-refutada.
-
-## Decodificar las discordancias como una palabra de código corrupta
+### Decodificar las discordancias como una palabra de código corrupta
 
 *Ver un tablero perfecto como una palabra de código, cada arista interna un
 control de paridad, y un tablero de alta puntuación como esa palabra más un
@@ -627,10 +924,7 @@ pequeño síndrome de error; si el patrón de error tiene estructura, la
 decodificación por síndrome o la propagación de creencias deberían localizarlo
 y limpiarlo barato.*
 
-**Medido**, sobre un tablero nuestro de 459 sobre 480 (puntuación estricta,
-las cinco pistas colocadas); esta entrada y la siguiente son dos lentes que
-tratan el patrón de discordancias como señal estructurada, y ninguna encontró
-señal alguna. El síndrome es tan poco estructurado como podría ser: las 21
+**Afirmación no comprobada**, a partir de un tablero nuestro de 459 sobre 480 (puntuación estricta, las cinco pistas colocadas), sin datos publicados. Esta entrada y la siguiente son dos lentes que tratan el patrón de discordancias como señal estructurada, y ninguna encontró señal alguna en ese tablero. El síndrome es tan poco estructurado como podría ser: las 21
 discordancias involucran unas 21 parejas de colores distintas (solo dos
 parejas se repiten), repartidas en 13 fragmentos desconectados, y el conteo
 total de semiaristas de cada color es par, así que el suelo de paridad sobre
@@ -650,13 +944,15 @@ la decodificación degenera en la misma búsqueda exhaustiva de cola que ya
 ejecutamos. Las discordancias son un presupuesto asignado globalmente, no un
 error local que invertir.
 
-## Tratar las discordancias como defectos físicos
+**Lo que lo zanjaría:** el tablero y las ejecuciones de re-resolución publicados, y repetidos sobre varios tableros, incluidos los tableros récord públicos.
+
+### Tratar las discordancias como defectos físicos
 
 *Modelar cada discordancia como un defecto topológico cargado en el campo de
 colores: los defectos deberían asentarse en sitios forzados por conservación,
 de interacción mínima, y las cargas opuestas deberían aniquilarse.*
 
-**Medido**, mismo tablero que la entrada anterior, y cada premisa falla. La
+**Afirmación no comprobada**, mismo tablero que la entrada anterior, sin datos publicados; cada premisa falló allí. Una parte está medida en otro lugar sobre tableros públicos: las discordancias de los tableros récord se concentran en una franja de filas que fija la dirección de llenado ([dónde viven las discordancias](/research/why/mismatch-geometry)). La
 posición predice la ubicación de las discordancias extremadamente bien: el
 índice de fila por sí solo separa aristas rotas de intactas con un AUC de
 0,895, y las 21 discordancias están todas en las últimas filas rellenadas.
@@ -682,60 +978,15 @@ por color o de energía por pares la captura. La geometría de dónde caen las
 roturas tiene su propia página:
 [geometría de las discordancias](/research/why/mismatch-geometry).
 
-## Forzar un borde diverso y luego rellenar
+**Lo que lo zanjaría:** el tablero, el cálculo de los AUC y el barrido publicados, y repetidos sobre los tableros récord públicos.
 
-*El borde es un subpuzzle más pequeño. Resolver primero muchos marcos válidos
-distintos, bajo la teoría de que la variedad en el marco siembra variedad en
-todo el tablero.*
-
-**Reportado.** William Millilaw lo intentó y encontró la premisa al revés. El
-borde es la parte fácil: desde cero ya es variado y rápido de colocar. El
-recurso escaso es el relleno interior, donde las piezas escasean y las
-discordancias se concentran. Forzar la diversidad del marco gasta esfuerzo donde
-no hay escasez y no compra nada donde sí la hay. Es un tema recurrente también en
-los propios experimentos de este proyecto: el marco vale sorprendentemente poco
-([STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged) mide exactamente cuán poco), y
-el daño de la fase final cae en las esquinas interiores
-([MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic)).
-
-Medimos la premisa nosotros mismos, desde dos direcciones. Primero, el
-catálogo de bordes: una búsqueda acotada en tiempo (120 segundos,
-explícitamente no exhaustiva; el conteo verdadero se desconoce) produjo 75 173
-anillos de borde completos e internamente válidos. Al dar al solucionador una
-muestra de 500 marcos fijados, el 47 % agotó la búsqueda en menos de 200
-milisegundos bajo propagación básica, y prácticamente todos fueron rechazados
-de plano en cuanto la propagación completa corrió contra las piezas pista
-oficiales. Un anillo que se cierra sobre sí mismo solo satisface la
-concordancia por pares alrededor del contorno; la factibilidad conjunta con
-las pistas y la restricción interior de usar cada pieza una vez es una
-condición mucho más fuerte, y prácticamente ninguno de los anillos catalogados
-la cumple.
-
-Segundo, bordes perfectos como semillas. Generamos 5 000 bordes perfectos
-distintos con piezas únicas por programación dinámica (las 60 celdas del borde
-colocadas, cada arista del borde concordante), muestreamos 100 de forma
-uniforme, y dimos a cada uno el mismo pipeline: un relleno interior de 60
-segundos por propagación de restricciones, y luego un pulido de 60 segundos
-por búsqueda local. Mejor puntuación de todo el lote: 436/480 aristas
-concordantes; cerca de la mitad de los arranques quedó entre 420 y 427, un
-cuarto entre 380 y 419, y ninguno por encima de 437. Los tableros de la clase
-455 a 460 de la misma época (puntuación estricta, las cinco pistas colocadas)
-salieron todos de un productor en profundidad que no fija el borde primero. El
-pulido usó una sola semilla y 60 segundos por arranque, así que esto es un
-filtro barato, no una refutación exhaustiva: bajo un pulido corto a igual
-presupuesto, ninguno de los 100 arranques borde-primero quedó a menos de 20
-aristas de lo que alcanza la búsqueda directa. Un borde perfecto
-sobrecompromete el interior; el relleno optimiza después dentro del perfil de
-colores interior que el borde permite, y esa familia toca techo muy por debajo
-de las mejores cuencas.
-
-## Construir un 480 falso y repararlo
+### Construir un 480 falso y repararlo
 
 *Partir de un tablero con cada arista concordante permitiendo piezas duplicadas,
 y luego cambiar con avidez las piezas reales una a una, con la esperanza de
 mantener la puntuación en 480.*
 
-**Reportado.** William Millilaw lo ejecutó y colapsa en un juego de golpear al
+**Afirmación no comprobada.** La única fuente es un informe privado, sin rastro público que un lector pueda abrir. William Millilaw lo ejecutó y colapsa en un juego de golpear al
 topo: cada pieza real que fuerzas a entrar rompe aristas en otro sitio, y la
 reparación nunca converge, tocando techo en torno a 463. La razón es la lección
 que subyace a toda esta página. La barrera para el 480 no es que las aristas
@@ -747,13 +998,15 @@ de reparación local de aristas. En su lugar: el
 [muro de rigidez](/research/why/rigidity-wall) explica por qué la reparación
 local no puede cruzar esta última brecha, partas del tablero que partas.
 
-## Sembrar la reparación con el prefijo profundo de un solucionador exacto
+**Lo que lo zanjaría:** una ejecución publicada de reparación con piezas duplicadas, con su programa y su traza de puntuación.
+
+### Sembrar la reparación con el prefijo profundo de un solucionador exacto
 
 *Usar un backtracker exacto de propagación de restricciones para construir un
 prefijo consistente muy profundo, fijarlo, y entregarlo a la búsqueda de
 reparación local como ventaja inicial.*
 
-**Medido**, una sola configuración; acótalo en consecuencia. El truco de
+**Afirmación no comprobada**: una semilla, un programa y un preajuste de reparación, sin datos publicados. El [estudio de reparación](/research/lab/experiments/raphael-anjou/repair-study/findings) publicado apunta en sentido contrario para otro tipo de inicio: un inicio construido por una búsqueda en profundidad tolerante a roturas fue allí la variante con mejor puntuación, con una media de 446. El truco de
 fijado sí profundiza la búsqueda exacta en sí; entre rondas llevó al
 solucionador de la profundidad 27 a la 152, de la puntuación 23 a 297 aristas
 concordantes, un amplificador de profundidad real, y esa mitad positiva sigue
@@ -774,37 +1027,16 @@ consistente» no es «cerca de bueno», y el fijado hace el error permanente,
 porque la búsqueda de reparación no puede deshacer las celdas heredadas y
 nunca habría construido ese esqueleto por sí misma.
 
-## Empezar por el centro y crecer hacia afuera
+**Lo que lo zanjaría:** la siembra con prefijo exacto ejecutada dentro del arnés publicado del estudio de reparación, con varias semillas y el mismo lote de comparación.
 
-*El centro tiene la mayor libertad de rotación: empezar ahí y dejar que las
-restricciones se acumulen mientras creces hacia el borde.*
-
-**Medido**, y la intuición está al revés. Cara a cara sobre puzzles generados
-de 5×5 a 8×8 contra los órdenes fila-a-fila y borde-primero, el
-centro-hacia-afuera perdió cada una de las seis configuraciones: típicamente
-de 10 a 100 veces más lento, fracasó de plano en cuatro de las seis dentro de
-presupuestos donde borde-primero terminaba (un 5×5 atascado en la profundidad
-22 de 25 tras 2 millones de nodos en un puzzle que borde-primero resolvía en
-2 000 nodos), y fue unas 60 veces más lento en uno que sí resolvió; el caso
-8×8 fue el peor de los tres órdenes probados. Medido sobre puzzles generados
-pequeños con los órdenes de barrido de un solo solucionador, pero la dirección
-y la magnitud fueron uniformes en los seis casos. El mecanismo: la libertad es
-la enemiga de la propagación. El borde suministra restricciones duras e
-inmediatas (las aristas grises); el centro no suministra ninguna, así que una
-búsqueda centro-hacia-afuera se compromete con colores arbitrarios sin manera
-de detectar pronto la infactibilidad. Más libertad significa menos poda, no
-una búsqueda más rápida. En su lugar: la página del
-[orden de relleno](/research/build/backtracking/fill-order) cubre los órdenes
-que sí ayudan.
-
-## Codificar las estrategias humanas
+### Codificar las estrategias humanas
 
 *Marco primero, crecimiento compacto de regiones alrededor de las pistas,
 celda más restringida primero, backtracking disciplinado, y un pilotaje
 deliberado de «gasta tus discordancias con sabiduría»: programar cómo piensan
 los mejores solucionadores humanos.*
 
-**Medido**, y nada de eso sobrevive. Un marco perfecto se encuentra en
+**Afirmación no comprobada**: seis semillas por orden, sin datos publicados. El [estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study) publicado compara órdenes estáticos afines sobre el tablero oficial (fila a fila, espirales hacia dentro y hacia fuera, borde-primero), y el orden fila a fila gana allí también. Un marco perfecto se encuentra en
 milisegundos y no compra tracción alguna (ninguna de las cinco pistas toca el
 borde). El verdadero asesino es el agotamiento de piezas, y es invariante al
 orden: a lo largo de una construcción, el número medio de piezas sin usar que
@@ -825,35 +1057,15 @@ hipótesis en paralelo con anticipación global, es exactamente lo que ya es la
 [búsqueda en haz](/research/build/construct/beam-search). Véase también
 [por qué no hay movimientos forzados](/research/why/no-forced-moves).
 
-## Precalcular macropiezas 2×2 (o mayores)
+**Lo que lo zanjaría:** los tres órdenes de llenado humanos y la traza de agotamiento de piezas publicados en el arnés del estudio DFS.
 
-*Resolver cada bloque 2×2 una vez, almacenar los válidos y colocar cuatro celdas
-a la vez para que la búsqueda sea más corta.*
-
-**Medido.** Markus Zajc lo trabajó a fondo en 2008: construir las macropiezas
-solo desplaza el trabajo, no lo elimina. Cambias un conjunto pequeño de piezas
-individuales por un conjunto muy grande de bloques 2×2, así que colocar un bloque
-es más rápido pero el número de tableros parciales distintos no cambia, todavía
-del orden de $10^{40}$ donde necesita ser $10^{4}$. Una aceleración de 10× o 100×
-en un árbol fuera de alcance sigue estando fuera de alcance
-([msg 5883](https://groups.io/g/eternity2/message/5883)). Las macropiezas son una
-ganancia real de factor constante para un solucionador rápido, y por eso el
-[terreno de juego del orden de bloques](/playground/paths) las admite, solo que
-no son una reducción de dominio, y únicamente una reducción de dominio movería la
-aguja. El techo contra el que esto se mide es el récord vigente de 470/480:
-Blackwood informó de que las cachés de 2×2 preresueltas no lo ayudaron a
-superarlo ([Récords y solucionadores](/research/records)). En su lugar: la única
-palanca gratuita que sí encoge el árbol es el
-[orden de relleno](/research/build/backtracking/fill-order).
-
-## Conducir el backtracker en anillos concéntricos
+### Conducir el backtracker en anillos concéntricos
 
 *Conducir el backtracker con calendario de la familia poseedora de récords
 hacia adentro en anillos concéntricos, bajo la teoría de que una geometría en
 capas casa con donde las roturas quieren asentarse.*
 
-**Medido.** Choca contra un muro de profundidad estructural que más tiempo no
-mueve. Una ejecución de una hora sobre el puzzle oficial visitó 3,4 miles de
+**Afirmación no comprobada**: un programa emparejado con un orden, una ejecución por presupuesto, sin datos publicados. Un resultado afín está publicado: [CAS](/research/lab/experiments/raphael-anjou/pipelines/cas), que resuelve el tablero anillo a anillo hacia dentro desde un borde perfecto, se estanca entre 429 y 437 sobre 480. La ejecución descrita aquí chocó contra un muro de profundidad que más tiempo no movió. Una ejecución de una hora sobre el puzzle oficial visitó 3,4 miles de
 millones de nodos con la colocación más profunda atascada en un muro a
 profundidad 80: el muro estaba en 80 a los cinco minutos y ganó una celda en
 el resto de la hora. Una ejecución de dos horas terminó en el mismo 382/480 de
@@ -868,14 +1080,15 @@ presupuesto. El [orden de relleno](/research/build/backtracking/fill-order)
 importa, pero tiene que co-diseñarse con el calendario de discordancias, no
 atornillarse encima.
 
-## Compartir una tabla de transposición entre trabajadores paralelos
+**Lo que lo zanjaría:** las ejecuciones en anillos publicadas, y después un programa de discordancias diseñado para el orden en anillos, comparado con el orden fila a fila a igual presupuesto.
+
+### Compartir una tabla de transposición entre trabajadores paralelos
 
 *Los motores de ajedrez comparten una tabla de transposición entre hilos;
 hacer lo mismo aquí, hasheando cada frontera explorada para que ningún
 trabajador re-explore un subárbol que otro ya agotó.*
 
-**Medido**, y la construcción se canceló sobre la base de la medición, que es
-la manera barata de matar una idea. Ocho trabajadores corrieron 15 segundos
+**Afirmación no comprobada**: una sola ejecución de medición con ocho trabajadores, no publicada; la construcción se canceló sobre esa base. Ocho trabajadores corrieron 15 segundos
 cada uno sobre el puzzle oficial con un solucionador idéntico, con solo el
 orden de candidatos barajado por trabajador: cada trabajador colocó unas 214
 celdas en su tablero más profundo (profundidades máximas de 192 a 235 entre
@@ -896,55 +1109,9 @@ aristas concordantes en 30 segundos donde un hilo alcanzaba 192 y 344); la
 [resolución distribuida](/research/build/faster/distributed-solving) se apoya
 exactamente en eso.
 
-## Poda por oferta de borde (la prueba «lollypop»)
+**Lo que lo zanjaría:** la medición de solapamiento con ocho trabajadores publicada, y repetida con varias semillas y ejecuciones más largas.
 
-*Antes de recursar, contar la demanda restante de colores de borde frente a las
-piezas todavía disponibles; si la oferta no puede satisfacer la demanda, cortar
-la rama temprano.*
-
-**Medido.** Markus Zajc implementó esta prueba de oferta-frente-a-demanda como
-complemento de su solucionador de restricciones y la evaluó en el 8×8: cortaba
-alrededor del 0,0014 % de las pruebas mientras añadía un 8 % al tiempo de
-ejecución, una pérdida neta clara. La razón es instructiva: en casi toda rama
-donde la comprobación de oferta de borde habría fracasado, la propagación de
-restricciones ordinaria *ya* ha fracasado un paso o dos antes, así que la
-contabilidad extra paga por un corte que el solucionador estaba a punto de hacer
-gratis ([msg 6060](https://groups.io/g/eternity2/message/6060)). Una regla de
-poda solo ayuda si se dispara antes de las comprobaciones que ya ejecutas, no
-después. En su lugar: la idea de oferta-frente-a-demanda rinde cuando se funde en
-la propagación que se dispara primero, el
-[filtro de emparejamiento all-different](/research/build/reduce/alldiff-regin).
-
-Diecisiete años después reejecutamos la misma idea en nuestro propio motor,
-sobre todos los colores en lugar de solo el borde: llevar la cuenta de cuántas
-aristas de pieza de cada color quedan sin colocar, y cortar la rama cuando una
-celda de la frontera demanda un color cuya oferta está agotada. Puzzle
-oficial, un solo hilo, una ejecución de 10 segundos: la base visitó 630
-millones de nodos a 63 millones de nodos por segundo; con la comprobación, 388
-millones a 39 millones, en torno a un 40 % menos de rendimiento para la misma
-profundidad máxima (192) y la misma mejor puntuación (344 aristas
-concordantes). Cero poda adicional, y la razón es ahora precisa: un índice de
-candidatos indexado por (color superior, color izquierdo) ya *es* este
-propagador. Si colocar una pieza agotara un color que una celda próxima
-demanda, la cubeta de candidatos de esa celda queda simplemente vacía un paso
-después y la búsqueda retrocede de todos modos; la comprobación explícita paga
-en cada nodo por un corte que el índice hace gratis.
-
-Una variante dinámica de presupuestos por color no rinde mejor sobre un
-backtracker estricto: para cada color, llevar la cuenta de cuántas de sus
-semiaristas están ya permanentemente discordantes, y podar todo tablero
-parcial que ya no pueda alcanzar la puntuación objetivo para ese color. A
-través de 15 instantáneas profundas de estados de búsqueda reales
-(profundidades 195 a 212 de 256 celdas) se disparó cero veces: un solucionador
-que nunca coloca una pieza discordante solo crea parciales que todavía no
-pueden violar el presupuesto, y para cuando el presupuesto mordería, la
-propagación ordinaria ya cortó la rama. (Sobre una búsqueda tolerante a
-discordancias la comprobación queda aquí sin probar.) Una no-lección vecina:
-ordenar todos los candidatos globalmente por un peso de rareza de color, el
-mismo orden en cada celda, no es una heurística informada en absoluto; equivale
-a un reetiquetado fijo de las piezas y no añade información.
-
-## La prueba de cierre euleriano del borde
+### La prueba de cierre euleriano del borde
 
 *Un anillo de borde válido debe trazar un ciclo euleriano en el grafo cuyos
 vértices son los colores de arista del borde y cuyas aristas son las piezas
@@ -952,7 +1119,7 @@ del borde: una condición necesaria limpia, propuesta en la lista de correo ya
 en 2007. Comprobarla durante la búsqueda y podar los bordes que ya no pueden
 cerrarse.*
 
-**Medido**, cero poder de poda sobre el puzzle oficial. Probada a cinco
+**Afirmación no comprobada** para la prueba de poda, cuyos datos no están publicados. El hecho estructural detrás está medido: los cinco colores del marco forman un multigrafo conexo en el que cada color tiene grado 24, así que un anillo completo es euleriano ([pureza del anillo](/research/why/ring-purity), [ring_purity.json](https://github.com/raphael-anjou/eternity2/blob/main/research/topics/ring-purity/results/ring_purity.json)). La prueba descrita no encontró poder de poda en el puzzle oficial. Probada a cinco
 profundidades de búsqueda con 200 000 ensayos cada una, un millón de bordes
 parciales en total: la condición euleriana nunca se disparó sobre una
 configuración que la propagación ordinaria no hubiera matado ya. La condición
@@ -966,45 +1133,26 @@ consistencia de arco. La misma lección de familia que la prueba lollypop de
 arriba: una poda solo ayuda si se dispara antes de las comprobaciones que ya
 ejecutas.
 
-## Poda por patrones prohibidos durante la búsqueda
+**Lo que lo zanjaría:** el motor de un núcleo ya tiene un propagador euleriano de borde; ejecutarlo en la escalera difícil generada frente al mismo solucionador sin él, y publicar los conteos de nodos.
 
-*Demostramos que un conjunto de combinaciones de piezas 2×2 no puede aparecer
-en ningún tablero totalmente concordante. El siguiente paso obvio: comprobar
-cada parche 2×2 completado durante la búsqueda en profundidad y podar cuando
-esté prohibido.*
+## Qué tienen en común los callejones establecidos
 
-**Demostrado** vacuo por construcción, y luego verificado empíricamente: a
-través de 24 tableros y 225 parches cada uno, 5 400 parches completados, cero
-estaban prohibidos, exactamente como predice el argumento. La prueba de
-patrones prohibidos pregunta si cuatro piezas pueden concordar internamente
-bajo alguna rotación; pero una búsqueda estrictamente concordante solo
-completa un 2×2 después de haber hecho concordar ya sus cuatro aristas
-internas, así que cada parche que completa es factible por construcción y la
-comprobación no puede dispararse nunca. El poder discriminante del teorema es
-sobre subconjuntos de piezas, lo que exigiría una integración de comprobación
-hacia adelante que pruebe los parches antes de que sus celdas se rellenen, y
-en un barrido fila a fila la versión barata de esa comprobación ya la hace
-implícitamente el índice de candidatos. El teorema en sí sigue siendo cierto y
-útil en otros lugares: véanse los
-[patrones prohibidos](/research/why/forbidden-patterns). La misma moraleja
-final que la entrada lollypop: una poda que se dispara después de tus
-comprobaciones existentes vale exactamente nada.
+Dos lecciones se repiten entre las entradas medidas, reportadas y
+argumentadas. Una relajación que abandona la restricción de usar cada pieza
+una sola vez finge concordancias que ningún tablero real puede cumplir: el
+conteo por redes de tensores y la vista de «primero los colores» fallan ahí.
+Y una poda solo ayuda si se dispara antes de las comprobaciones que el
+solucionador ya hace: los invariantes sobre las celdas colocadas, la oferta
+de borde y los patrones prohibidos se disparan todos después de que el índice
+de candidatos ya cortó la rama. Ambas lecciones tienen un alcance acotado.
+Tratan de la búsqueda estricta sin discordancias, mientras que los motores de
+los récords toleran discordancias, y no dicen nada de un hardware más rápido
+para la caza de récords, que sigue abierta
+([resolver en GPU](/research/build/hardware/gpu-solving)).
 
-## Qué tienen en común todos los callejones sin salida
-
-La brecha entre el mejor tablero conocido y una solución completa no parece una
-optimización que falta. Los buenos tableros están localmente congelados y
-globalmente restringidos de maneras que los arreglos locales, el hardware más
-rápido y las relajaciones estándar no tocan. Llegar al final parece necesitar
-una idea de otra índole, no más de lo mismo.
-
-Una convergencia tardía merece quedar registrada. Cuatro lentes probadas de
-forma independiente en la misma temporada, la decodificación de palabras de
-código, la física de defectos, el descenso de gradiente sobre un tablero
-blando y la estrategia humana codificada, redescubrieron cada una el mismo
-hecho desde una dirección distinta: el obstáculo es la distinción global de
-las piezas y el agotamiento del inventario, no la concordancia local de
-aristas. Cuando cuatro formalismos sin relación chocan contra el mismo muro,
-el muro es probablemente lo que hay que estudiar.
-
-Ver [por qué una computadora más rápida no ayuda](/research/why/prune-vs-speed).
+La segunda sección es la más larga. Lee cada una de sus entradas como una
+hipótesis con una forma indicada de ponerla a prueba, no como una puerta
+cerrada. Para las direcciones abiertas, ver el
+[tablero de problemas abiertos](/research/open-problems), y para el argumento
+sobre la búsqueda exhaustiva,
+[por qué una computadora más rápida no ayuda](/research/why/prune-vs-speed).

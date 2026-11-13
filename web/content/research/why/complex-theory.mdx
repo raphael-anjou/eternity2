@@ -9,7 +9,7 @@ kind: finding
 contribution: exposition
 rigor: conjectured
 order: 30
-updated: 2026-11-11
+updated: 2026-11-13
 topics: [structure, backtracking]
 sources:
   - label: "Brendan Owen's peak-depth closed form, 256·(1−1/e) (groups.io msg 8125, 2010)"
@@ -119,8 +119,8 @@ board's structure before you place a piece.
 
 Plot the expected width at each depth and three regimes appear. Their shape is
 what the community calls the E2 funnel. Play the sweep below and watch the
-counter: it climbs astronomically, then barely moves for a hundred cells
-across the plateau, that flat crawl through an astronomically wide band is the
+counter: it climbs astronomically, then climbs far more slowly for a hundred
+cells across the plateau, that flat crawl through an astronomically wide band is the
 wall, before the last sixty pieces funnel it back down.
 
 <Figure caption="A search head sweeping depth 1 → 256 along the expected-branch curve. The number over the plateau is how many legal ways there are to extend a partial board there, and how little each placement prunes.">
@@ -142,13 +142,15 @@ single node is placed.
 - **Growth (depth 1–50).** Solutions multiply geometrically from one to
   about $10^{27}$. Every placement is essentially free; nothing constrains you
   yet.
-- **Plateau (depth 50–200).** The tree is at its widest, about $10^{45}$
-  ways to extend, while the solution count barely moves. This is where
+- **Plateau (depth 50–200).** The tree is at its widest here, though not
+  flat: the width climbs from about $10^{27}$ at depth 50 to a peak near
+  $10^{46}$ at depth 161 and is back to about $10^{41}$ by depth 200; it is
+  within one decade of the peak only for depths about 140 to 178. This is where
   backtrackers spend the bulk of their time: one empirical sample
   ([groups.io msg 11725](https://groups.io/g/eternity2/message/11725), a
   1B-iteration run) found 99% of backtracker time at depth $>132$ and 70% at
   depth $>150$, i.e. deep in the tree rather than early.
-- **Collapse (depth 200–256).** The width falls from $10^{45}$ back to about
+- **Collapse (depth 200–256).** The width falls from about $10^{41}$ back to about
   $10^{4}$. The last ~60 pieces are tightly constrained: each one placed
   eliminates orders of magnitude of branches. The endgame is locally easy;
   the hard part is reaching it.
