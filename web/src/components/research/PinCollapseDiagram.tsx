@@ -14,24 +14,24 @@ type Row = { key: string; en: string; fr: string; es: string; depth: number; str
 const ROWS: Row[] = [
   {
     key: "mcgavin-native",
-    en: "McGavin C — native 5-clue",
-    fr: "McGavin C — 5 indices natif",
-    es: "McGavin C — 5 pistas nativo",
+    en: "McGavin C, native 5-clue",
+    fr: "McGavin C, 5 indices natif",
+    es: "McGavin C, 5 pistas nativo",
     depth: 205,
     strong: true,
   },
   {
     key: "mcgavin-pinned",
-    en: "McGavin C — our corner-pinned",
-    fr: "McGavin C — nos coins fixés",
-    es: "McGavin C — con nuestras esquinas fijadas",
+    en: "McGavin C, our corner-pinned",
+    fr: "McGavin C, nos coins fixés",
+    es: "McGavin C, con nuestras esquinas fijadas",
     depth: 21,
   },
   {
     key: "blackwood",
-    en: "Blackwood C# — pinned 5-clue",
-    fr: "Blackwood C# — 5 indices fixés",
-    es: "Blackwood C# — 5 pistas fijadas",
+    en: "Blackwood C#, pinned 5-clue",
+    fr: "Blackwood C#, 5 indices fixés",
+    es: "Blackwood C#, 5 pistas fijadas",
     depth: 34,
   },
 ];

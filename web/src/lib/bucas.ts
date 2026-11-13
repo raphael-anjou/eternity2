@@ -4,7 +4,7 @@
 // border, "aaaa" = empty cell. Rotation is implicit: the letters are the
 // already-rotated edges. Because pieces are distinct up to rotation, the edges
 // alone name each piece and its orientation, so board_edges fully carries the
-// board — render, score, and piece identity.
+// board: render, score, and piece identity.
 //
 // hints: the pinned clue cells, each as pos.rot (row-major cell index and
 // clockwise quarter-turn), joined by '-'. A board and its clue set thus share
@@ -80,12 +80,12 @@ export function decodeBucas(input: string | Record<string, string>): BucasBoard 
   const height = parseInt(size ?? params["board_h"] ?? "16", 10);
   // Be forgiving about a short or damaged string: instead of refusing to show
   // anything, decode the letters we do have. A cell past the end of the string,
-  // or one holding an un-decodable letter, is treated as empty — so a truncated
+  // or one holding an un-decodable letter, is treated as empty, so a truncated
   // or partly-corrupt board still renders the pieces it can retrieve.
   const expected = width * height * 4;
   if (edges.length !== expected && expected > 0) {
     console.warn(
-      `board_edges has ${edges.length} letters; expected ${expected} for ${width}×${height} — showing what decodes`,
+      `board_edges has ${edges.length} letters; expected ${expected} for ${width}×${height}; showing what decodes`,
     );
   }
 
@@ -148,7 +148,7 @@ export function parseHints(blob: string | undefined): number[] | null {
   return positions.length ? positions : null;
 }
 
-/** Parse the `hints` blob preserving each clue's `(pos, rot)` — the full form,
+/** Parse the `hints` blob preserving each clue's `(pos, rot)`, the full form,
  *  for a tool that wants the encoded orientation rather than re-deriving it from
  *  the edges. The overlay uses {@link parseHints} (positions only). */
 export function parseHintsFull(blob: string | undefined): { pos: number; rot: number }[] {
@@ -190,7 +190,7 @@ export function sanitizeName(name: string | null): string {
 
 /** The one canonical eternity2.dev viewer URL for a decoded board. The board
  *  rides entirely in `board_edges` (pieces are recovered from the edges), and any
- *  clue cells in `hints`. No `board_pieces` — this is the single source of truth
+ *  clue cells in `hints`. No `board_pieces`: this is the single source of truth
  *  for our viewer URL, matching the Rust `viewer_url` and `ourParams`. */
 export function viewerUrlFromBoard(board: BucasBoard): string {
   const name = sanitizeName(board.puzzleName);

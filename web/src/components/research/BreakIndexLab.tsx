@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { FRAME_BUDGET_MS, useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // The break-index, run live and watchable. One fixed 8x8 puzzle. Breaks (a
-// single mismatch) are licensed only in the bottom `breakRows` rows — the
+// single mismatch) are licensed only in the bottom `breakRows` rows, the
 // "handful of fixed late positions" of the real design. With zero break rows
 // the strict search can't finish (it stalls in the low 80s of 112); license a
 // couple of bottom rows and it completes a near-perfect board. The search is
@@ -30,7 +30,7 @@ const T = {
   en: {
     title: "The break-index, live",
     intro:
-      "One fixed 8×8 puzzle, the real solver running in your browser. A break — a single allowed mismatch — is permitted only in the bottom rows you license below, mirroring how the record solvers confine breaks to a few fixed positions. With none, the strict search stalls below a full board. License a row or two and it completes, near-perfect.",
+      "One fixed 8×8 puzzle, the real solver running in your browser. A break (a single allowed mismatch) is permitted only in the bottom rows you license below, mirroring how the record solvers confine breaks to a few fixed positions. With none, the strict search stalls below a full board. License a row or two and it completes, near-perfect.",
     breakRows: (n: number) => `Break-licensed rows (from the bottom): ${n}`,
     speed: (n: string) => `Speed: ${n} steps/s`,
     run: "Run",
@@ -39,18 +39,18 @@ const T = {
     score: "matched edges",
     breaks: "breaks used",
     placed: "pieces placed",
-    statusStuckRun: "Strict (no breaks): the search keeps hunting for a perfect piece it will never find for the last rows — it can't complete the board.",
+    statusStuckRun: "Strict (no breaks): the search keeps hunting for a perfect piece it will never find for the last rows, so it can't complete the board.",
     statusStuckStall: "Strict (no breaks) stalled: it can't fill the board with every edge matched. The best it ever reached is shown.",
     statusDone: (s: number, b: number) =>
-      `Completed — ${s} of ${MAX_SCORE} edges, paying ${b} break${b === 1 ? "" : "es"}, all in the licensed rows. Those few licensed mismatches are exactly what let the board finish.`,
+      `Completed: ${s} of ${MAX_SCORE} edges, paying ${b} break${b === 1 ? "" : "es"}, all in the licensed rows. Those few licensed mismatches are exactly what let the board finish.`,
     statusRunning: "Searching…",
-    note: "Try one row first: where the breaks are licensed matters as much as how many. Scatter the same number across the top and the board won't finish — the conflicts this scan order accumulates land at the bottom.",
+    note: "Try one row first: where the breaks are licensed matters as much as how many. Scatter the same number across the top and the board won't finish: the conflicts this scan order accumulates land at the bottom.",
     loading: "Loading the engine…",
   },
   fr: {
     title: "L'index de rupture, en direct",
     intro:
-      "Un puzzle 8×8 fixe, le vrai solveur tournant dans votre navigateur. Une rupture — un seul défaut autorisé — n'est permise que dans les rangées du bas que vous autorisez ci-dessous, à l'image des solveurs records qui confinent les ruptures à quelques positions fixes. Sans aucune, la recherche stricte cale sous un plateau complet. Autorisez une rangée ou deux et il termine, quasi parfait.",
+      "Un puzzle 8×8 fixe, le vrai solveur tournant dans votre navigateur. Une rupture (un seul défaut autorisé) n'est permise que dans les rangées du bas que vous autorisez ci-dessous, à l'image des solveurs records qui confinent les ruptures à quelques positions fixes. Sans aucune, la recherche stricte cale sous un plateau complet. Autorisez une rangée ou deux et il termine, quasi parfait.",
     breakRows: (n: number) => `Rangées autorisées à rompre (depuis le bas) : ${n}`,
     speed: (n: string) => `Vitesse : ${n} étapes/s`,
     run: "Lancer",
@@ -59,18 +59,18 @@ const T = {
     score: "bords appariés",
     breaks: "ruptures utilisées",
     placed: "pièces posées",
-    statusStuckRun: "Stricte (aucune rupture) : la recherche cherche sans fin une pièce parfaite qu'elle ne trouvera jamais pour les dernières rangées — elle ne peut pas terminer.",
+    statusStuckRun: "Stricte (aucune rupture) : la recherche cherche sans fin une pièce parfaite qu'elle ne trouvera jamais pour les dernières rangées, si bien qu'elle ne peut pas terminer.",
     statusStuckStall: "Stricte (aucune rupture) calée : impossible de remplir le plateau avec tous les bords appariés. Le meilleur atteint est affiché.",
     statusDone: (s: number, b: number) =>
-      `Terminé — ${s} bords sur ${MAX_SCORE}, au prix de ${b} rupture${b === 1 ? "" : "s"}, toutes dans les rangées autorisées. Ces quelques défauts autorisés sont exactement ce qui permet de finir.`,
+      `Terminé : ${s} bords sur ${MAX_SCORE}, au prix de ${b} rupture${b === 1 ? "" : "s"}, toutes dans les rangées autorisées. Ces quelques défauts autorisés sont exactement ce qui permet de finir.`,
     statusRunning: "Recherche…",
-    note: "Essayez d'abord une seule rangée : où les ruptures sont autorisées compte autant que combien. Dispersez-en autant en haut et le plateau ne finira pas — les conflits que cet ordre de balayage accumule tombent en bas.",
+    note: "Essayez d'abord une seule rangée : où les ruptures sont autorisées compte autant que combien. Dispersez-en autant en haut et le plateau ne finira pas : les conflits que cet ordre de balayage accumule tombent en bas.",
     loading: "Chargement du moteur…",
   },
   es: {
     title: "El índice de rotura, en vivo",
     intro:
-      "Un puzzle 8×8 fijo, el solucionador real ejecutándose en tu navegador. Una rotura —un único desajuste permitido— solo se admite en las filas inferiores que autorices más abajo, reflejando cómo los solucionadores récord confinan las roturas a unas pocas posiciones fijas. Sin ninguna, la búsqueda estricta se estanca por debajo de un tablero completo. Autoriza una fila o dos y lo completa, casi perfecto.",
+      "Un puzzle 8×8 fijo, el solucionador real ejecutándose en tu navegador. Una rotura (un único desajuste permitido) solo se admite en las filas inferiores que autorices más abajo, reflejando cómo los solucionadores récord confinan las roturas a unas pocas posiciones fijas. Sin ninguna, la búsqueda estricta se estanca por debajo de un tablero completo. Autoriza una fila o dos y lo completa, casi perfecto.",
     breakRows: (n: number) => `Filas con rotura autorizada (desde abajo): ${n}`,
     speed: (n: string) => `Velocidad: ${n} pasos/s`,
     run: "Ejecutar",
@@ -79,12 +79,12 @@ const T = {
     score: "aristas coincidentes",
     breaks: "roturas usadas",
     placed: "piezas colocadas",
-    statusStuckRun: "Estricta (sin roturas): la búsqueda sigue persiguiendo una pieza perfecta que nunca hallará para las últimas filas — no puede completar el tablero.",
+    statusStuckRun: "Estricta (sin roturas): la búsqueda sigue persiguiendo una pieza perfecta que nunca hallará para las últimas filas, así que no puede completar el tablero.",
     statusStuckStall: "Estricta (sin roturas) estancada: no puede rellenar el tablero con todas las aristas coincidentes. Se muestra el mejor resultado alcanzado.",
     statusDone: (s: number, b: number) =>
-      `Completado — ${s} de ${MAX_SCORE} aristas, pagando ${b} rotura${b === 1 ? "" : "s"}, todas en las filas autorizadas. Esos pocos desajustes autorizados son justo lo que permite terminar el tablero.`,
+      `Completado: ${s} de ${MAX_SCORE} aristas, pagando ${b} rotura${b === 1 ? "" : "s"}, todas en las filas autorizadas. Esos pocos desajustes autorizados son justo lo que permite terminar el tablero.`,
     statusRunning: "Buscando…",
-    note: "Prueba primero con una sola fila: dónde se autorizan las roturas importa tanto como cuántas. Reparte esa misma cantidad arriba y el tablero no terminará — los conflictos que este orden de recorrido acumula caen abajo.",
+    note: "Prueba primero con una sola fila: dónde se autorizan las roturas importa tanto como cuántas. Reparte esa misma cantidad arriba y el tablero no terminará: los conflictos que este orden de recorrido acumula caen abajo.",
     loading: "Cargando el motor…",
   },
 };
@@ -150,7 +150,7 @@ export function BreakIndexLab() {
 
   useEffect(() => {
     // rebuild() constructs the WASM break-solver (an external system) and seeds
-    // the displayed board/score from it — a legitimate initialize-from-external.
+    // the displayed board/score from it: a legitimate initialize-from-external.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     rebuild();
     return () => {

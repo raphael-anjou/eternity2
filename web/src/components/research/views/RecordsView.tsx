@@ -15,16 +15,23 @@ import {
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { KNOWN_BOARDS } from "@/data/known-boards";
-import { RECORDS, type RecordRow } from "@/data/records-timeline";
+import { RECORDS, STRICT_RECORD_ROW, type RecordRow } from "@/data/records-timeline";
 import { RECORD_BOARDS } from "@/data/record-boards";
 import { FIVE_CLUE_CENSUS_2026 } from "@/data/community-boards-2026";
 import { RecordTimeline } from "@/components/research/RecordTimeline";
 
 // Records we have a real, bundled board for (e2.bucas.name viewer data) get a
 // clickable preview into our own /viewer. Keyed by the record row's `board`.
-const BOARD_PARAMS: Record<string, string> = Object.fromEntries(
-  KNOWN_BOARDS.map((b) => [b.id, b.params]),
-);
+// The strict five-clue 466 is not in the viewer's bundled set, so its edges are
+// added here: a copy of `board_edges` in
+// research/topics/record-boards/community/fiveclue-466-2c037e70f7e9.json, which
+// `just research-record-boards-pieces` re-verifies from pieces and rotations.
+const STRICT_466_PARAMS =
+  "puzzle=FiveClue_466_2c037e70f7e9&board_w=16&board_h=16&board_edges=abdaafubafufadufaftdacnfaepcabteabgbabjbaeqbacqeadgcaendaeteaabedhdauqlhuiwqujsitrujnkvrpgnktnpggrinjkgrqtjkqqwtgqmqngwqtrkgbacrdofalnkowlmnslrluqrlvntqnvjnpnsvigpngjigjrijwmmrmupmwswukppscacpfqeakwhqmqhwrpnqrilptvvijshvsskspgmsigtgikkgmnrkpgnnwwvgppvwcadpeueahhruhunhnkoulwokvlrwhwqlksmwmtrstlqtkpllroppnjrovomjvmjodabmemfarmhmnlomouploujurijuqphimonprrmoqunrlplupjppttpjmqntjskqbacsfqfahmkqorhmphhrjqphjklqhvrkntovmsutnplslmtppjnmprsjphkrkprhcabpfvcakvwvhunvhwkupmiwlljmrqwloriqusgrlgostnqgnnsnspwnkrwpqpqrbaepchbawjhhnthjkvrtijnvjlijwmulijjmgwvjollwqiklstjiwvwtwlwvqovjeabobtfahjlthukjrhounlvhiwiluiowjvvivlwvloglkqmonqoqwinqwgiivvlgbacvfhcalsuhknhsouqnvusuisouoqwsvgtqwstggvgsmqlvosnqntksijpjttkmcadtckfauwokhptwqgmpsqugooiqwmsotrvmtrgrglorlkilnvokkokvpstokigmdadifjbaosujthusmwuhushwiukssrtuvwkrgsjwoiisigqiomnikrvmtrqrgtmrdaepbjfaumhjujvmuhsjhlghkvultkuvkntkjminiommqtjonlktirilqvprmtlgeadtfwdahtrwvphtsuvpgoluuvgouwovtgiwimhgmsomjgiskoggiqwophsslsnhdadsdcaarfachbafveablfaegfafoeafibaehcabocacidacgdadweadseaencaedaac";
+const BOARD_PARAMS: Record<string, string> = {
+  ...Object.fromEntries(KNOWN_BOARDS.map((b) => [b.id, b.params])),
+  FiveClue_466_2c037e70f7e9: STRICT_466_PARAMS,
+};
 
 // Every board id that a headline record row already points at. The sibling
 // table below shows the KNOWN_BOARDS that are NOT one of these: independent
@@ -52,19 +59,19 @@ const PROJECT_BEST = [...RECORD_BOARDS].sort((a, b) => b.score - a.score);
 // distilled from ~11,500 groups.io messages (2007–2026) + the Discord archive
 // + 124 decoded community boards. The flag distinguishes boards on the
 // official pieces under the contest's own rules (only the starter piece was
-// mandatory — TOMY's entry form listed piece numbers only, see groups.io
+// mandatory: TOMY's entry form listed piece numbers only, see groups.io
 // #11046) from boards on different or mixed piece sets. Several headline
 // "480" boards are NOT the official puzzle. Note: none of the record boards
 // from 468 up respect the four optional clue placements; boards that do are
-// tracked as "strict 5-clue" in the method text (best known: 465, Benjamin
-// Riotte's community fleet 2026, beating his own 464 and Gauthier's 460 of
-// 2023). Verified at board level against the archive (digest 0014) and the
-// groups.io thread (topic 120056886).
+// tracked as "strict 5-clue" (best known: 466, board FiveClue_466_2c037e70f7e9
+// of the Eternity@Home library, re-verified from pieces and rotations in
+// research/topics/record-boards; before it the fleet's 465 of August 2026,
+// Riotte's 464 of July 2026 and Gauthier's 460 of 2023).
 const T = {
   en: {
     bestTitle: "The state of the art",
     best:
-      "The community ceiling on the official puzzle is 470 of 480 matched edges (Joshua Blackwood, 2021, tied once since by Jef Bucas, December 2024). The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime, including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately: the best known is 465 (Benjamin Riotte's community fleet, August 2026), reached in two steps that ended more than three years of Bruno Gauthier's 460, first Riotte's own 464 in July and then the 465 line, of which the shared fleet has since produced many distinct boards. The full solution (480) has never been found; the 10-edge gap on the open record has stood since 2021.",
+      "The community ceiling on the official puzzle is 470 of 480 matched edges (Joshua Blackwood, 2021, tied once since by Jef Bucas, December 2024). The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime, including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately. That line moved fast in 2026: Benjamin Riotte's 464 in July ended more than three years of Bruno Gauthier's 460, the shared five-clue fleet reached 465 in August, and the best known is now 466 (14 broken edges), a board in the Eternity@Home public board library that the library shows as found by \"Jef\" on 19 September 2026, re-verified on this site from the official pieces with all five clues at their official cells and rotations. The library listed 14 boards at 466 on 13 November 2026; one of them was checked here. The full solution (480) has never been found; the 10-edge gap on the open record has stood since 2021.",
     bestProject:
       "This project's own boards reach 460 to 463 of 480 on the same puzzle: a few edges short of the community ceiling, in the same starter-only regime, and every one recomputed from its own edges and openable in the viewer.",
     bestProjectLink: "See the project's boards plotted against the community ceiling",
@@ -92,7 +99,7 @@ const T = {
     siblingIntro:
       "Independent ties and near-misses that carry a real, re-scorable board but never took a timeline row of their own: the extra 469s from the Blackwood-solver runs, the second 470, and a deep partial. Each opens in the viewer.",
     siblingCols: { board: "Board", score: "Score", open: "Open" },
-    censusStripTitle: "Distinct five-clue boards near the top",
+    censusStripTitle: "Distinct five-clue boards near the top, July 2026 census",
     censusStripNote:
       "The author's own count of distinct boards at each score. Many at the lower scores are close variants within one basin, so the totals overstate the number of structurally independent solutions.",
     censusStripBoards: "boards",
@@ -100,7 +107,7 @@ const T = {
       "Mailing-list sources link the exact announcement message in the eternity2 groups.io archive; reading them requires a free groups.io account. Entries without a link were only reported in places with no public archive (e.g. Discord).",
     falsePositiveTitle: "Why some “480” boards don't count",
     falsePositive:
-      "The real puzzle is the board TOMY sold: 256 specific pieces, a 16×16 frame, 22 colors, the starter piece pinned at I8 (the four other clues were optional aids under the contest rules). Several boards posted as 480/480 use different piece sets — Brendan Owen's smaller Clue-1 / Clue-2 designs, the unframed TopCoder variant, or boards mixing pieces from multiple expansion sets. They have solutions; those solutions do not transfer to the official puzzle. The official 480 remains unfound.",
+      "The real puzzle is the board TOMY sold: 256 specific pieces, a 16×16 frame, 22 colors, the starter piece pinned at I8 (the four other clues were optional aids under the contest rules). Several boards posted as 480/480 use different piece sets: Brendan Owen's smaller Clue-1 / Clue-2 designs, the unframed TopCoder variant, or boards mixing pieces from multiple expansion sets. They have solutions; those solutions do not transfer to the official puzzle. The official 480 remains unfound.",
     methodsTitle: "The key algorithms",
     methodsDeadEnds: "The approaches Blackwood and others reported did not help (SAT solvers, GPUs, pre-solved caches) are catalogued in full on the",
     methodsDeadEndsLink: "dead ends page",
@@ -111,7 +118,7 @@ const T = {
       ],
       [
         "Verhaard set-annealing (2008)",
-        "Louis Verhaard's 467 annealed on the composition of piece sets between regions, not just on positions — an early metaheuristic that held the record for over a decade.",
+        "Louis Verhaard's 467 annealed on the composition of piece sets between regions, not just on positions: an early metaheuristic that held the record for over a decade.",
       ],
       [
         "Blackwood heuristic-schedule + break-index (2020)",
@@ -129,13 +136,13 @@ const T = {
     castTitle: "Cast of contributors",
     castNote: "A non-exhaustive who's-who of the people behind the records and the infrastructure.",
     cast: [
-      ["Peter McGavin", "The 469 (2020, Blackwood's solver on ~200 cores); his own auto-generated C engines and the complex-theory implementations — the community's throughput and theory anchor."],
+      ["Peter McGavin", "The 469 (2020, Blackwood's solver on ~200 cores); his own auto-generated C engines and the complex-theory implementations; the community's throughput and theory anchor."],
       ["Joshua Blackwood", "The 469/470-class algorithm (heuristic schedule + break-index); the modern standard."],
-      ["Jef Bucas", "libblackwood (a C port of Blackwood's solver) and bucas.name — the board viewer + URL format the community shares boards in."],
+      ["Jef Bucas", "libblackwood (a C port of Blackwood's solver) and bucas.name, the board viewer + URL format the community shares boards in."],
       ["Louis Verhaard", "The 467 record (2008) and set-composition swap-annealing."],
       ["Brendan Owen & Günter Stertenbrink", "The 2007 17+5 hardness estimate: about 17 interior colours puts a 16×16 near one expected solution."],
       ["Marijn Heule", "The canonical SAT encoding (2008) and ongoing SAT experiments."],
-      ["Al Hopfer", "The NS-1 deficit invariant (2022) — the border↔interior multiset-equality condition; Carlos Fernandez showed 14×14 quadrants then solve in minutes."],
+      ["Al Hopfer", "The NS-1 deficit invariant (2022): the border↔interior multiset-equality condition; Carlos Fernandez showed 14×14 quadrants then solve in minutes."],
       ["Ramon van der Werf", "A public solver blog and Wang-tile analysis of the puzzle."],
     ],
     linkBlackwoodSrc: "Blackwood's solver (original C#)",
@@ -149,7 +156,7 @@ const T = {
   fr: {
     bestTitle: "L'état de l'art",
     best:
-      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 (Joshua Blackwood, 2021, égalé une fois depuis par Jef Bucas, décembre 2024). Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule », y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part : le meilleur connu est 465 (la flotte communautaire de Benjamin Riotte, août 2026), atteint en deux temps qui ont mis fin à plus de trois ans de règne du 460 de Bruno Gauthier, d'abord le 464 de Riotte en juillet, puis la ligne des 465, dont la flotte partagée a depuis sorti de nombreux plateaux distincts. La solution complète (480) reste introuvée ; l'écart de 10 arêtes sur le record ouvert tient depuis 2021.",
+      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 (Joshua Blackwood, 2021, égalé une fois depuis par Jef Bucas, décembre 2024). Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule », y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part. Cette ligne a vite bougé en 2026 : le 464 de Benjamin Riotte, en juillet, a mis fin à plus de trois ans de règne du 460 de Bruno Gauthier ; la flotte partagée à cinq indices a atteint 465 en août ; et le meilleur connu est désormais 466 (14 arêtes cassées), un plateau de la bibliothèque publique d'Eternity@Home, qui l'attribue à « Jef » à la date du 19 septembre 2026, revérifié sur ce site à partir des pièces officielles, les cinq indices à leurs cases et rotations officielles. La bibliothèque recensait 14 plateaux à 466 le 13 novembre 2026 ; un seul a été vérifié ici. La solution complète (480) reste introuvée ; l'écart de 10 arêtes sur le record ouvert tient depuis 2021.",
     bestProject:
       "Les plateaux propres à ce projet atteignent 460 à 463 sur 480 sur le même puzzle : à quelques arêtes du plafond communautaire, dans le même régime « pièce de départ seule », et chacun recalculé depuis ses propres arêtes et ouvrable dans le visualiseur.",
     bestProjectLink: "Voir les plateaux du projet tracés face au plafond communautaire",
@@ -177,7 +184,7 @@ const T = {
     siblingIntro:
       "Des égalités indépendantes et des quasi-records qui portent un vrai plateau re-notable mais n'ont jamais pris de ligne propre dans la chronologie : les 469 supplémentaires issus des runs du solveur de Blackwood, le second 470, et un partiel profond. Chacun s'ouvre dans le visualiseur.",
     siblingCols: { board: "Plateau", score: "Score", open: "Ouvrir" },
-    censusStripTitle: "Plateaux distincts à cinq indices, en haut de l'échelle",
+    censusStripTitle: "Plateaux distincts à cinq indices, en haut de l'échelle (recensement de juillet 2026)",
     censusStripNote:
       "Le décompte de l'auteur des plateaux distincts à chaque score. Beaucoup, aux scores plus bas, sont des variantes proches d'un même bassin ; les totaux surestiment donc le nombre de solutions structurellement indépendantes.",
     censusStripBoards: "plateaux",
@@ -185,7 +192,7 @@ const T = {
       "Les sources « groups.io » pointent vers le message d'annonce exact dans les archives de la liste eternity2 ; leur lecture demande un compte groups.io gratuit. Les entrées sans lien n'ont été rapportées que dans des espaces sans archive publique (Discord, par exemple).",
     falsePositiveTitle: "Pourquoi certains plateaux « 480 » ne comptent pas",
     falsePositive:
-      "Le vrai puzzle est le plateau vendu par TOMY : 256 pièces précises, un cadre 16×16, 22 couleurs, la pièce de départ épinglée en I8 (les quatre autres indices n'étaient que des aides facultatives selon le règlement). Plusieurs plateaux publiés en 480/480 utilisent d'autres jeux de pièces — les designs Clue-1 / Clue-2 plus petits de Brendan Owen, la variante non encadrée de TopCoder, ou des plateaux mélangeant des pièces de plusieurs jeux d'extension. Ils ont des solutions ; celles-ci ne se transposent pas au puzzle officiel. Le 480 officiel reste introuvé.",
+      "Le vrai puzzle est le plateau vendu par TOMY : 256 pièces précises, un cadre 16×16, 22 couleurs, la pièce de départ épinglée en I8 (les quatre autres indices n'étaient que des aides facultatives selon le règlement). Plusieurs plateaux publiés en 480/480 utilisent d'autres jeux de pièces : les designs Clue-1 / Clue-2 plus petits de Brendan Owen, la variante non encadrée de TopCoder, ou des plateaux mélangeant des pièces de plusieurs jeux d'extension. Ils ont des solutions ; celles-ci ne se transposent pas au puzzle officiel. Le 480 officiel reste introuvé.",
     methodsTitle: "Les algorithmes clés",
     methodsDeadEnds: "Les approches que Blackwood et d'autres ont signalées comme sans effet (solveurs SAT, GPU, caches pré-résolus) sont recensées en détail sur la",
     methodsDeadEndsLink: "page des impasses",
@@ -196,7 +203,7 @@ const T = {
       ],
       [
         "Recuit sur jeux de Verhaard (2008)",
-        "Le 467 de Louis Verhaard recuit sur la composition des jeux de pièces entre régions, pas seulement sur les positions — une métaheuristique précoce qui a tenu le record plus d'une décennie.",
+        "Le 467 de Louis Verhaard recuit sur la composition des jeux de pièces entre régions, pas seulement sur les positions : une métaheuristique précoce qui a tenu le record plus d'une décennie.",
       ],
       [
         "Schedule heuristique + break-index de Blackwood (2020)",
@@ -214,13 +221,13 @@ const T = {
     castTitle: "Les contributeurs",
     castNote: "Un who's-who non exhaustif des personnes derrière les records et l'infrastructure.",
     cast: [
-      ["Peter McGavin", "Le 469 (2020, solveur de Blackwood sur ~200 cœurs) ; ses moteurs C auto-générés et ses implémentations de la théorie complexe — l'ancre débit et théorie de la communauté."],
+      ["Peter McGavin", "Le 469 (2020, solveur de Blackwood sur ~200 cœurs) ; ses moteurs C auto-générés et ses implémentations de la théorie complexe ; l'ancre débit et théorie de la communauté."],
       ["Joshua Blackwood", "L'algorithme de classe 469/470 (schedule heuristique + break-index) ; le standard moderne."],
-      ["Jef Bucas", "libblackwood (un port C du solveur de Blackwood) et bucas.name — le visualiseur et le format d'URL avec lequel la communauté partage les plateaux."],
+      ["Jef Bucas", "libblackwood (un port C du solveur de Blackwood) et bucas.name, le visualiseur et le format d'URL avec lequel la communauté partage les plateaux."],
       ["Louis Verhaard", "Le record 467 (2008) et le recuit par composition de jeux."],
       ["Brendan Owen & Günter Stertenbrink", "L'estimation de difficulté 17+5 de 2007 : environ 17 couleurs intérieures placent un 16×16 près d'une solution attendue."],
       ["Marijn Heule", "L'encodage SAT canonique (2008) et des expériences SAT continues."],
-      ["Al Hopfer", "L'invariant de déficit NS-1 (2022) — la condition d'égalité des multisets bord↔intérieur ; Carlos Fernandez a montré que les quadrants 14×14 se résolvent alors en minutes."],
+      ["Al Hopfer", "L'invariant de déficit NS-1 (2022) : la condition d'égalité des multisets bord↔intérieur ; Carlos Fernandez a montré que les quadrants 14×14 se résolvent alors en minutes."],
       ["Ramon van der Werf", "Un blog public de solveur et une analyse en tuiles de Wang du puzzle."],
     ],
     linkBlackwoodSrc: "Le solveur de Blackwood (C# original)",
@@ -234,7 +241,7 @@ const T = {
   es: {
     bestTitle: "El estado del arte",
     best:
-      "El techo de la comunidad sobre el puzzle oficial es de 470 aristas coincidentes de 480 (Joshua Blackwood, 2021, igualado una sola vez desde entonces por Jef Bucas, diciembre de 2024). El reglamento del concurso solo fijaba la pieza de partida (el formulario listaba números de pieza, no rotaciones), y todos los tableros récord a partir de 468 pertenecen a ese régimen de «solo pieza de partida», incluidos los 469 citados durante mucho tiempo como techo; los 470 son el mismo puzzle, no una variante más fácil. Los tableros que además respetan las cuatro pistas opcionales se registran aparte: el mejor conocido es 465 (la flota comunitaria de Benjamin Riotte, agosto de 2026), alcanzado en dos pasos que pusieron fin a más de tres años del 460 de Bruno Gauthier: primero el 464 de Riotte en julio y luego la línea de los 465, de la que la flota compartida ha sacado ya muchos tableros distintos. La solución completa (480) nunca se ha encontrado; la diferencia de 10 aristas en el récord abierto se mantiene desde 2021.",
+      "El techo de la comunidad sobre el puzzle oficial es de 470 aristas coincidentes de 480 (Joshua Blackwood, 2021, igualado una sola vez desde entonces por Jef Bucas, diciembre de 2024). El reglamento del concurso solo fijaba la pieza de partida (el formulario listaba números de pieza, no rotaciones), y todos los tableros récord a partir de 468 pertenecen a ese régimen de «solo pieza de partida», incluidos los 469 citados durante mucho tiempo como techo; los 470 son el mismo puzzle, no una variante más fácil. Los tableros que además respetan las cuatro pistas opcionales se registran aparte. Esa línea avanzó deprisa en 2026: el 464 de Benjamin Riotte, en julio, puso fin a más de tres años del 460 de Bruno Gauthier; la flota compartida de cinco pistas llegó a 465 en agosto; y el mejor conocido es ahora 466 (14 aristas rotas), un tablero de la biblioteca pública de Eternity@Home, que lo atribuye a «Jef» con fecha del 19 de septiembre de 2026, verificado de nuevo en este sitio a partir de las piezas oficiales, con las cinco pistas en sus casillas y rotaciones oficiales. La biblioteca listaba 14 tableros con 466 el 13 de noviembre de 2026; aquí solo se comprobó uno. La solución completa (480) nunca se ha encontrado; la diferencia de 10 aristas en el récord abierto se mantiene desde 2021.",
     bestProject:
       "Los tableros propios de este proyecto alcanzan de 460 a 463 de 480 en el mismo puzzle: a pocas aristas del techo de la comunidad, en el mismo régimen de «solo pieza de partida», y cada uno recalculado a partir de sus propias aristas y abrible en el visor.",
     bestProjectLink: "Ver los tableros del proyecto trazados frente al techo de la comunidad",
@@ -262,7 +269,7 @@ const T = {
     siblingIntro:
       "Empates independientes y casi-récords que llevan un tablero real y recalculable pero que nunca ocuparon una fila propia en la cronología: los 469 adicionales de las ejecuciones del solucionador de Blackwood, el segundo 470 y un parcial profundo. Cada uno se abre en el visor.",
     siblingCols: { board: "Tablero", score: "Puntuación", open: "Abrir" },
-    censusStripTitle: "Tableros distintos de cinco pistas en la cima",
+    censusStripTitle: "Tableros distintos de cinco pistas en la cima (recuento de julio de 2026)",
     censusStripNote:
       "El recuento del propio autor de tableros distintos en cada puntuación. Muchos, en las puntuaciones más bajas, son variantes cercanas dentro de una misma cuenca, de modo que los totales sobrestiman el número de soluciones estructuralmente independientes.",
     censusStripBoards: "tableros",
@@ -270,7 +277,7 @@ const T = {
       "Las fuentes de la lista de correo enlazan al mensaje exacto de anuncio en el archivo de eternity2 en groups.io; leerlas requiere una cuenta gratuita de groups.io. Las entradas sin enlace solo se comunicaron en espacios sin archivo público (por ejemplo, Discord).",
     falsePositiveTitle: "Por qué algunos tableros «480» no cuentan",
     falsePositive:
-      "El puzzle real es el tablero que vendió TOMY: 256 piezas concretas, un marco de 16×16, 22 colores, la pieza de partida fijada en I8 (las otras cuatro pistas eran ayudas opcionales según el reglamento). Varios tableros publicados como 480/480 usan otros conjuntos de piezas —los diseños Clue-1 / Clue-2 más pequeños de Brendan Owen, la variante sin marco de TopCoder, o tableros que mezclan piezas de varios conjuntos de expansión—. Tienen solución, pero esa solución no se traslada al puzzle oficial. El 480 oficial sigue sin encontrarse.",
+      "El puzzle real es el tablero que vendió TOMY: 256 piezas concretas, un marco de 16×16, 22 colores, la pieza de partida fijada en I8 (las otras cuatro pistas eran ayudas opcionales según el reglamento). Varios tableros publicados como 480/480 usan otros conjuntos de piezas: los diseños Clue-1 / Clue-2 más pequeños de Brendan Owen, la variante sin marco de TopCoder, o tableros que mezclan piezas de varios conjuntos de expansión. Tienen solución, pero esa solución no se traslada al puzzle oficial. El 480 oficial sigue sin encontrarse.",
     methodsTitle: "Los algoritmos clave",
     methodsDeadEnds: "Los enfoques que Blackwood y otros reportaron como inútiles (solucionadores SAT, GPU, cachés preresueltas) están catalogados en detalle en la",
     methodsDeadEndsLink: "página de callejones sin salida",
@@ -281,7 +288,7 @@ const T = {
       ],
       [
         "Recocido sobre conjuntos de Verhaard (2008)",
-        "El 467 de Louis Verhaard aplicaba recocido a la composición de los conjuntos de piezas entre regiones, no solo a las posiciones —una metaheurística temprana que mantuvo el récord durante más de una década.",
+        "El 467 de Louis Verhaard aplicaba recocido a la composición de los conjuntos de piezas entre regiones, no solo a las posiciones: una metaheurística temprana que mantuvo el récord durante más de una década.",
       ],
       [
         "Programación heurística + índice de ruptura de Blackwood (2020)",
@@ -299,13 +306,13 @@ const T = {
     castTitle: "Elenco de colaboradores",
     castNote: "Un quién es quién no exhaustivo de las personas detrás de los récords y la infraestructura.",
     cast: [
-      ["Peter McGavin", "El 469 (2020, con el solucionador de Blackwood sobre ~200 núcleos); sus propios motores en C generados automáticamente y las implementaciones de la teoría compleja —el ancla de rendimiento y teoría de la comunidad."],
+      ["Peter McGavin", "El 469 (2020, con el solucionador de Blackwood sobre ~200 núcleos); sus propios motores en C generados automáticamente y las implementaciones de la teoría compleja; el ancla de rendimiento y teoría de la comunidad."],
       ["Joshua Blackwood", "El algoritmo de clase 469/470 (programación heurística + índice de ruptura); el estándar moderno."],
-      ["Jef Bucas", "libblackwood (un port en C del solucionador de Blackwood) y bucas.name —el visor de tableros y el formato de URL con el que la comunidad comparte tableros."],
+      ["Jef Bucas", "libblackwood (un port en C del solucionador de Blackwood) y bucas.name, el visor de tableros y el formato de URL con el que la comunidad comparte tableros."],
       ["Louis Verhaard", "El récord 467 (2008) y el recocido por intercambio de composición de conjuntos."],
       ["Brendan Owen & Günter Stertenbrink", "La estimación de dificultad 17+5 de 2007: unos 17 colores interiores sitúan un 16×16 cerca de una solución esperada."],
       ["Marijn Heule", "La codificación SAT canónica (2008) y experimentos SAT en curso."],
-      ["Al Hopfer", "El invariante de déficit NS-1 (2022) —la condición de igualdad de multiconjuntos borde↔interior; Carlos Fernandez demostró que los cuadrantes 14×14 se resuelven entonces en minutos."],
+      ["Al Hopfer", "El invariante de déficit NS-1 (2022): la condición de igualdad de multiconjuntos borde↔interior; Carlos Fernandez demostró que los cuadrantes 14×14 se resuelven entonces en minutos."],
       ["Ramon van der Werf", "Un blog público sobre solucionadores y un análisis del puzzle con teselas de Wang."],
     ],
     linkBlackwoodSrc: "El solucionador de Blackwood (C# original)",
@@ -324,56 +331,61 @@ const BADGE: Record<RecordRow["canonical"], string> = {
 };
 
 // Numbered references for the contestable record claims. The community records
-// (468/469/470) are not in any peer-reviewed or encyclopedic source — they live
-// in the mailing list and on the board viewer — so we point at the primary
+// (468/469/470) are not in any peer-reviewed or encyclopedic source (they live
+// in the mailing list and on the board viewer), so we point at the primary
 // community sources directly and flag what mainstream sources do and don't say.
 // Exact community sources. The 468/469/470/460/464/465 boards are not in any
-// peer-reviewed or encyclopedic source — they were announced on the mailing
-// list — so we link the specific groups.io messages, using the archive's
+// peer-reviewed or encyclopedic source (they were announced on the mailing
+// list), so we link the specific groups.io messages, using the archive's
 // sequential message numbers (msg_num; author, date and subject all verified
 // against our full message export). Reading a message needs a free groups.io
-// login — anonymous access to the archive is login-walled.
+// login: anonymous access to the archive is login-walled.
 const GROUPS_IO = "https://groups.io/g/eternity2";
 const REFS: { href: string; label: string }[] = [
   {
     href: `${GROUPS_IO}/message/10033`,
     label:
-      "468 — Jef Bucas, “New best solution found (12 breaks)”, eternity2@groups.io, 2020-08-31 (Blackwood's board, relayed to the group).",
+      "468: Jef Bucas, “New best solution found (12 breaks)”, eternity2@groups.io, 2020-08-31 (Blackwood's board, relayed to the group).",
   },
   {
     href: `${GROUPS_IO}/message/10045`,
     label:
-      "469 — Peter McGavin, “EternityII Solver” thread, eternity2@groups.io, 2020-09-09: “New record score of 469! Only 11 breaks!” — the ceiling until the 470.",
+      "469: Peter McGavin, “EternityII Solver” thread, eternity2@groups.io, 2020-09-09: “New record score of 469! Only 11 breaks!”, the ceiling until the 470.",
   },
   {
     href: `${GROUPS_IO}/message/10117`,
     label:
-      "470 — Joshua Blackwood, “470 Found”, eternity2@groups.io, 2021-03-30 — same starter-only regime as the 468/469 (board-level verification: groups.io #10554); the standing record.",
+      "470: Joshua Blackwood, “470 Found”, eternity2@groups.io, 2021-03-30, same starter-only regime as the 468/469 (board-level verification: groups.io #10554); the standing record.",
   },
   {
     href: `${GROUPS_IO}/message/11074`,
     label:
-      "460 — Bruno Gauthier, “Highest points (of 480) with using all 5 (!) hints?” thread, eternity2@groups.io, 2023-03-09: the best board respecting all five clues for over three years (Eternity II Editor).",
+      "460: Bruno Gauthier, “Highest points (of 480) with using all 5 (!) hints?” thread, eternity2@groups.io, 2023-03-09: the best board respecting all five clues for over three years (Eternity II Editor).",
   },
   {
     href: `${GROUPS_IO}/message/11919`,
     label:
-      "464 — Benjamin Riotte, “Record of Eternity2 with 5 hints ?” thread, eternity2@groups.io, 2026-07-06: the strict-five-clue record from July to August 2026 (16 broken edges), all five clues at their official cells, found with his own modified-Blackwood solver; Igor Pejic reached the same 463–464 range independently in the thread.",
+      "464: Benjamin Riotte, “Record of Eternity2 with 5 hints ?” thread, eternity2@groups.io, 2026-07-06: the strict-five-clue record from July to August 2026 (16 broken edges), all five clues at their official cells, found with his own modified-Blackwood solver; Igor Pejic reached the same 463–464 range independently in the thread.",
   },
   {
     href: `${GROUPS_IO}/topic/120997660`,
     label:
-      "465 — Benjamin Riotte, “Join the five-clue Eternity II effort” topic, eternity2@groups.io, 2026-08-30: the standing strict-five-clue record (15 broken edges), found by the community's distributed fleet; 11 distinct 465 boards at the announcement and many more since, credited across several contributors' machines.",
+      "465: Benjamin Riotte, “Join the five-clue Eternity II effort” topic, eternity2@groups.io, 2026-08-30: the strict-five-clue record from August to September 2026 (15 broken edges), found by the community's distributed fleet; 11 distinct 465 boards at the announcement and many more since, credited across several contributors' machines.",
+  },
+  {
+    href: "https://stats.eternityathome.org/library/board/2c037e70f7e93518a48733c7aacd096226b7f23728efabd6289088b91c0945cd",
+    label:
+      "466: board FiveClue_466_2c037e70f7e9, Eternity@Home public board library, shown there as discovered by “Jef” on 2026-09-19 (retrieved 2026-11-13): the highest verified strict-five-clue board as of 2026-11-13 (14 broken edges). Re-verified from official pieces and rotations in research/topics/record-boards (just research-record-boards-pieces).",
   },
   {
     href: "https://e2.bucas.name",
     label:
-      "e2.bucas.name (Jef Bucas) — the board viewer and shared URL format; every board above can be loaded and re-scored there.",
+      "e2.bucas.name (Jef Bucas): the board viewer and shared URL format; every board above can be loaded and re-scored there.",
   },
   {
     href: "https://en.wikipedia.org/wiki/Eternity_II_puzzle",
     label:
-      "Wikipedia, “Eternity II puzzle” — documents only the encyclopedic facts: the $2M prize, the deadline of noon 31 Dec 2010, and Verhaard's 467 ($10,000). The 468+ records remain community-reported, not yet in a source Wikipedia accepts.",
+      "Wikipedia, “Eternity II puzzle”: documents only the encyclopedic facts: the $2M prize, the deadline of noon 31 Dec 2010, and Verhaard's 467 ($10,000). The 468+ records remain community-reported, not yet in a source Wikipedia accepts.",
   },
 ];
 
@@ -389,11 +401,10 @@ function Cite({ n }: { n: number }) {
 }
 
 // The community anchor rows for the "where this project stands" table, pulled
-// from the timeline so they never drift from it: the standing open record (470)
-// and the standing strict five-clue record (465, flagged on the row itself
-// because that line has many boards rather than one bundled artifact).
+// from the timeline so they never drift from it: the standing open record and
+// the standing strict five-clue record (flagged on its row with strictRecord).
 const COMMUNITY_OPEN = RECORDS.find((r) => r.board === "Joshua_Blackwood_470");
-const COMMUNITY_STRICT = RECORDS.find((r) => r.strictRecord);
+const COMMUNITY_STRICT = STRICT_RECORD_ROW;
 
 export function RecordsView() {
   const t = useT(T);
@@ -403,8 +414,10 @@ export function RecordsView() {
         <h2 className="text-2xl font-semibold tracking-tight">{t.bestTitle}</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
           {t.best}
-          <Cite n={2} />
+          <Cite n={3} />
+          <Cite n={5} />
           <Cite n={6} />
+          <Cite n={7} />
         </p>
         <p className="text-sm leading-relaxed text-muted-foreground">{t.bestProject}</p>
         <div className="flex flex-col gap-1.5 text-sm">
@@ -468,9 +481,18 @@ export function RecordsView() {
                   </span>
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
-                  <LocalizedLink to="/research/community/boards" className="text-sm underline underline-offset-2 hover:text-foreground">
-                    {t.standsViewCommunity}
-                  </LocalizedLink>
+                  {COMMUNITY_STRICT.board && BOARD_PARAMS[COMMUNITY_STRICT.board] ? (
+                    <LocalizedLink
+                      to={`/viewer?${BOARD_PARAMS[COMMUNITY_STRICT.board]}`}
+                      className="text-sm underline underline-offset-2 hover:text-foreground"
+                    >
+                      {t.view}
+                    </LocalizedLink>
+                  ) : (
+                    <LocalizedLink to="/research/community/boards" className="text-sm underline underline-offset-2 hover:text-foreground">
+                      {t.standsViewCommunity}
+                    </LocalizedLink>
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -549,7 +571,7 @@ export function RecordsView() {
                       {r.source.label}
                     </a>
                   ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
+                    <span className="text-sm text-muted-foreground">–</span>
                   )}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
@@ -561,7 +583,7 @@ export function RecordsView() {
                       {t.view}
                     </LocalizedLink>
                   ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
+                    <span className="text-sm text-muted-foreground">–</span>
                   )}
                 </TableCell>
               </TableRow>
@@ -626,7 +648,7 @@ export function RecordsView() {
         <h2 className="text-xl font-semibold tracking-tight">{t.falsePositiveTitle}</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
           {t.falsePositive}
-          <Cite n={2} />
+          <Cite n={9} />
         </p>
       </section>
 

@@ -18,7 +18,7 @@ const T = {
       { to: "/research", label: "Research" },
     ],
     // A flat footer link row. Its main SEO job is to give the two "money"
-    // pages that aren't in the header nav — /status and /is-it-a-scam — a
+    // pages that aren't in the header nav (/status and /is-it-a-scam) a
     // site-wide internal link (they were previously reachable only from a
     // couple of in-body links), and to spread link equity to the cornerstone
     // pages from every page on the site.
@@ -142,7 +142,7 @@ function PageTracking() {
 // On a first visit to the bare English root "/", send visitors whose preferred
 // language is not English to that language's tree (/fr, /es, …), honoring an
 // earlier explicit choice or the browser language. This must run SYNCHRONOUSLY
-// during render — not in a post-paint effect — because an effect can fire
+// during render, not in a post-paint effect, because an effect can fire
 // *after* the user has already clicked a nav link, and would then redirect away
 // from the page they navigated to (the "click The Puzzle, flicker, bounce to
 // home" bug). Rendering <Navigate> reacts to the live location, so a real
@@ -154,7 +154,7 @@ function FirstVisitRedirect() {
 }
 
 // Routes that actually use the WebAssembly engine (piece matching / solving).
-// The read-only pages — the whole research wiki, Home, Algorithms — never touch
+// The read-only pages (the whole research wiki, Home, Algorithms) never touch
 // it, so they must not pay its download + compile cost. Convert is deliberately
 // engine-free (it only reshuffles cells), so it is not listed. initEngine() is
 // idempotent, so warming again on navigation into one of these is a no-op.
@@ -248,7 +248,7 @@ export default function Layout() {
               button is invisible to crawlers (they cannot follow onClick), and
               it breaks middle-click, open-in-new-tab and "copy link". The click
               handler is still there, but only to persist the choice for the
-              first-visit redirect — navigation itself is the href's job, so it
+              first-visit redirect; navigation itself is the href's job, so it
               works with JS disabled too. hrefLang tells a crawler what it will
               find at the other end. */}
           <nav

@@ -13,9 +13,9 @@ import type { ScoreDatum } from "@/components/research/ExperimentScoreChart";
 // (EN files only) against the explore keys below; the two lists must match.
 //
 // Two provenance groups that must never be conflated:
-//   explore — the best board a method reached in exploratory runs on 8 cores,
+//   explore: the best board a method reached in exploratory runs on 8 cores,
 //             wall-clock not logged; the headline numbers the write-ups quote.
-//   bench   — the standardized single-core bench, one core, 60 s each; lower,
+//   bench:   the standardized single-core bench, one core, 60 s each; lower,
 //             and directly comparable across methods.
 export const RAPHAEL_ANJOU_SCORES: ScoreDatum[] = [
   // Group 1: the best board each method reached (explore).

@@ -14,15 +14,15 @@ import data from "@/data/repair-study.json";
 // never drift from what was measured.
 //
 // Four pieces:
-//   1. the leaderboard — mean final score per variant over ten corner-pinned
+//   1. the leaderboard: mean final score per variant over ten corner-pinned
 //      instances, coloured by FAMILY (identity, never rank), family also named
 //      in the label so colour is never the only signal;
-//   2. the lift panel — the mean gain each variant added over its own starting
+//   2. the lift panel: the mean gain each variant added over its own starting
 //      board, the repair loop's actual contribution isolated from construction;
-//   3. the stall panel — for each variant, the iteration the best last improved
+//   3. the stall panel: for each variant, the iteration the best last improved
 //      against the total iterations run, the study's headline: improvement
 //      arrives early, then the loop grinds without moving;
-//   4. the matrix — every variant as a delta over its parent, generated from the
+//   4. the matrix: every variant as a delta over its parent, generated from the
 //      engine registry, not hand-kept.
 //
 // The palette is the DFS study's validated five-hue family set, reused so the two
@@ -93,7 +93,7 @@ const CURVE_KEYS = ["random-destroy", "accept-anneal", "greedy-mismatch", "compo
 
 const T = {
   en: {
-    boardTitle: "The leaderboard — mean final score by variant",
+    boardTitle: "The leaderboard: mean final score by variant",
     boardIntro:
       "Mean matched-edge score of the board each variant finished with, over ten corner-pinned variants of the official puzzle, single core, 60 s per run. Colour marks the family; the family is named on every bar, so colour is never the only signal.",
     viewBars: "mean",
@@ -107,7 +107,7 @@ const T = {
     of: "/ 480",
     liftTitle: "What the loop added over its starting board",
     liftIntro:
-      "The same runs, but showing only the lift: the mean gain each variant made over the board it started from. This isolates the repair loop's own contribution from the construction it began with — a variant that starts high can add little and still finish high.",
+      "The same runs, but showing only the lift: the mean gain each variant made over the board it started from. This isolates the repair loop's own contribution from the construction it began with; a variant that starts high can add little and still finish high.",
     liftAxis: "mean lift (matched edges)",
     stallTitle: "Where improvement stops",
     stallIntro:
@@ -129,7 +129,7 @@ const T = {
     busy: "Drawing…",
   },
   fr: {
-    boardTitle: "Le classement — score final moyen par variante",
+    boardTitle: "Le classement : score final moyen par variante",
     boardIntro:
       "Score moyen (arêtes appariées) du plateau final de chaque variante, sur dix variantes à coins fixés du puzzle officiel, un cœur, 60 s par run. La couleur marque la famille, nommée sur chaque barre : la couleur n'est jamais le seul signal.",
     viewBars: "moyenne",
@@ -143,7 +143,7 @@ const T = {
     of: "/ 480",
     liftTitle: "Ce que la boucle a ajouté à son plateau de départ",
     liftIntro:
-      "Les mêmes runs, mais montrant seulement le gain : l'amélioration moyenne apportée par chaque variante par rapport au plateau dont elle part. Cela isole la contribution propre de la boucle de réparation de la construction initiale — une variante qui part haut peut ajouter peu et finir haut malgré tout.",
+      "Les mêmes runs, mais montrant seulement le gain : l'amélioration moyenne apportée par chaque variante par rapport au plateau dont elle part. Cela isole la contribution propre de la boucle de réparation de la construction initiale ; une variante qui part haut peut ajouter peu et finir haut malgré tout.",
     liftAxis: "gain moyen (arêtes appariées)",
     stallTitle: "Où l'amélioration s'arrête",
     stallIntro:
@@ -165,7 +165,7 @@ const T = {
     busy: "Tracé…",
   },
   es: {
-    boardTitle: "La clasificación — puntuación final media por variante",
+    boardTitle: "La clasificación: puntuación final media por variante",
     boardIntro:
       "Puntuación media (aristas coincidentes) del tablero con el que terminó cada variante, sobre diez variantes con esquinas fijadas del puzzle oficial, un solo núcleo, 60 s por ejecución. El color marca la familia, nombrada en cada barra: el color nunca es la única señal.",
     viewBars: "media",
@@ -179,7 +179,7 @@ const T = {
     of: "/ 480",
     liftTitle: "Lo que el bucle añadió sobre su tablero de partida",
     liftIntro:
-      "Las mismas ejecuciones, pero mostrando solo la mejora: la ganancia media que cada variante logró sobre el tablero del que partió. Esto aísla la contribución propia del bucle de reparación de la construcción con la que empezó — una variante que parte alto puede añadir poco y aun así terminar alto.",
+      "Las mismas ejecuciones, pero mostrando solo la mejora: la ganancia media que cada variante logró sobre el tablero del que partió. Esto aísla la contribución propia del bucle de reparación de la construcción con la que empezó; una variante que parte alto puede añadir poco y aun así terminar alto.",
     liftAxis: "mejora media (aristas coincidentes)",
     stallTitle: "Dónde se detiene la mejora",
     stallIntro:
@@ -433,9 +433,9 @@ export function RepairStudyLeaderboard() {
                     <FamilyTag color={familyFill(v.family)} label={familyLabel(v.family)} />
                   </td>
                   <td className="py-2 pr-4 text-muted-foreground">{v.delta}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums">{v.mean ?? "—"}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums">{v.mean ?? "–"}</td>
                   <td className="py-2 pr-2 text-right tabular-nums">
-                    {v.mean_lift == null ? "—" : `+${v.mean_lift}`}
+                    {v.mean_lift == null ? "–" : `+${v.mean_lift}`}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-muted-foreground">
                     {formatKM(v.mean_last_best_iter, 1000)}
@@ -444,7 +444,7 @@ export function RepairStudyLeaderboard() {
                     {formatKM(v.mean_iterations, 1000)}
                   </td>
                   <td className="py-2 text-right tabular-nums text-muted-foreground">
-                    {v.accept_rate ?? "—"}
+                    {v.accept_rate ?? "–"}
                   </td>
                 </tr>
               ))}

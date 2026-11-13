@@ -92,5 +92,5 @@ for (const file of files) {
     }
   }
 }
-if (broken === 0) console.log(`anchors OK — ${files.length} files checked, all #fragments resolve`);
+if (broken === 0) console.log(`anchors OK: ${files.length} files checked, all #fragments resolve`);
 else { console.log(`\n${broken} broken anchor(s)`); process.exit(1); }

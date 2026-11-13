@@ -4,6 +4,7 @@ import { Swatch } from "@/components/research/FamilyLegend";
 import { formatKM } from "@/lib/format";
 import { useT, useLang, pick, type Dict } from "@/i18n";
 import data from "@/data/single-core-benchmark.json";
+import { STRICT_RECORD_SCORE } from "@/data/records-timeline";
 
 // The single-core benchmark leaderboard, rendered from the committed run data
 // (web/src/data/single-core-benchmark.json, derived from the experiment's
@@ -15,13 +16,13 @@ import data from "@/data/single-core-benchmark.json";
 //   3. a per-variant heatmap across every algorithm (not just the winner).
 //
 // Bars are coloured by algorithm FAMILY (categorical identity, never by rank),
-// with a legend, so colour is never the only signal. Reference ticks mark our
-// community 470 ceiling. Throughput units differ by family
+// with a legend, so colour is never the only signal. The reference tick marks
+// the strict five-clue community record. Throughput units differ by family
 // and are never cross-compared; each row shows its own native unit.
 //
 // Algo names carry an `anjou-` ownership prefix for Raphaël's engines; the two
 // community engines (blackwood, verhaard) stay bare. The prefix is site-side
-// only — the backing engine, its registry (`run_algo --list`) and the committed
+// only: the backing engine, its registry (`run_algo --list`) and the committed
 // results.jsonl use the canonical unprefixed names, so the experiment stays
 // reproducible against those. The site JSON is generated from results.jsonl by
 // research/experiments/single-core-benchmark/scripts/make_site_json.py.
@@ -45,10 +46,9 @@ type Algo = {
 const D = data as {
   budgetS: number;
   maxScore: number;
-  community: number;
   variantIds: number[];
   // Which two rows the throughput-vs-score paradox tiles show, keyed by role.
-  // Set from the manifest (solvers.toml `paradox` tag) — never a hard-coded
+  // Set from the manifest (solvers.toml `paradox` tag), never a hard-coded
   // algo name here, so renaming/adding solvers can't break the tiles.
   paradox: { throughput?: string; quality?: string; [role: string]: string | undefined };
   algos: Algo[];
@@ -71,7 +71,7 @@ const DOMAIN_LO = 0;
 
 const T = {
   en: {
-    paradoxHead: "The result that matters — throughput is not score",
+    paradoxHead: "The result that matters: throughput is not score",
     blackwoodWho: "Blackwood backtracker",
     blackwoodSub: "the community's record algorithm",
     producerWho: "Our beam producer",
@@ -85,7 +85,7 @@ const T = {
     presetsTitle: "CSP presets, one engine, many knobs",
     presetsIntro:
       "Mean score over ten corner-pinned variants, single core, 60 s each. These are not separate solvers: they are one CSP engine (arc-consistency + a variable/value ordering) run under different presets. The best reaches ~183, less than half a contender's score, so none earns a leaderboard row.",
-    ceiling: "5-clue record 465",
+    ceiling: `5-clue record ${STRICT_RECORD_SCORE}`,
     npsUnit: "median throughput (native unit, never cross-compared)",
     heatTitle: "Every algorithm across all ten corner variants",
     heatIntro:
@@ -97,7 +97,7 @@ const T = {
     of: "/ 480",
   },
   fr: {
-    paradoxHead: "Le résultat qui compte — le débit n'est pas le score",
+    paradoxHead: "Le résultat qui compte : le débit n'est pas le score",
     blackwoodWho: "Backtracker de Blackwood",
     blackwoodSub: "l'algorithme du record communautaire",
     producerWho: "Notre producteur beam",
@@ -111,7 +111,7 @@ const T = {
     presetsTitle: "Préréglages CSP : un moteur, plusieurs réglages",
     presetsIntro:
       "Score moyen sur dix variantes à coins fixés, un cœur, 60 s chacune. Ce ne sont pas des solveurs distincts : c'est un seul moteur CSP (consistance d'arc + un ordre variable/valeur) lancé sous différents préréglages. Le meilleur atteint ~183, moins de la moitié du score d'un prétendant ; aucun n'obtient donc de ligne au classement.",
-    ceiling: "record 5 indices 465",
+    ceiling: `record 5 indices ${STRICT_RECORD_SCORE}`,
     npsUnit: "débit médian (unité native, jamais comparée entre familles)",
     heatTitle: "Chaque algorithme sur les dix variantes de coins",
     heatIntro:
@@ -123,7 +123,7 @@ const T = {
     of: "/ 480",
   },
   es: {
-    paradoxHead: "El resultado que importa — el rendimiento no es la puntuación",
+    paradoxHead: "El resultado que importa: el rendimiento no es la puntuación",
     blackwoodWho: "Backtracker de Blackwood",
     blackwoodSub: "el algoritmo del récord de la comunidad",
     producerWho: "Nuestro productor beam",
@@ -137,7 +137,7 @@ const T = {
     presetsTitle: "Preajustes CSP: un motor, muchos ajustes",
     presetsIntro:
       "Puntuación media sobre diez variantes con esquinas fijadas, un solo núcleo, 60 s cada una. No son solucionadores distintos: son un único motor CSP (consistencia de arco + un orden de variable/valor) ejecutado con distintos preajustes. El mejor alcanza ~183, menos de la mitad de la puntuación de un contendiente, así que ninguno obtiene una fila en la clasificación.",
-    ceiling: "récord 5 pistas 465",
+    ceiling: `récord 5 pistas ${STRICT_RECORD_SCORE}`,
     npsUnit: "rendimiento mediano (unidad nativa, nunca comparada entre familias)",
     heatTitle: "Cada algoritmo sobre las diez variantes de esquinas",
     heatIntro:
@@ -152,7 +152,7 @@ const T = {
 
 // Compact throughput number, null-safe: 40.6M, 273K.
 function fmtNps(nps: number | null, unit: string): string {
-  return nps == null ? "—" : `${formatKM(nps)} ${unit}`;
+  return nps == null ? "–" : `${formatKM(nps)} ${unit}`;
 }
 
 // Heatmap cell colour: a single-hue sequential ramp over the score range, so a
@@ -161,7 +161,7 @@ function fmtNps(nps: number | null, unit: string): string {
 // The domain is derived from the cells actually rendered, never hard-coded: the
 // two views span very different ranges (contenders sit in a tight 431–451 band,
 // the presets spread 35–349), and the set of engines changes as they are added
-// or withheld. A fixed domain silently rots — it used to end at the producer's
+// or withheld. A fixed domain silently rots: it used to end at the producer's
 // 456, so once that engine left the grid nothing reached full saturation and
 // the palest cell clamped below the floor.
 type HeatScale = (v: number | null) => string;
@@ -180,9 +180,9 @@ function makeHeatScale(values: number[]): HeatScale {
 }
 
 // Two views of the same committed run data:
-//   "contenders" (default) — the headline leaderboard: only rows the manifest
+//   "contenders" (default): the headline leaderboard: only rows the manifest
 //     tags role:contender (they compete on score). Shows the paradox + verdict.
-//   "presets" — the CSP-preset study page: every other row (the AC-3 / ordering
+//   "presets": the CSP-preset study page: every other row (the AC-3 / ordering
 //     ablations of one engine, plus the naive_spiral variant). No paradox tiles;
 //     the best preset (~183) is less than half a contender's score, so it isn't
 //     a leaderboard rival, it's a same-engine ablation sweep shown on its own.
@@ -288,11 +288,11 @@ export function BenchmarkLeaderboard({
               </div>
             )}
             // These variants pin all 5 clues, so the meaningful ceiling is the
-            // 5-clue community record (465), not the all-hints 470. Anchor the
+            // strict 5-clue community record, not the open (starter-only) 470. Anchor the
             // label to the END so it grows leftward and never clips.
             referenceLines={[
               {
-                x: D.community,
+                x: STRICT_RECORD_SCORE,
                 color: "#f59e0b",
                 label: t.ceiling,
                 textAnchor: "end",
@@ -332,9 +332,9 @@ export function BenchmarkLeaderboard({
                       key={i}
                       className="px-1 py-0.5 tabular-nums text-foreground"
                       style={{ background: heatColor(s) }}
-                      title={`${a.algo} · v${String(D.variantIds[i]).padStart(2, "0")}: ${s ?? "—"}`}
+                      title={`${a.algo} · v${String(D.variantIds[i]).padStart(2, "0")}: ${s ?? "–"}`}
                     >
-                      {s ?? "—"}
+                      {s ?? "–"}
                     </td>
                   ))}
                 </tr>

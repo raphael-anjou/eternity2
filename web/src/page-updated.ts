@@ -1,5 +1,5 @@
 // Declared last-content-update date (YYYY-MM-DD) for each hand-built TSX page,
-// keyed by basename-relative path — the SAME key space as sitemap.config.ts
+// keyed by basename-relative path, the SAME key space as sitemap.config.ts
 // (PAGE_PATHS) and researchPageLastmod(). English lives at the path; every
 // language mirror (/fr, /es) shares its English source's date (same source
 // module, same content).

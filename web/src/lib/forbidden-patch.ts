@@ -5,7 +5,7 @@
 // match. ~99.72% of random interior 4-tuples are forbidden; a *valid* full board
 // has zero. The count of forbidden windows in a real board is a secondary
 // progress signal: it falls monotonically as the matched-edge score rises
-// (verified live — 470 boards ≈18, 467 boards ≈23 forbidden of 225 windows),
+// (verified live: 470 boards ≈18, 467 boards ≈23 forbidden of 225 windows),
 // and a 480 solution reaches 0.
 //
 // This is the single source of the computation used by the live demo.

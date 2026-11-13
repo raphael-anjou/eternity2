@@ -52,6 +52,7 @@ export function metaDescriptionFor(doc: Pick<ResearchDoc, "description" | "metaD
   // punctuation/space so "… ," or "…." doesn't happen.
   const slice = full.slice(0, LIMIT);
   const lastSpace = slice.lastIndexOf(" ");
+  // style-allow-em-dash: regex character class stripping trailing punctuation
   const cut = (lastSpace > 80 ? slice.slice(0, lastSpace) : slice).replace(/[\s,;:.\-–—]+$/, "");
   return cut + "…";
 }

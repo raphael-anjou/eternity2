@@ -67,7 +67,7 @@ const difficulty = stats.difficulty as DifficultyRow[];
 const pathRows = [...(stats.paths as PathRow[])].sort((a, b) => a.median - b.median);
 const spaceRows = stats.searchSpace as SpaceRow[];
 
-// One line per board size: median work vs number of colors. 3×3 is omitted —
+// One line per board size: median work vs number of colors. 3×3 is omitted:
 // it solves near-instantly and just hugs the bottom axis without adding signal.
 const SIZES = [...new Set(difficulty.map((d) => d.size))].filter((s) => s !== 3);
 const colorsDomain = [...new Set(difficulty.map((d) => d.colors))].sort((a, b) => a - b);
@@ -156,7 +156,7 @@ const T = {
         the search into deep dead ends. And every line shows something famous: a sharp{" "}
         <strong>hardness peak</strong>. Very few colors → tons of solutions, easy to stumble on
         one. Many colors → so constrained the search barely branches. The peak sits right in
-        between and, crucially, <strong>it moves to more colors as the board grows</strong>: the
+        between and, notably, <strong>it moves to more colors as the board grows</strong>: the
         6×6 line peaks at <strong>4 colors</strong>, the 7×7 line at <strong>6</strong>, the 8×8 line
         at <strong>6 to 7</strong>. At its peak the median 8×8 puzzle needs over{" "}
         <strong>2 billion</strong> piece placements, and most seeds there ran so long we had to
@@ -191,7 +191,7 @@ const T = {
     ),
     pathChartTitle: "Median nodes on the same 6×6 puzzles, by fill order (log scale)",
     pathChartNote:
-      "A subtlety worth naming (thanks to Dan Karlsson): row-major and column-major are the same order up to flipping the board across its diagonal, so over many puzzles they should cost the same — any gap between them here is sampling noise, not a real difference. The orders that genuinely differ are the ones with a different shape: a spiral, a diagonal, border-first. One caveat: the random-order bar is a lower bound, not a measured median — every sampled run hit the search cap without finishing, so its true cost is higher than shown.",
+      "A subtlety worth naming (thanks to Dan Karlsson): row-major and column-major are the same order up to flipping the board across its diagonal, so over many puzzles they should cost the same; any gap between them here is sampling noise, not a real difference. The orders that genuinely differ are the ones with a different shape: a spiral, a diagonal, border-first. One caveat: the random-order bar is a lower bound, not a measured median: every sampled run hit the search cap without finishing, so its true cost is higher than shown.",
     pathChartDeeper: (
       <>
         The same question, taken all the way on the full 16×16 puzzle, is the{" "}
@@ -363,7 +363,7 @@ const T = {
     pathChartTitle:
       "Médiane des nœuds sur les mêmes puzzles 6×6, selon le parcours de remplissage (échelle log)",
     pathChartNote:
-      "Une subtilité à nommer (merci à Dan Karlsson) : « rangées » et « colonnes » sont le même ordre à une symétrie diagonale près du plateau, donc sur de nombreux puzzles ils devraient coûter pareil — tout écart ici est du bruit d'échantillonnage, pas une vraie différence. Les ordres qui diffèrent vraiment sont ceux de forme différente : une spirale, une diagonale, le cadre d'abord. Une réserve : la barre de l'ordre aléatoire est une borne inférieure, pas une médiane mesurée — chaque exécution échantillonnée a atteint le plafond de recherche sans finir, donc son coût réel est plus élevé que ce qui est montré.",
+      "Une subtilité à nommer (merci à Dan Karlsson) : « rangées » et « colonnes » sont le même ordre à une symétrie diagonale près du plateau, donc sur de nombreux puzzles ils devraient coûter pareil ; tout écart ici est du bruit d'échantillonnage, pas une vraie différence. Les ordres qui diffèrent vraiment sont ceux de forme différente : une spirale, une diagonale, le cadre d'abord. Une réserve : la barre de l'ordre aléatoire est une borne inférieure, pas une médiane mesurée : chaque exécution échantillonnée a atteint le plafond de recherche sans finir, donc son coût réel est plus élevé que ce qui est montré.",
     pathChartDeeper: (
       <>
         La même question, poussée jusqu'au bout sur le vrai plateau 16×16, c'est l'
@@ -393,8 +393,8 @@ const T = {
         <strong>bitsets</strong> : un seul nombre de 64 bits transporte une réponse oui/non sur
         64 pièces à la fois, si bien qu'une unique instruction du processeur filtre 64
         candidates d'un seul coup. C'est ce qui permet aux moteurs les plus rapides d'abattre
-        des centaines de millions de nœuds par seconde. La façon de représenter les données —
-        pas seulement l'algorithme — fait partie du métier.
+        des centaines de millions de nœuds par seconde. La façon de représenter les données
+        (pas seulement l'algorithme) fait partie du métier.
       </>
     ),
     s6Title: "6 · Alors, jusqu'où la finesse nous mène-t-elle ?",
@@ -417,7 +417,7 @@ const T = {
           presque aucun placement forcé
         </Link>{" "}
         à déduire. C'est
-        prodigieux — et toujours insuffisant. Cet écart entre « presque résolu » et « résolu »,
+        prodigieux, et toujours insuffisant. Cet écart entre « presque résolu » et « résolu »,
         c'est précisément là que se joue la recherche ouverte : rendez-vous dans la section{" "}
         <Link className="underline" to="/research">Recherche</Link>.
       </>

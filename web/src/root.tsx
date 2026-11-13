@@ -8,7 +8,7 @@ import { hasTwin } from "@/lib/research/i18n-routes";
 // can be preloaded. This is the one woff2 that basic Latin text (EN + FR body
 // and the big hero headline) resolves to; preloading it means it arrives
 // before first paint, so the headline renders in Geist from the start instead
-// of swapping fallback→Geist afterwards — which is what caused the residual
+// of swapping fallback→Geist afterwards, which is what caused the residual
 // font-driven layout shift (CLS). The @import in index.css still defines the
 // @font-face and pulls the other subsets on demand.
 import geistLatinUrl from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url";
@@ -21,7 +21,7 @@ import geistLatinUrl from "@fontsource-variable/geist/files/geist-latin-wght-nor
 export function meta() {
   // Site-wide defaults; individual routes override title/description.
   // NOTE: charset AND viewport are emitted as literal <meta> tags in Layout's
-  // <head>, not here — the descriptor form does not reliably reach the
+  // <head>, not here: the descriptor form does not reliably reach the
   // prerendered HTML (ssr:false + prerender silently drops them). A MISSING
   // viewport is why the desktop site renders correct-but-tiny on phones:
   // without it, mobile browsers assume a ~980px layout viewport and zoom the
@@ -29,7 +29,7 @@ export function meta() {
   // Site-wide social tags and structured data are NOT returned here: in React
   // Router 7 a child route's `meta` export REPLACES the root route's meta
   // wholesale (they do not merge), so anything returned here vanishes on every
-  // page that exports its own meta — which is all of them. Instead these
+  // page that exports its own meta, which is all of them. Instead these
   // invariant tags are rendered as literal elements in Layout's <head> below,
   // exactly like charSet/viewport, so they appear on every prerendered page
   // regardless of the route's own meta. Per-page meta() still adds the page
@@ -124,7 +124,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <Links />
         <link rel="canonical" href={canonicalUrl(pathname)} />
         {/* Reciprocal hreflang: emit an alternate per language the page exists
-            in (only when there is more than one — a single-language page needs
+            in (only when there is more than one; a single-language page needs
             no alternates), plus x-default → English. */}
         {alternates.length > 1 &&
           alternates.map((a) => (
@@ -142,7 +142,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:image" content="https://eternity2.dev/og.png" />
         {/* og:locale tells social and AI consumers which language THIS URL is,
-            and og:locale:alternate advertises the twins — the Open Graph
+            and og:locale:alternate advertises the twins, the Open Graph
             counterpart to the hreflang block above. Without it a scraper seeing
             /fr/ and /es/ has only the prose to go on. Emitted for every page,
             including the ones whose only alternates are themselves. */}
@@ -152,7 +152,7 @@ export function Layout({ children }: { children: ReactNode }) {
         ))}
         {/* Opt in to the largest preview Google will show. The DEFAULT for
             max-image-preview is "standard" (a small thumbnail), and max-snippet
-            defaults to a short text snippet — so leaving this out silently caps
+            defaults to a short text snippet, so leaving this out silently caps
             how this site can appear in image-rich surfaces (Discover, rich
             results, AI Overviews' visual cards). "index, follow" is already the
             default and is stated only to make the whole directive explicit;

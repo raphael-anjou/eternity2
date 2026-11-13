@@ -7,7 +7,7 @@
 // Resolves the URL against the content manifest, lazy-loads the page's MDX
 // module (per-page chunks via import.meta.glob), and renders it in the docs
 // shell. Explicit TSX routes in routes.ts outrank this splat, so legacy pages
-// keep working until their MDX replacement lands — migration is page-by-page.
+// keep working until their MDX replacement lands; migration is page-by-page.
 
 import { lazy, Suspense, type ComponentType } from "react";
 import { Navigate, useLocation } from "react-router";
@@ -53,7 +53,7 @@ const modules = import.meta.glob("/content/research/**/*.mdx") as Record<
 >;
 
 // One stable lazy wrapper per content file, created at module scope (lazy()
-// only wraps — nothing loads until a page actually renders).
+// only wraps; nothing loads until a page actually renders).
 const pages: ReadonlyMap<string, ComponentType<{ components?: typeof mdxComponents }>> = new Map(
   Object.entries(modules).map(([p, load]) => [p, lazy(load)]),
 );
@@ -131,13 +131,13 @@ export function meta({ location }: { location: { pathname: string } }) {
   const lang = langFromPath(location.pathname);
   const path = neutralPath(location.pathname);
   // A moved URL renders as a redirect (see the component below), so its tags
-  // must describe the DESTINATION, not the old path — otherwise the head
+  // must describe the DESTINATION, not the old path; otherwise the head
   // advertises a titled, self-canonical page that immediately bounces. Recurse
   // once on the target (the table has no chains) in the visitor's language, so
   // title / og:url / canonical all match where the reader actually lands.
   const moved = RESEARCH_REDIRECTS[path];
   if (moved) return meta({ location: { pathname: pathForLang(moved, lang) } });
-  // pack() takes the FINAL meta/og description verbatim — it does not trim. The
+  // pack() takes the FINAL meta/og description verbatim; it does not trim. The
   // route-generated callers below (glossary, topics, person hubs) whose text
   // comes from long registry prose pre-trim it to a SERP-safe length with
   // metaDescriptionFor(); the MDX-doc branch passes its authored `metaDescription`
@@ -400,7 +400,7 @@ export function meta({ location }: { location: { pathname: string } }) {
   // `.md` appended (…/research/<slug>.md; the overview is research/index.md).
   // Advertise it declaratively so AI agents and markdown-aware clients can find
   // the clean source without User-Agent sniffing or a redirect (which would be
-  // cloaking). Only real MDX docs have a sibling — the route-generated hubs,
+  // cloaking). Only real MDX docs have a sibling; the route-generated hubs,
   // topics, people and glossary above return before reaching here.
   const mdRel = path === "/research" ? "/research/index.md" : `${path}.md`;
   // TechArticle structured data: helps this page qualify as a citable article
@@ -479,14 +479,14 @@ export default function ResearchDocPage() {
 
   // The wiki is bilingual: English at /research/**, French at /fr/research/**.
   // The language comes from the URL. A page whose French translation
-  // (<slug>.fr.mdx) has not been written yet still resolves — buildManifest("fr")
+  // (<slug>.fr.mdx) has not been written yet still resolves: buildManifest("fr")
   // falls back to the English entry with translated:false, and DocsShell shows a
-  // "not yet translated" notice — so a French URL never 404s.
+  // "not yet translated" notice, so a French URL never 404s.
   const lang = langFromPath(pathname);
 
   // Pages that moved (Build reorg into technique-family sub-hubs) redirect old
   // URLs to their new home, so bookmarks and external links don't 404. The
-  // redirect map is language-neutral, so re-apply the current language prefix —
+  // redirect map is language-neutral, so re-apply the current language prefix:
   // a French/Spanish visitor must land on the same-language new page, not English.
   const moved = RESEARCH_REDIRECTS[path];
   if (moved) return <Navigate to={pathForLang(moved, lang)} replace />;

@@ -8,9 +8,9 @@ import { useT } from "@/i18n";
 import { HERO_BOARD_CELLS } from "@/data/hero-board";
 
 // The community fleet the CTA below points at: a live distributed search on the
-// strict five-clue board, run by Benjamin Riotte (holder of the five-clue
-// record). The site itself hosts nothing of it — these are the project's own
-// endpoints — so they live here as plain constants, next to the internal page
+// strict five-clue board, run by Benjamin Riotte (who set the five-clue
+// record of July 2026). The site itself hosts nothing of it (these are the
+// project's own endpoints), so they live here as plain constants, next to the internal page
 // that documents the effort (/research/community/five-clue-fleet).
 const FLEET_PAGE = "/research/community/five-clue-fleet";
 const FLEET_DOWNLOAD = "https://eternity-control-plane-prod.eternity-cp.workers.dev/download";
@@ -18,11 +18,11 @@ const FLEET_DASHBOARD = "https://eternity-control-plane-prod.eternity-cp.workers
 
 // The hero shows a full, solved-looking 16×16 board. It used to be a live
 // 8×8 solver looping forever, but that ran a requestAnimationFrame + engine
-// step on every frame — main-thread work that hurt interaction responsiveness
+// step on every frame: main-thread work that hurt interaction responsiveness
 // (INP) on the landing page for no real benefit. It's now a single static SVG
 // of a pre-generated board (src/data/hero-board.ts): zero runtime cost, no
-// engine, no repaint. The board is randomly generated, not the official puzzle
-// — the caption says so.
+// engine, no repaint. The board is randomly generated, not the official puzzle,
+// and the caption says so.
 function HeroBoard() {
   return <BoardSvg width={16} height={16} cells={HERO_BOARD_CELLS} className="w-full" />;
 }
@@ -49,11 +49,11 @@ const T = {
     ctaPlayground: "Play Eternity II online",
     ctaPuzzle: "What is Eternity II?",
     heroCaption:
-      "A full 16×16 board, every edge matched and the border grey — this is what a solved Eternity II looks like. (It's a randomly generated board, not the official puzzle.)",
+      "A full 16×16 board, every edge matched and the border grey: this is what a solved Eternity II looks like. (It's a randomly generated board, not the official puzzle.)",
     ctaBadge: "Live right now",
     ctaTitle: "Lend a few CPU threads to the search",
     ctaText:
-      "A community fleet is attacking the strict five-clue board right now, and it is short of machines. It grew out of Benjamin Riotte's solver, which took the strict five-clue record from 460 to 464; the fleet has since carried it to 465, and its dashboard shows what the fleet is doing this minute. The worker runs on Windows and Linux, uses only the threads you give it, and stops whenever you want.",
+      "A community fleet is attacking the strict five-clue board right now, and it is short of machines. It grew out of Benjamin Riotte's solver, which took the strict five-clue record from 460 to 464 in July 2026; the fleet carried it to 465 that August, and its dashboard shows what the fleet is doing this minute. The worker runs on Windows and Linux, uses only the threads you give it, and stops whenever you want.",
     ctaJoin: "Join the search",
     ctaDownload: "Download the worker",
     ctaFine: (
@@ -135,7 +135,7 @@ const T = {
     ctaBadge: "En cours, maintenant",
     ctaTitle: "Prêtez quelques fils d'exécution à la recherche",
     ctaText:
-      "Une flotte communautaire attaque en ce moment le plateau strict à cinq indices, et elle manque de machines. Elle est née du solveur de Benjamin Riotte, qui avait porté le record strict à cinq indices de 460 à 464 ; la flotte l'a depuis mené à 465, et son tableau de bord montre ce que fait la flotte à la minute près. Le client tourne sous Windows et Linux, n'utilise que les fils que vous lui donnez, et s'arrête quand vous voulez.",
+      "Une flotte communautaire attaque en ce moment le plateau strict à cinq indices, et elle manque de machines. Elle est née du solveur de Benjamin Riotte, qui avait porté le record strict à cinq indices de 460 à 464 en juillet 2026 ; la flotte l'a mené à 465 en août suivant, et son tableau de bord montre ce que fait la flotte à la minute près. Le client tourne sous Windows et Linux, n'utilise que les fils que vous lui donnez, et s'arrête quand vous voulez.",
     ctaJoin: "Rejoindre la recherche",
     ctaDownload: "Télécharger le client",
     ctaFine: (
@@ -217,7 +217,7 @@ const T = {
     ctaBadge: "En marcha ahora",
     ctaTitle: "Presta unos hilos de CPU a la búsqueda",
     ctaText:
-      "Una flota comunitaria está atacando ahora mismo el tablero estricto de cinco pistas, y le faltan máquinas. Nació del solucionador de Benjamin Riotte, que llevó el récord estricto de cinco pistas de 460 a 464; desde entonces la flota lo ha subido a 465, y su panel muestra lo que hace la flota al minuto. El cliente funciona en Windows y Linux, usa solo los hilos que le cedas y se para cuando quieras.",
+      "Una flota comunitaria está atacando ahora mismo el tablero estricto de cinco pistas, y le faltan máquinas. Nació del solucionador de Benjamin Riotte, que llevó el récord estricto de cinco pistas de 460 a 464 en julio de 2026; la flota lo subió a 465 ese agosto, y su panel muestra lo que hace la flota al minuto. El cliente funciona en Windows y Linux, usa solo los hilos que le cedas y se para cuando quieras.",
     ctaJoin: "Unirse a la búsqueda",
     ctaDownload: "Descargar el cliente",
     ctaFine: (

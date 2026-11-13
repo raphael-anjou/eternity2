@@ -12,7 +12,7 @@ import { Lab } from "@/components/research/Lab";
 // ripple dying out at the fixed point. A side counter compares AC-3's work
 // against the naive "re-sweep every arc until stable" baseline (AC-1) on the
 // exact same instance. Everything is precomputed and deterministic (fixed
-// seed), so the component is a pure frame player — no work on the UI thread
+// seed), so the component is a pure frame player: no work on the UI thread
 // beyond rendering one frame.
 
 const N = 4;
@@ -286,9 +286,9 @@ function PlacedTile({ x, y, cand }: { x: number; y: number; cand: number }) {
 
 const T = {
   en: {
-    title: "Watch AC-3 propagate — one arc at a time",
+    title: "Watch AC-3 propagate, one arc at a time",
     intro:
-      "A 4×4 edge-matching toy with 3 colours: each cell starts with all 64 candidates (16 tiles × 4 rotations). Place a piece and watch the worklist: arcs aimed at the changed cell enter the queue, each revision deletes unsupported candidates, and every deletion re-enqueues the arcs pointing at the shrunken domain — until the queue runs dry.",
+      "A 4×4 edge-matching toy with 3 colours: each cell starts with all 64 candidates (16 tiles × 4 rotations). Place a piece and watch the worklist: arcs aimed at the changed cell enter the queue, each revision deletes unsupported candidates, and every deletion re-enqueues the arcs pointing at the shrunken domain, until the queue runs dry.",
     place: "Place next piece",
     step: "Step",
     play: "Play",
@@ -296,7 +296,7 @@ const T = {
     reset: "Reset",
     placed: "placed",
     queueLen: "arcs in queue",
-    fixedPoint: "fixed point — queue empty",
+    fixedPoint: "fixed point: queue empty",
     ac3: "AC-3 (worklist)",
     ac1: "naive re-sweep (AC-1)",
     revisions: "arc revisions",
@@ -305,17 +305,17 @@ const T = {
     narStart:
       "Fresh board: every cell keeps all 64 candidates. Nothing has changed yet, so the queue is empty.",
     narPlace: (c: string, q: number) =>
-      `Piece placed at ${c} — its domain collapses to 1 candidate. The ${q} arcs aimed at ${c} enter the queue: each neighbour must now re-check its supports.`,
+      `Piece placed at ${c}: its domain collapses to 1 candidate. The ${q} arcs aimed at ${c} enter the queue: each neighbour must now re-check its supports.`,
     narHit: (a: string, b: string, k: number, m: number) =>
-      `Revise ${a} against ${b}: ${k} candidate${k === 1 ? "" : "s"} in ${a} had no support left and ${k === 1 ? "was" : "were"} deleted.${m > 0 ? ` ${a} shrank, so ${m} arc${m === 1 ? "" : "s"} aimed at it re-enter the queue — the ripple spreads.` : " No new arcs to enqueue."}`,
+      `Revise ${a} against ${b}: ${k} candidate${k === 1 ? "" : "s"} in ${a} had no support left and ${k === 1 ? "was" : "were"} deleted.${m > 0 ? ` ${a} shrank, so ${m} arc${m === 1 ? "" : "s"} aimed at it re-enter the queue, and the ripple spreads.` : " No new arcs to enqueue."}`,
     narMiss: (a: string, b: string) =>
-      `Revise ${a} against ${b}: every candidate in ${a} still has a support in ${b}. Nothing deleted, the arc is simply dropped — this is how the ripple dies out.`,
-    note: "The counters are the whole point: AC-3 only revisits arcs whose far domain actually changed, while the naive fixed-point loop re-sweeps all 48 arcs until a full pass is clean. Same deletions, wildly different work — and AC-2001 would cut the support checks further by remembering where each search stopped.",
+      `Revise ${a} against ${b}: every candidate in ${a} still has a support in ${b}. Nothing deleted, the arc is simply dropped. This is how the ripple dies out.`,
+    note: "The counters are the whole point: AC-3 only revisits arcs whose far domain actually changed, while the naive fixed-point loop re-sweeps all 48 arcs until a full pass is clean. Same deletions, wildly different work. And AC-2001 would cut the support checks further by remembering where each search stopped.",
   },
   fr: {
-    title: "Regardez AC-3 se propager — un arc à la fois",
+    title: "Regardez AC-3 se propager, un arc à la fois",
     intro:
-      "Un jouet d'appariement d'arêtes 4×4 à 3 couleurs : chaque case démarre avec ses 64 candidats (16 tuiles × 4 rotations). Posez une pièce et observez la liste de travail : les arcs visant la case modifiée entrent dans la file, chaque révision supprime les candidats sans support, et chaque suppression remet en file les arcs pointant vers le domaine rétréci — jusqu'à ce que la file se vide.",
+      "Un jouet d'appariement d'arêtes 4×4 à 3 couleurs : chaque case démarre avec ses 64 candidats (16 tuiles × 4 rotations). Posez une pièce et observez la liste de travail : les arcs visant la case modifiée entrent dans la file, chaque révision supprime les candidats sans support, et chaque suppression remet en file les arcs pointant vers le domaine rétréci, jusqu'à ce que la file se vide.",
     place: "Poser la pièce suivante",
     step: "Pas",
     play: "Lecture",
@@ -323,7 +323,7 @@ const T = {
     reset: "Réinitialiser",
     placed: "posées",
     queueLen: "arcs en file",
-    fixedPoint: "point fixe — file vide",
+    fixedPoint: "point fixe : file vide",
     ac3: "AC-3 (liste de travail)",
     ac1: "balayage naïf (AC-1)",
     revisions: "révisions d'arcs",
@@ -332,17 +332,17 @@ const T = {
     narStart:
       "Plateau vierge : chaque case garde ses 64 candidats. Rien n'a encore changé, la file est vide.",
     narPlace: (c: string, q: number) =>
-      `Pièce posée en ${c} — son domaine s'effondre à 1 candidat. Les ${q} arcs visant ${c} entrent dans la file : chaque voisine doit revérifier ses supports.`,
+      `Pièce posée en ${c} : son domaine s'effondre à 1 candidat. Les ${q} arcs visant ${c} entrent dans la file : chaque voisine doit revérifier ses supports.`,
     narHit: (a: string, b: string, k: number, m: number) =>
-      `Révision de ${a} contre ${b} : ${k} candidat${k === 1 ? "" : "s"} de ${a} n'avai${k === 1 ? "t" : "ent"} plus de support — supprimé${k === 1 ? "" : "s"}.${m > 0 ? ` ${a} a rétréci, donc ${m} arc${m === 1 ? "" : "s"} pointant vers elle repasse${m === 1 ? "" : "nt"} en file — l'onde se propage.` : " Aucun arc à remettre en file."}`,
+      `Révision de ${a} contre ${b} : ${k} candidat${k === 1 ? "" : "s"} de ${a} n'avai${k === 1 ? "t" : "ent"} plus de support : supprimé${k === 1 ? "" : "s"}.${m > 0 ? ` ${a} a rétréci, donc ${m} arc${m === 1 ? "" : "s"} pointant vers elle repasse${m === 1 ? "" : "nt"} en file, et l'onde se propage.` : " Aucun arc à remettre en file."}`,
     narMiss: (a: string, b: string) =>
-      `Révision de ${a} contre ${b} : chaque candidat de ${a} garde un support dans ${b}. Rien à supprimer, l'arc est simplement retiré — c'est ainsi que l'onde s'éteint.`,
-    note: "Les compteurs sont tout l'enjeu : AC-3 ne revisite que les arcs dont le domaine d'en face a réellement changé, quand la boucle naïve rebalaye les 48 arcs jusqu'à une passe complète sans changement. Mêmes suppressions, travail radicalement différent — et AC-2001 réduirait encore les tests de support en mémorisant où chaque recherche s'était arrêtée.",
+      `Révision de ${a} contre ${b} : chaque candidat de ${a} garde un support dans ${b}. Rien à supprimer, l'arc est simplement retiré : c'est ainsi que l'onde s'éteint.`,
+    note: "Les compteurs sont tout l'enjeu : AC-3 ne revisite que les arcs dont le domaine d'en face a réellement changé, quand la boucle naïve rebalaye les 48 arcs jusqu'à une passe complète sans changement. Mêmes suppressions, travail radicalement différent. Et AC-2001 réduirait encore les tests de support en mémorisant où chaque recherche s'était arrêtée.",
   },
   es: {
-    title: "Observa cómo AC-3 se propaga — un arco a la vez",
+    title: "Observa cómo AC-3 se propaga, un arco a la vez",
     intro:
-      "Un juguete de encaje de bordes de 4×4 con 3 colores: cada celda arranca con sus 64 candidatos (16 piezas × 4 rotaciones). Coloca una pieza y observa la lista de trabajo: los arcos que apuntan a la celda modificada entran en la cola, cada revisión elimina los candidatos sin soporte, y cada eliminación reencola los arcos que apuntan al dominio reducido — hasta que la cola se vacía.",
+      "Un juguete de encaje de bordes de 4×4 con 3 colores: cada celda arranca con sus 64 candidatos (16 piezas × 4 rotaciones). Coloca una pieza y observa la lista de trabajo: los arcos que apuntan a la celda modificada entran en la cola, cada revisión elimina los candidatos sin soporte, y cada eliminación reencola los arcos que apuntan al dominio reducido, hasta que la cola se vacía.",
     place: "Colocar la siguiente pieza",
     step: "Paso",
     play: "Reproducir",
@@ -350,7 +350,7 @@ const T = {
     reset: "Reiniciar",
     placed: "colocadas",
     queueLen: "arcos en cola",
-    fixedPoint: "punto fijo — cola vacía",
+    fixedPoint: "punto fijo: cola vacía",
     ac3: "AC-3 (lista de trabajo)",
     ac1: "rebarrido ingenuo (AC-1)",
     revisions: "revisiones de arcos",
@@ -359,12 +359,12 @@ const T = {
     narStart:
       "Tablero nuevo: cada celda conserva sus 64 candidatos. Todavía no ha cambiado nada, así que la cola está vacía.",
     narPlace: (c: string, q: number) =>
-      `Pieza colocada en ${c} — su dominio se reduce a 1 candidato. Los ${q} arcos que apuntan a ${c} entran en la cola: cada vecina debe volver a comprobar sus soportes.`,
+      `Pieza colocada en ${c}: su dominio se reduce a 1 candidato. Los ${q} arcos que apuntan a ${c} entran en la cola: cada vecina debe volver a comprobar sus soportes.`,
     narHit: (a: string, b: string, k: number, m: number) =>
-      `Revisar ${a} contra ${b}: ${k} candidato${k === 1 ? "" : "s"} de ${a} ya no ten${k === 1 ? "ía" : "ían"} soporte y ${k === 1 ? "fue eliminado" : "fueron eliminados"}.${m > 0 ? ` ${a} se redujo, así que ${m} arco${m === 1 ? "" : "s"} que apunta${m === 1 ? "" : "n"} a ella vuelve${m === 1 ? "" : "n"} a la cola — la onda se propaga.` : " Ningún arco nuevo que encolar."}`,
+      `Revisar ${a} contra ${b}: ${k} candidato${k === 1 ? "" : "s"} de ${a} ya no ten${k === 1 ? "ía" : "ían"} soporte y ${k === 1 ? "fue eliminado" : "fueron eliminados"}.${m > 0 ? ` ${a} se redujo, así que ${m} arco${m === 1 ? "" : "s"} que apunta${m === 1 ? "" : "n"} a ella vuelve${m === 1 ? "" : "n"} a la cola, y la onda se propaga.` : " Ningún arco nuevo que encolar."}`,
     narMiss: (a: string, b: string) =>
-      `Revisar ${a} contra ${b}: cada candidato de ${a} conserva un soporte en ${b}. Nada que eliminar, el arco simplemente se descarta — así es como la onda se apaga.`,
-    note: "Los contadores son lo esencial: AC-3 solo vuelve a visitar los arcos cuyo dominio del otro extremo realmente cambió, mientras que el bucle ingenuo de punto fijo rebarre los 48 arcos hasta que una pasada completa no cambia nada. Las mismas eliminaciones, un trabajo radicalmente distinto — y AC-2001 recortaría aún más las comprobaciones de soporte al recordar dónde se detuvo cada búsqueda.",
+      `Revisar ${a} contra ${b}: cada candidato de ${a} conserva un soporte en ${b}. Nada que eliminar, el arco simplemente se descarta: así es como la onda se apaga.`,
+    note: "Los contadores son lo esencial: AC-3 solo vuelve a visitar los arcos cuyo dominio del otro extremo realmente cambió, mientras que el bucle ingenuo de punto fijo rebarre los 48 arcos hasta que una pasada completa no cambia nada. Las mismas eliminaciones, un trabajo radicalmente distinto. Y AC-2001 recortaría aún más las comprobaciones de soporte al recordar dónde se detuvo cada búsqueda.",
   },
 };
 

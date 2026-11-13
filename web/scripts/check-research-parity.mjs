@@ -158,7 +158,7 @@ for (const frPath of trFiles) {
     const frV = normalizeForCompare(k, fr.data[k]);
     if (!eqDeep(enV, frV)) {
       problems.push(
-        `${rel}: frontmatter "${k}" differs from EN on a non-prose field — must match ` +
+        `${rel}: frontmatter "${k}" differs from EN on a non-prose field: must match ` +
           `(EN=${JSON.stringify(enV)} FR=${JSON.stringify(frV)})`,
       );
     }
@@ -180,8 +180,8 @@ for (const frPath of trFiles) {
     const extra = frImports.filter((l) => !enImports.includes(l));
     problems.push(
       `${rel}: import lines differ from EN` +
-        (missing.length ? ` — missing: ${missing.join(" | ")}` : "") +
-        (extra.length ? ` — extra: ${extra.join(" | ")}` : ""),
+        (missing.length ? `; missing: ${missing.join(" | ")}` : "") +
+        (extra.length ? `; extra: ${extra.join(" | ")}` : ""),
     );
   }
 
@@ -195,7 +195,7 @@ for (const frPath of trFiles) {
       const b = frTags.get(k) ?? 0;
       if (a !== b) diff.push(`${k} EN×${a} FR×${b}`);
     }
-    problems.push(`${rel}: JSX component usage differs from EN — ${diff.join(", ")}`);
+    problems.push(`${rel}: JSX component usage differs from EN: ${diff.join(", ")}`);
   }
 
   // 4) Heading count must match.
@@ -209,11 +209,11 @@ for (const frPath of trFiles) {
   const enU = en.data.updated;
   const frU = fr.data.updated;
   if (typeof enU === "string" && typeof frU === "string" && frU < enU) {
-    warnings.push(`${rel}: FR updated ${frU} is older than EN ${enU} — translation may be stale`);
+    warnings.push(`${rel}: FR updated ${frU} is older than EN ${enU}: translation may be stale`);
   }
 }
 
-console.log(`== translation parity — ${trFiles.length} translated page(s)\n`);
+console.log(`== translation parity: ${trFiles.length} translated page(s)\n`);
 if (warnings.length) {
   console.log("warnings (non-fatal):");
   for (const w of warnings) console.log(`  ⚠ ${w}`);
@@ -224,4 +224,4 @@ if (problems.length) {
   console.log(`\n${problems.length} parity problem(s)`);
   process.exit(1);
 }
-console.log(`parity OK — every translated sidecar matches its English twin's structure`);
+console.log(`parity OK: every translated sidecar matches its English twin's structure`);

@@ -1,5 +1,5 @@
 // The research homepage's primary wayfinder: a rooted "tree of paths". One
-// trunk (the puzzle) splits into the nine ways people attack it — the theme
+// trunk (the puzzle) splits into the nine ways people attack it: the theme
 // registry (topics.json), minus the meta "records" theme, which is not a method
 // and lives in the band below. Each root is a link to its topic hub, which
 // already aggregates every why/build/lab page tagged with that theme, so the

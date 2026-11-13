@@ -22,7 +22,7 @@ describe("langFromPath", () => {
     expect(langFromPath("/puzzle")).toBe("en");
   });
   it("does not mistake a path that merely starts with a prefix for that language", () => {
-    // "/french"/"/frames"/"/estimate" must stay English — the boundary is the
+    // "/french"/"/frames"/"/estimate" must stay English: the boundary is the
     // prefix then / or end.
     expect(langFromPath("/french")).toBe("en");
     expect(langFromPath("/frames")).toBe("en");

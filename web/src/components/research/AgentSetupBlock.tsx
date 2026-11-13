@@ -1,4 +1,4 @@
-// "Set this up with your coding agent" — a copy-paste prompt that points an
+// "Set this up with your coding agent": a copy-paste prompt that points an
 // agent (Claude Code, Cursor, Copilot, …) at the starter kit's PROMPT.md so it
 // scaffolds the kit and helps write a solver. Modelled on the now-standard
 // paste-and-go pattern: one line in, the agent does the rest.
@@ -54,7 +54,7 @@ const T = {
   en: {
     heading: "Set this up with your coding agent",
     intro:
-      "Using Claude Code, Cursor, or another coding agent? Paste this in — it fetches the kit's setup instructions, builds it, and helps you write your first solver.",
+      "Using Claude Code, Cursor, or another coding agent? Paste this in: it fetches the kit's setup instructions, builds it, and helps you write your first solver.",
     copy: "Copy prompt",
     copied: "Copied ✓",
     view: "View PROMPT.md",

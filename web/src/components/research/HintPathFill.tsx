@@ -14,8 +14,8 @@ import { useIsClient } from "@/lib/utils";
 // each looping on its own so the reader can compare fill orders at a glance. Each
 // board is seeded with the five official clue hints, then a chosen FILL PATH drops
 // the remaining cells one by one. The newest cell is deep blue and older cells
-// fade lighter, so the *wavefront* of the fill — and the open frontier it drags
-// behind it — is visible. No solver runs here; this is the cell-visitation ORDER
+// fade lighter, so the *wavefront* of the fill (and the open frontier it drags
+// behind it) is visible. No solver runs here; this is the cell-visitation ORDER
 // made visible, which is the study's whole subject.
 
 const N = 16;

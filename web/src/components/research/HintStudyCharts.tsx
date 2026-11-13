@@ -9,14 +9,14 @@ import data from "@/data/hint-study.json";
 // make_site_json.py) so the page never drifts from what was measured.
 //
 // Three views, all on the five-clue-shape hint set, over the common complete seed
-// set (a paired design — every path runs on the identical boards):
-//   1. DISTRIBUTION — every per-seed score as a dot, per path. The scores are
+// set (a paired design: every path runs on the identical boards):
+//   1. DISTRIBUTION: every per-seed score as a dot, per path. The scores are
 //      BIMODAL (an instance either nearly solves or stalls), so a single median
 //      bar would lie; the dots show the two regimes directly.
-//   2. HINTS: HELP OR HURT — the paired delta (score WITH the five hints minus
+//   2. HINTS: HELP OR HURT: the paired delta (score WITH the five hints minus
 //      score with NO hints, same seed). Every path is ≤ 0: the hints never help,
 //      and on the hint-seeking order they are catastrophic.
-//   3. COUNT axis — the floor-corrected clustered-vs-spread comparison.
+//   3. COUNT axis: the floor-corrected clustered-vs-spread comparison.
 
 const PATH_LABEL: Record<string, string> = {
   rowmajor: "Row-major",
@@ -29,7 +29,7 @@ const PATH_LABEL: Record<string, string> = {
   "trace-hints": "Trace the hints",
 };
 
-// Colour by how the fill order keeps its frontier — identity, not rank.
+// Colour by how the fill order keeps its frontier: identity, not rank.
 const KIND: Record<string, "compact" | "fragment" | "seeking"> = {
   rowmajor: "compact",
   "rowmajor-bottomup": "compact",
@@ -56,22 +56,22 @@ type PathRow = {
 
 const T = {
   en: {
-    distTitle: "The same five hints, eight fill orders — every instance",
+    distTitle: "The same five hints, eight fill orders, every instance",
     deltaTitle: "What the five hints are worth: nothing, or less",
-    countTitle: "More hints help — but mind the free floor",
+    countTitle: "More hints help, but mind the free floor",
     scoreAxis: "matched edges / 480",
     deltaAxis: "score change from adding the five hints  (matched edges)",
     freeFloor: "free (pinned-seam floor)",
     earned: "earned by the search",
     solved: "solved",
     distCaption:
-      "One dot per board. The scores are bimodal — a board either nearly solves or the search stalls early, with little in between — so the spread, not a median, is the honest summary. The compact orders land high on most boards but are dragged down by the ones where a pinned piece walls off the sweep; the fragmenting orders sit low throughout.",
+      "One dot per board. The scores are bimodal (a board either nearly solves or the search stalls early, with little in between), so the spread, not a median, is the faithful summary. The compact orders land high on most boards but are dragged down by the ones where a pinned piece walls off the sweep; the fragmenting orders sit low throughout.",
     deltaCaption:
-      "The paired change from adding the five clue-shaped hints, same board with and without them. Every bar is at or below zero: the hints never help a backtracker here. On the compact orders they cost a little; on spiral-out and the hint-seeking order they are catastrophic, turning a board the solver nearly finishes without help into one it barely starts. A correct hint is still a hard constraint the fixed fill order must satisfy on arrival — and sometimes it cannot.",
+      "The paired change from adding the five clue-shaped hints, same board with and without them. Every bar is at or below zero: the hints never help a backtracker here. On the compact orders they cost a little; on spiral-out and the hint-seeking order they are catastrophic, turning a board the solver nearly finishes without help into one it barely starts. A correct hint is still a hard constraint the fixed fill order must satisfy on arrival, and sometimes it cannot.",
     countCaption:
-      "Each bar is the median score of a hint layout, split into the seams the pins complete for free (both endpoints pinned) and the seams the search actually earned. A clustered block banks a tall free floor — up to a quarter of the whole board — so its raw score flatters it. Compare the earned parts, not the totals.",
+      "Each bar is the median score of a hint layout, split into the seams the pins complete for free (both endpoints pinned) and the seams the search actually earned. A clustered block banks a tall free floor (up to a quarter of the whole board), so its raw score flatters it. Compare the earned parts, not the totals.",
     beam: "For contrast, the beam solver (not a backtracker) reaches a median of",
-    onThese: "on the same boards — the hints and board are far from unsolvable; the chronological backtracker simply cannot use them.",
+    onThese: "on the same boards: the hints and board are far from unsolvable; the chronological backtracker simply cannot use them.",
     compact: "compact frontier",
     fragment: "fragmenting order",
     seeking: "hint-seeking",

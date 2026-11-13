@@ -9,8 +9,8 @@ import {
 } from "@/engine-extras/complexity";
 import { cn } from "@/lib/utils";
 
-// Complex theory, made interactive. Pick a scan order; the funnel — the expected
-// node count at each depth — redraws live from the real piece set, and the
+// Complex theory, made interactive. Pick a scan order; the funnel (the expected
+// node count at each depth) redraws live from the real piece set, and the
 // plateau peak (the widest point the search must cross) is called out. The whole
 // lesson is that the order decides the peak height before you run a single node:
 // compact frontiers (row-major, snake) keep it low; a scattered order (random)
@@ -23,43 +23,43 @@ const ORDERS = ["row-major", "snake", "spiral-in", "diagonal", "random"];
 
 const T = {
   en: {
-    title: "Pick a scan order — watch the funnel",
+    title: "Pick a scan order, watch the funnel",
     intro:
-      "Complex theory scores a fill order before you run it. Choose one below: the curve is the expected number of ways to extend a partial board at each depth — the width of the search tree. The plateau peak is the widest point a backtracker must cross. Lower is better, and the order alone decides it.",
+      "Complex theory scores a fill order before you run it. Choose one below: the curve is the expected number of ways to extend a partial board at each depth, the width of the search tree. The plateau peak is the widest point a backtracker must cross. Lower is better, and the order alone decides it.",
     peak: "plateau peak",
     atDepth: (d: number) => `widest at depth ${d}`,
     best: "lowest peak",
     yAxis: "expected branches (log)",
     xAxis: "depth (cells placed)",
-    note: "An exact port of McGavin's reference implementation of Owen's theory — it reproduces his published 16×16 curve. A compact frontier (row-major, snake) keeps the peak low; a scattered order (random) explodes it, because a spread-out frontier constrains almost nothing. This is why every good solver fills the board in a tight, advancing band.",
+    note: "An exact port of McGavin's reference implementation of Owen's theory; it reproduces his published 16×16 curve. A compact frontier (row-major, snake) keeps the peak low; a scattered order (random) explodes it, because a spread-out frontier constrains almost nothing. This is why every good solver fills the board in a tight, advancing band.",
     sourcePrefix: "Method:",
     sourceName: "McGavin's reference implementation",
     loading: "Loading the engine…",
   },
   fr: {
-    title: "Choisissez un ordre de balayage — observez l'entonnoir",
+    title: "Choisissez un ordre de balayage, observez l'entonnoir",
     intro:
-      "La théorie complexe évalue un ordre de remplissage avant de le lancer. Choisissez-en un : la courbe est le nombre attendu de façons d'étendre un plateau partiel à chaque profondeur — la largeur de l'arbre de recherche. Le pic de plateau est le point le plus large qu'un backtracker doit traverser. Plus c'est bas, mieux c'est, et l'ordre seul le décide.",
+      "La théorie complexe évalue un ordre de remplissage avant de le lancer. Choisissez-en un : la courbe est le nombre attendu de façons d'étendre un plateau partiel à chaque profondeur, la largeur de l'arbre de recherche. Le pic de plateau est le point le plus large qu'un backtracker doit traverser. Plus c'est bas, mieux c'est, et l'ordre seul le décide.",
     peak: "pic de plateau",
     atDepth: (d: number) => `au plus large à la profondeur ${d}`,
     best: "pic le plus bas",
     yAxis: "branches attendues (log)",
     xAxis: "profondeur (cases posées)",
-    note: "Un portage exact de l'implémentation de référence de McGavin de la théorie d'Owen — il reproduit sa courbe 16×16 publiée. Une frontière compacte (lignes, serpent) garde le pic bas ; un ordre dispersé (aléatoire) l'explose, car une frontière étalée ne contraint presque rien. C'est pourquoi tout bon solveur remplit le plateau en une bande serrée qui avance.",
+    note: "Un portage exact de l'implémentation de référence de McGavin de la théorie d'Owen ; il reproduit sa courbe 16×16 publiée. Une frontière compacte (lignes, serpent) garde le pic bas ; un ordre dispersé (aléatoire) l'explose, car une frontière étalée ne contraint presque rien. C'est pourquoi tout bon solveur remplit le plateau en une bande serrée qui avance.",
     sourcePrefix: "Méthode :",
     sourceName: "implémentation de référence de McGavin",
     loading: "Chargement du moteur…",
   },
   es: {
-    title: "Elige un orden de recorrido — observa el embudo",
+    title: "Elige un orden de recorrido, observa el embudo",
     intro:
-      "La teoría compleja evalúa un orden de relleno antes de ejecutarlo. Elige uno: la curva es el número esperado de formas de extender un tablero parcial a cada profundidad — la anchura del árbol de búsqueda. El pico de meseta es el punto más ancho que un backtracker debe atravesar. Cuanto más bajo, mejor, y el orden por sí solo lo decide.",
+      "La teoría compleja evalúa un orden de relleno antes de ejecutarlo. Elige uno: la curva es el número esperado de formas de extender un tablero parcial a cada profundidad, la anchura del árbol de búsqueda. El pico de meseta es el punto más ancho que un backtracker debe atravesar. Cuanto más bajo, mejor, y el orden por sí solo lo decide.",
     peak: "pico de meseta",
     atDepth: (d: number) => `más ancho en la profundidad ${d}`,
     best: "pico más bajo",
     yAxis: "ramas esperadas (log)",
     xAxis: "profundidad (celdas colocadas)",
-    note: "Un port exacto de la implementación de referencia de McGavin de la teoría de Owen — reproduce su curva 16×16 publicada. Una frontera compacta (por filas, serpiente) mantiene el pico bajo; un orden disperso (aleatorio) lo dispara, porque una frontera extendida casi no impone restricciones. Por eso todo buen solucionador rellena el tablero en una banda estrecha que avanza.",
+    note: "Un port exacto de la implementación de referencia de McGavin de la teoría de Owen; reproduce su curva 16×16 publicada. Una frontera compacta (por filas, serpiente) mantiene el pico bajo; un orden disperso (aleatorio) lo dispara, porque una frontera extendida casi no impone restricciones. Por eso todo buen solucionador rellena el tablero en una banda estrecha que avanza.",
     sourcePrefix: "Método:",
     sourceName: "implementación de referencia de McGavin",
     loading: "Cargando el motor…",
@@ -75,7 +75,7 @@ const ORDER_COLOR: Record<string, string> = {
 };
 
 function fmtLog(log10: number): string {
-  if (!isFinite(log10)) return "—";
+  if (!isFinite(log10)) return "–";
   if (log10 < 4) return Math.round(10 ** log10).toLocaleString();
   const exp = Math.floor(log10);
   const mant = 10 ** (log10 - exp);
@@ -161,7 +161,7 @@ export function ComplexFunnelLab() {
         </div>
         <div className="text-[11px] text-muted-foreground">
           {active.kind}
-          {active.kind === bestKind ? ` · ${t.best}` : ""} — {t.atDepth(active.est.peakDepth)}
+          {active.kind === bestKind ? ` · ${t.best}` : ""} · {t.atDepth(active.est.peakDepth)}
         </div>
       </div>
 

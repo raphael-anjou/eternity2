@@ -1,4 +1,5 @@
 import { pageMeta } from "@/seo";
+import { OPEN_RECORD_SCORE } from "@/data/records-timeline";
 import { PageFaq } from "@/components/PageFaq";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -102,7 +103,7 @@ const T = {
       {
         year: "2010s–today",
         title: "The community keeps climbing",
-        text: "Hobbyists with modern hardware push the record to 468, then 469 (Joshua Blackwood & Peter McGavin, 2020), then 470 (Blackwood, 2021) on the official puzzle. That 470 has stood ever since — tied once (Jef Bucas, December 2024), never beaten: ten edges still separate humanity from 480.",
+        text: "Hobbyists with modern hardware push the record to 468, then 469 (Joshua Blackwood & Peter McGavin, 2020), then 470 (Blackwood, 2021) on the official puzzle. That 470 has stood ever since: tied once (Jef Bucas, December 2024), never beaten: ten edges still separate humanity from 480.",
       },
     ],
     anatomyTitle: "Anatomy of the piece set",
@@ -172,8 +173,9 @@ const T = {
         The rules sheet pins one piece, <strong>piece 139 at square I8</strong>, and Tomy sold
         four smaller "clue puzzles" (two in 2007, two in 2008) that each revealed
         another placement. A board that respects all five is called <strong>strict-canonical</strong>; most
-        record boards only respect the mandatory center clue, which is why the best board with all
-        five clues (465, Benjamin Riotte's community fleet, 2026) trails the open canonical record (470).
+        record boards only respect the mandatory center clue, which is why the best boards with all
+        five clues still trail the open canonical record (both are on the{" "}
+        <Link className="underline" to="/research/records">records page</Link>).
       </>
     ),
     cluesText2: (
@@ -192,15 +194,15 @@ const T = {
     colNotes: "Notes",
     records: [
       {
-        score: "470 / 480",
+        score: `${OPEN_RECORD_SCORE} / 480`,
         who: "Joshua Blackwood, 2021",
-        notes: "the canonical record — tied once (Jef Bucas, December 2024), never beaten" as ReactNode,
+        notes: "the canonical record, tied once (Jef Bucas, December 2024), never beaten" as ReactNode,
         viewId: "Joshua_Blackwood_470" as string | null,
       },
       {
         score: "469 / 480",
         who: "Blackwood & McGavin, 2020",
-        notes: "the previous record — long quoted as the ceiling" as ReactNode,
+        notes: "the previous record, long quoted as the ceiling" as ReactNode,
         viewId: "JBlackwood+PMcGavin_469" as string | null,
       },
       {
@@ -220,7 +222,8 @@ const T = {
         who: "Benjamin Riotte, 2026",
         notes: (
           <>
-the July 2026 <em>strict-canonical</em> record (all 5 clues respected); the line has since moved to 465
+the July 2026 <em>strict-canonical</em> record (all 5 clues respected); the line has moved since, see the{" "}
+            <Link className="underline" to="/research/records">records page</Link>
           </>
         ) as ReactNode,
         viewId: "Benjamin_Riotte_464" as string | null,
@@ -321,7 +324,7 @@ the July 2026 <em>strict-canonical</em> record (all 5 clues respected); the line
       {
         year: "Des années 2010 à aujourd'hui",
         title: "La communauté grignote, score après score",
-        text: "Armés de machines modernes, des passionnés font grimper le record à 468, puis 469 (Joshua Blackwood et Peter McGavin, en 2020), puis 470 (Blackwood, en 2021) sur le puzzle officiel. Ce 470 tient depuis — égalé une fois (Jef Bucas, décembre 2024), jamais battu : il manque encore dix côtés pour atteindre le mythique 480.",
+        text: "Armés de machines modernes, des passionnés font grimper le record à 468, puis 469 (Joshua Blackwood et Peter McGavin, en 2020), puis 470 (Blackwood, en 2021) sur le puzzle officiel. Ce 470 tient depuis : égalé une fois (Jef Bucas, décembre 2024), jamais battu : il manque encore dix côtés pour atteindre le mythique 480.",
       },
     ],
     anatomyTitle: "Anatomie du jeu de pièces",
@@ -397,8 +400,9 @@ the July 2026 <em>strict-canonical</em> record (all 5 clues respected); the line
         Tomy a par ailleurs commercialisé quatre petits « puzzles indices » (deux en 2007,
         deux en 2008), qui dévoilaient chacun un placement supplémentaire. Un plateau qui
         respecte les cinq est dit <strong>strict-canonique</strong>. Comme la plupart des plateaux
-        records se contentent du seul indice central obligatoire, le meilleur plateau respectant
-        les cinq indices (465, la flotte communautaire de Benjamin Riotte, 2026) reste en deçà du record canonique libre (470).
+        records se contentent du seul indice central obligatoire, les meilleurs plateaux respectant
+        les cinq indices restent en deçà du record canonique libre (les deux figurent sur la{" "}
+        <Link className="underline" to="/research/records">page des records</Link>).
       </>
     ),
     cluesText2: (
@@ -417,15 +421,15 @@ the July 2026 <em>strict-canonical</em> record (all 5 clues respected); the line
     colNotes: "Notes",
     records: [
       {
-        score: "470 / 480",
+        score: `${OPEN_RECORD_SCORE} / 480`,
         who: "Joshua Blackwood, 2021",
-        notes: "le record canonique — égalé une fois (Jef Bucas, décembre 2024), jamais battu" as ReactNode,
+        notes: "le record canonique, égalé une fois (Jef Bucas, décembre 2024), jamais battu" as ReactNode,
         viewId: "Joshua_Blackwood_470" as string | null,
       },
       {
         score: "469 / 480",
         who: "Blackwood & McGavin, 2020",
-        notes: "le record précédent — longtemps cité comme le plafond" as ReactNode,
+        notes: "le record précédent, longtemps cité comme le plafond" as ReactNode,
         viewId: "JBlackwood+PMcGavin_469" as string | null,
       },
       {
@@ -445,7 +449,8 @@ the July 2026 <em>strict-canonical</em> record (all 5 clues respected); the line
         who: "Benjamin Riotte, 2026",
         notes: (
           <>
-record <em>strict-canonique</em> de juillet 2026 (les 5 indices respectés) ; la ligne est depuis passée à 465
+record <em>strict-canonique</em> de juillet 2026 (les 5 indices respectés) ; la ligne a bougé depuis, voir la{" "}
+            <Link className="underline" to="/research/records">page des records</Link>
           </>
         ) as ReactNode,
         viewId: "Benjamin_Riotte_464" as string | null,
@@ -621,8 +626,9 @@ record <em>strict-canonique</em> de juillet 2026 (les 5 indices respectés) ; la
         vendió cuatro pequeños «puzzles pista» (dos en 2007, dos en 2008), cada uno de los cuales
         revelaba otra colocación. Un tablero que respeta las cinco se denomina{" "}
         <strong>estricto-canónico</strong>; la mayoría de los tableros récord solo respetan la pista
-        central obligatoria, por lo que el mejor tablero con las cinco pistas (465, la flota comunitaria
-        de Benjamin Riotte, 2026) queda por debajo del récord canónico libre (470).
+        central obligatoria, por lo que los mejores tableros con las cinco pistas siguen por debajo
+        del récord canónico libre (ambos están en la{" "}
+        <Link className="underline" to="/research/records">página de récords</Link>).
       </>
     ),
     cluesText2: (
@@ -641,15 +647,15 @@ record <em>strict-canonique</em> de juillet 2026 (les 5 indices respectés) ; la
     colNotes: "Notas",
     records: [
       {
-        score: "470 / 480",
+        score: `${OPEN_RECORD_SCORE} / 480`,
         who: "Joshua Blackwood, 2021",
-        notes: "el récord canónico — igualado una vez (Jef Bucas, diciembre de 2024), nunca superado" as ReactNode,
+        notes: "el récord canónico, igualado una vez (Jef Bucas, diciembre de 2024), nunca superado" as ReactNode,
         viewId: "Joshua_Blackwood_470" as string | null,
       },
       {
         score: "469 / 480",
         who: "Blackwood & McGavin, 2020",
-        notes: "el récord anterior — durante mucho tiempo citado como el techo" as ReactNode,
+        notes: "el récord anterior, durante mucho tiempo citado como el techo" as ReactNode,
         viewId: "JBlackwood+PMcGavin_469" as string | null,
       },
       {
@@ -669,7 +675,8 @@ record <em>strict-canonique</em> de juillet 2026 (les 5 indices respectés) ; la
         who: "Benjamin Riotte, 2026",
         notes: (
           <>
-récord <em>estricto-canónico</em> de julio de 2026 (las 5 pistas respetadas); la línea ha pasado desde entonces a 465
+récord <em>estricto-canónico</em> de julio de 2026 (las 5 pistas respetadas); la línea se ha movido desde entonces, véase la{" "}
+            <Link className="underline" to="/research/records">página de récords</Link>
           </>
         ) as ReactNode,
         viewId: "Benjamin_Riotte_464" as string | null,

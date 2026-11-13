@@ -5,16 +5,16 @@ import { Swatch } from "@/components/research/FamilyLegend";
 import data from "@/data/hint-study.json";
 
 // The study's flagship chart: the frontier LAW made visible. The x-axis is the
-// peak open frontier of each fill order — computed from geometry alone, no solver
-// — and the y-axis is the measured median score. The two are almost perfectly
+// peak open frontier of each fill order (computed from geometry alone, no solver)
+// and the y-axis is the measured median score. The two are almost perfectly
 // anti-correlated (mean frontier vs median score, r ≈ −0.86): score collapses as
 // the frontier grows. Putting the
 // computed CAUSE against the measured EFFECT turns "row-major wins" into a visible
 // mechanism. Bubble area encodes the instance-to-instance spread, so the chart is
-// honest about variance rather than hiding it.
+// candid about variance rather than hiding it.
 //
 // Built as plain SVG for full control over the regression line, the two regime
-// bands, and the direct labels — and so it renders identically server and client.
+// bands, and the direct labels, and so it renders identically server and client.
 
 const KIND: Record<string, "compact" | "fragment" | "seeking"> = {
   rowmajor: "compact",
@@ -52,7 +52,7 @@ const T = {
     fragment: "fragmenting order",
     seeking: "hint-seeking",
     caption:
-      "One dot per fill order — eight in all. The horizontal axis is pure geometry: the average open frontier that order holds across the whole fill, computed with no solver involved. The vertical axis is the measured median score. Across these eight orders the two are strongly anti-correlated (r ≈ −0.86): the bigger an order lets its frontier grow, the less its identical hints are worth, which is what branching cost predicts. It is a trend, not a law — the trace-hints order, far right, holds the largest frontier of all yet does not score the lowest, because its skeleton at least connects real constraints. The frontier decides which side of the divide an order lands on; it does not settle the ranking among the worst. Bubble size is the spread across seeds.",
+      "One dot per fill order, eight in all. The horizontal axis is pure geometry: the average open frontier that order holds across the whole fill, computed with no solver involved. The vertical axis is the measured median score. Across these eight orders the two are strongly anti-correlated (r ≈ −0.86): the bigger an order lets its frontier grow, the less its identical hints are worth, which is what branching cost predicts. It is a trend, not a law: the trace-hints order, far right, holds the largest frontier of all yet does not score the lowest, because its skeleton at least connects real constraints. The frontier decides which side of the divide an order lands on; it does not settle the ranking among the worst. Bubble size is the spread across seeds.",
     r: "r ≈ −0.86",
     lowRegime: "compact sweep",
     highRegime: "fragmented fill",

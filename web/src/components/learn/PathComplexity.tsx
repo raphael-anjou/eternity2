@@ -1,12 +1,12 @@
 // Live complex-theory estimate for the search-path playground (Dan Karlsson,
 // groups.io): score a fill order *before* racing it. For the path the user drew
 // and each classic, we run Brendan Owen's first-moment model over the actual
-// puzzle and report the plateau peak — the expected node count at the search's
+// puzzle and report the plateau peak: the expected node count at the search's
 // widest depth, the number that predicts which order wins.
 //
 // The model is faithful in the growth + plateau regime (it reproduces McGavin's
 // published 16×16 curve depth-for-depth) and, like every first-moment estimate,
-// is blind to the end-game distinctness collapse — so we report the peak, not a
+// is blind to the end-game distinctness collapse, so we report the peak, not a
 // solution count, and link out to the caveat. Estimates are in single-piece
 // units; a block-built path is scored by the order it implies, cell by cell.
 
@@ -49,7 +49,7 @@ const T = {
         <a className="underline" href={COMPLEX_THEORY_SOURCE_URL} target="_blank" rel="noreferrer">
           reference implementation
         </a>{" "}
-        of Owen's theory (validated to reproduce his published table — 14,702 solutions at the last
+        of Owen's theory (validated to reproduce his published table: 14,702 solutions at the last
         cell). Still a first-moment estimate: it treats colours as independent, so it is accurate to
         ~×2 and{" "}
         <LocalizedLink className="underline" to="/research/why/entropy-area-law">
@@ -87,7 +87,7 @@ const T = {
         <a className="underline" href={COMPLEX_THEORY_SOURCE_URL} target="_blank" rel="noreferrer">
           l'implémentation de référence
         </a>{" "}
-        de Peter McGavin de la théorie d'Owen (validé pour reproduire sa table publiée — 14 702
+        de Peter McGavin de la théorie d'Owen (validé pour reproduire sa table publiée : 14 702
         solutions à la dernière case). Reste une estimation au premier moment : elle traite les
         couleurs comme indépendantes, donc précise à ~×2 et{" "}
         <LocalizedLink className="underline" to="/research/why/entropy-area-law">
@@ -139,7 +139,7 @@ const T = {
 
 /** Compact "m×10^x" / plain number for a log10 value. */
 function fmtLog(log10: number): string {
-  if (!isFinite(log10)) return "—";
+  if (!isFinite(log10)) return "–";
   if (log10 < 4) return Math.round(10 ** log10).toLocaleString();
   const exp = Math.floor(log10);
   const mant = 10 ** (log10 - exp);
@@ -170,7 +170,7 @@ export function PathComplexity({
 }) {
   const t = useT(T);
   const engineReady = useEngine();
-  // Hints are part of the configuration, not the drawn order — pre-placed before
+  // Hints are part of the configuration, not the drawn order: pre-placed before
   // every path, so they don't appear in the custom order but do shape the
   // estimate (exactly as McGavin's reference pre-places its hint squares).
   const hintKey = hints.join(",");

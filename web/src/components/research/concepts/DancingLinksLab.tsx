@@ -7,8 +7,8 @@ import { Lab } from "@/components/research/Lab";
 
 // Algorithm X on Knuth's own 7-item exact-cover instance, animated. Each frame
 // shows the live matrix: choose the column with fewest 1s, cover it (its rows
-// detach — links fade), recurse, hit a dead end, and uncover in reverse order
-// (the same two pointer writes, undone — the links dance back). Depth meter,
+// detach, links fade), recurse, hit a dead end, and uncover in reverse order
+// (the same two pointer writes, undone: the links dance back). Depth meter,
 // solutions counter, and a narration line explain each move. The whole search
 // is precomputed (it is tiny and deterministic); the component replays frames.
 
@@ -135,9 +135,9 @@ function rowItems(r: number): string {
 
 const T = {
   en: {
-    title: "Algorithm X with dancing links — cover, recurse, uncover",
+    title: "Algorithm X with dancing links: cover, recurse, uncover",
     intro:
-      "Knuth's own example: 7 items A–G, 6 options R1–R6, exactly one exact cover. Step through the search: the column with fewest 1s is chosen (fail-first), covering it detaches columns and rows from the lattice of links, a dead end triggers the dance — the same pointer writes, undone in reverse — and the search resumes where it left off.",
+      "Knuth's own example: 7 items A–G, 6 options R1–R6, exactly one exact cover. Step through the search: the column with fewest 1s is chosen (fail-first), covering it detaches columns and rows from the lattice of links, a dead end triggers the dance (the same pointer writes, undone in reverse), and the search resumes where it left off.",
     step: "Step",
     play: "Play",
     pause: "Pause",
@@ -149,22 +149,22 @@ const T = {
     legend: "Columns = items to cover, rows = options. Faded = detached from the link lattice. The count under each letter is the number of live options covering it.",
     nStart: "The full matrix: every option linked into every item it covers. No choice made yet.",
     nChoose: (col: string, size: number) =>
-      `Choose column ${col} — with ${size} live option${size === 1 ? "" : "s"}, it is the most constrained item. Branching here keeps the tree smallest (fail-first).`,
+      `Choose column ${col}: with ${size} live option${size === 1 ? "" : "s"}, it is the most constrained item. Branching here keeps the tree smallest (fail-first).`,
     nDead: (col: string) =>
-      `Column ${col} has no live options left: this item can never be covered from here. Dead end — unwind.`,
+      `Column ${col} has no live options left: this item can never be covered from here. Dead end: unwind.`,
     nCover: (row: string, items: string, cols: string) =>
-      `Try ${row} {${items}}: cover column${cols.length > 1 ? "s" : ""} ${cols} — two pointer writes per link detach them, and every row touching them drops out of the lattice.`,
+      `Try ${row} {${items}}: cover column${cols.length > 1 ? "s" : ""} ${cols}: two pointer writes per link detach them, and every row touching them drops out of the lattice.`,
     nUncover: (row: string, cols: string) =>
-      `Backtrack from ${row}: uncover ${cols} in exact reverse order. The removed nodes kept their own pointers, so the same two writes splice everything back — the links dance.`,
+      `Backtrack from ${row}: uncover ${cols} in exact reverse order. The removed nodes kept their own pointers, so the same two writes splice everything back. The links dance.`,
     nSolution: (n: number, rows: string) =>
-      `Every column covered exactly once — solution #${n}: ${rows}. The search continues, hunting for more.`,
+      `Every column covered exactly once: solution #${n}: ${rows}. The search continues, hunting for more.`,
     nDone: (n: number) =>
-      `Search exhausted: ${n} solution${n === 1 ? "" : "s"} in the entire tree, each state visited once, nothing copied — only pointers moved.`,
+      `Search exhausted: ${n} solution${n === 1 ? "" : "s"} in the entire tree, each state visited once, nothing copied, only pointers moved.`,
   },
   fr: {
-    title: "L'algorithme X et les dancing links — couvrir, récurser, découvrir",
+    title: "L'algorithme X et les dancing links : couvrir, récurser, découvrir",
     intro:
-      "L'exemple de Knuth lui-même : 7 éléments A–G, 6 options R1–R6, exactement une couverture exacte. Suivez la recherche pas à pas : la colonne au moins de 1 est choisie (l'échec d'abord), la couvrir détache colonnes et lignes du treillis de liens, une impasse déclenche la danse — les mêmes écritures de pointeurs, défaites en ordre inverse — et la recherche reprend là où elle s'était arrêtée.",
+      "L'exemple de Knuth lui-même : 7 éléments A–G, 6 options R1–R6, exactement une couverture exacte. Suivez la recherche pas à pas : la colonne au moins de 1 est choisie (l'échec d'abord), la couvrir détache colonnes et lignes du treillis de liens, une impasse déclenche la danse (les mêmes écritures de pointeurs, défaites en ordre inverse), et la recherche reprend là où elle s'était arrêtée.",
     step: "Pas",
     play: "Lecture",
     pause: "Pause",
@@ -176,22 +176,22 @@ const T = {
     legend: "Colonnes = éléments à couvrir, lignes = options. Estompé = détaché du treillis de liens. Le compte sous chaque lettre est le nombre d'options vivantes qui la couvrent.",
     nStart: "La matrice complète : chaque option est chaînée dans chaque élément qu'elle couvre. Aucun choix encore.",
     nChoose: (col: string, size: number) =>
-      `On choisit la colonne ${col} — avec ${size} option${size === 1 ? "" : "s"} vivante${size === 1 ? "" : "s"}, c'est l'élément le plus contraint. Brancher ici garde l'arbre le plus petit (l'échec d'abord).`,
+      `On choisit la colonne ${col} : avec ${size} option${size === 1 ? "" : "s"} vivante${size === 1 ? "" : "s"}, c'est l'élément le plus contraint. Brancher ici garde l'arbre le plus petit (l'échec d'abord).`,
     nDead: (col: string) =>
-      `La colonne ${col} n'a plus aucune option vivante : cet élément ne pourra jamais être couvert d'ici. Impasse — on remonte.`,
+      `La colonne ${col} n'a plus aucune option vivante : cet élément ne pourra jamais être couvert d'ici. Impasse : on remonte.`,
     nCover: (row: string, items: string, cols: string) =>
-      `On essaie ${row} {${items}} : couvrir ${cols.length > 1 ? "les colonnes" : "la colonne"} ${cols} — deux écritures de pointeurs par lien les détachent, et chaque ligne qui les touche sort du treillis.`,
+      `On essaie ${row} {${items}} : couvrir ${cols.length > 1 ? "les colonnes" : "la colonne"} ${cols} : deux écritures de pointeurs par lien les détachent, et chaque ligne qui les touche sort du treillis.`,
     nUncover: (row: string, cols: string) =>
-      `Retour arrière depuis ${row} : on découvre ${cols} en ordre exactement inverse. Les nœuds retirés ont gardé leurs propres pointeurs : les deux mêmes écritures recousent tout — les liens dansent.`,
+      `Retour arrière depuis ${row} : on découvre ${cols} en ordre exactement inverse. Les nœuds retirés ont gardé leurs propres pointeurs : les deux mêmes écritures recousent tout. Les liens dansent.`,
     nSolution: (n: number, rows: string) =>
-      `Chaque colonne couverte exactement une fois — solution n°${n} : ${rows}. La recherche continue, en quête d'autres.`,
+      `Chaque colonne couverte exactement une fois : solution n°${n} : ${rows}. La recherche continue, en quête d'autres.`,
     nDone: (n: number) =>
-      `Recherche épuisée : ${n} solution${n === 1 ? "" : "s"} dans tout l'arbre, chaque état visité une fois, rien copié — seuls des pointeurs ont bougé.`,
+      `Recherche épuisée : ${n} solution${n === 1 ? "" : "s"} dans tout l'arbre, chaque état visité une fois, rien copié : seuls des pointeurs ont bougé.`,
   },
   es: {
-    title: "El algoritmo X con dancing links — cubrir, recurrir, descubrir",
+    title: "El algoritmo X con dancing links: cubrir, recurrir, descubrir",
     intro:
-      "El propio ejemplo de Knuth: 7 elementos A–G, 6 opciones R1–R6, exactamente una cobertura exacta. Recorre la búsqueda paso a paso: se elige la columna con menos unos (fallo primero), cubrirla desprende columnas y filas del entramado de enlaces, un callejón sin salida desata la danza — las mismas escrituras de punteros, deshechas en orden inverso — y la búsqueda se reanuda donde se había quedado.",
+      "El propio ejemplo de Knuth: 7 elementos A–G, 6 opciones R1–R6, exactamente una cobertura exacta. Recorre la búsqueda paso a paso: se elige la columna con menos unos (fallo primero), cubrirla desprende columnas y filas del entramado de enlaces, un callejón sin salida desata la danza (las mismas escrituras de punteros, deshechas en orden inverso), y la búsqueda se reanuda donde se había quedado.",
     step: "Paso",
     play: "Reproducir",
     pause: "Pausar",
@@ -203,17 +203,17 @@ const T = {
     legend: "Columnas = elementos por cubrir, filas = opciones. Atenuado = desprendido del entramado de enlaces. El número bajo cada letra es la cantidad de opciones vivas que la cubren.",
     nStart: "La matriz completa: cada opción está enlazada a cada elemento que cubre. Aún no se ha tomado ninguna decisión.",
     nChoose: (col: string, size: number) =>
-      `Se elige la columna ${col} — con ${size} opción${size === 1 ? "" : "es"} viva${size === 1 ? "" : "s"}, es el elemento más restringido. Ramificar aquí mantiene el árbol lo más pequeño posible (fallo primero).`,
+      `Se elige la columna ${col}: con ${size} opción${size === 1 ? "" : "es"} viva${size === 1 ? "" : "s"}, es el elemento más restringido. Ramificar aquí mantiene el árbol lo más pequeño posible (fallo primero).`,
     nDead: (col: string) =>
-      `La columna ${col} ya no tiene opciones vivas: este elemento no podrá cubrirse desde aquí. Callejón sin salida — se retrocede.`,
+      `La columna ${col} ya no tiene opciones vivas: este elemento no podrá cubrirse desde aquí. Callejón sin salida: se retrocede.`,
     nCover: (row: string, items: string, cols: string) =>
-      `Se prueba ${row} {${items}}: cubrir ${cols.length > 1 ? "las columnas" : "la columna"} ${cols} — dos escrituras de punteros por enlace las desprenden, y toda fila que las toca sale del entramado.`,
+      `Se prueba ${row} {${items}}: cubrir ${cols.length > 1 ? "las columnas" : "la columna"} ${cols}: dos escrituras de punteros por enlace las desprenden, y toda fila que las toca sale del entramado.`,
     nUncover: (row: string, cols: string) =>
-      `Retroceso desde ${row}: se descubre ${cols} en orden exactamente inverso. Los nodos retirados conservaron sus propios punteros, así que las dos mismas escrituras lo recomponen todo — los enlaces danzan.`,
+      `Retroceso desde ${row}: se descubre ${cols} en orden exactamente inverso. Los nodos retirados conservaron sus propios punteros, así que las dos mismas escrituras lo recomponen todo. Los enlaces danzan.`,
     nSolution: (n: number, rows: string) =>
-      `Cada columna cubierta exactamente una vez — solución n.º ${n}: ${rows}. La búsqueda continúa, en busca de más.`,
+      `Cada columna cubierta exactamente una vez: solución n.º ${n}: ${rows}. La búsqueda continúa, en busca de más.`,
     nDone: (n: number) =>
-      `Búsqueda agotada: ${n} solución${n === 1 ? "" : "es"} en todo el árbol, cada estado visitado una vez, nada copiado — solo se movieron punteros.`,
+      `Búsqueda agotada: ${n} solución${n === 1 ? "" : "es"} en todo el árbol, cada estado visitado una vez, nada copiado: solo se movieron punteros.`,
   },
 };
 
@@ -291,7 +291,7 @@ export function DancingLinksLab() {
                     <rect x={x - 11} y={32} width={22} height={2.5} rx={1} className="fill-primary" />
                   )}
                   <text x={x} y={48} fontSize={9} textAnchor="middle" className="fill-muted-foreground">
-                    {alive ? liveSize(c) : "—"}
+                    {alive ? liveSize(c) : "–"}
                   </text>
                   {last >= 0 && (
                     <line

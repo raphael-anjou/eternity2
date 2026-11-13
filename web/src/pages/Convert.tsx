@@ -52,7 +52,7 @@ function safeName(board: BucasBoard): string {
   return raw.length > 0 ? raw : "eternity2_board";
 }
 
-// The canonical board JSON — byte-for-byte the schema the Rust `e2-io` crate's
+// The canonical board JSON: byte-for-byte the schema the Rust `e2-io` crate's
 // BoardDoc emits, so a board pasted here and a board written by any solver are
 // the same document. `board` is the row-major piece*4+rot vector (-1 empty);
 // without explicit piece numbers we can't recover piece identity from a board
@@ -108,7 +108,7 @@ function colorFromWord(word: string): number | null {
 
 // The converter accepts any format the page also emits, auto-detected, so a
 // board can enter as a URL, a bare edge string, a binary puzzle CSV, an
-// e2pieces list, a board_pieces digit blob, or the canonical JSON — and read
+// e2pieces list, a board_pieces digit blob, or the canonical JSON, and read
 // back as all the others. Each branch returns decoded cells + size, or throws.
 // `size` seeds a size when the format does not carry one (bare edges, e2pieces).
 function parseAnyFormat(raw: string, size: number): BucasBoard {
@@ -200,9 +200,9 @@ const T = {
         The community's board formats never quite line up: viewer URLs,{" "}
         <code>board_edges</code> letter strings, numeric <code>e2pieces.txt</code>{" "}
         files, and CSV puzzles all say the same thing in different alphabets.
-        Paste any one of them here and read back the others — including the
+        Paste any one of them here and read back the others, including the
         canonical <code>eternity2.dev</code> URL and the one board <code>JSON</code>{" "}
-        every solver on this site now emits — with a preview so you can see the
+        every solver on this site now emits, with a preview so you can see the
         file is right. New to the formats?{" "}
         <Link to="/research/build/formats" className="font-medium text-primary underline-offset-4 hover:underline">
           Read the format reference
@@ -210,7 +210,7 @@ const T = {
         .
       </>
     ),
-    inputTitle: "Paste a board — any format",
+    inputTitle: "Paste a board, any format",
     inputHelp: (
       <>
         Any format this page also emits, auto-detected: a viewer or{" "}
@@ -254,7 +254,7 @@ const T = {
     editorTitle: "Edit a cell",
     editHint: "Click any cell to edit its four edge colours. Invalid values are flagged in red and left out of the outputs until fixed.",
     selectPrompt: "Click a cell on the board to edit its edges.",
-    cellLabel: (row: string, col: number) => `Cell ${row}${col} — edges (U, R, D, L)`,
+    cellLabel: (row: string, col: number) => `Cell ${row}${col}: edges (U, R, D, L)`,
     dirU: "Up",
     dirR: "Right",
     dirD: "Down",
@@ -277,8 +277,8 @@ const T = {
         liens du visualiseur, chaînes de lettres <code>board_edges</code>,
         fichiers numériques <code>e2pieces.txt</code> et puzzles CSV disent la
         même chose dans des alphabets différents. Collez-en un ici et récupérez
-        les autres — dont l'URL canonique <code>eternity2.dev</code> et le{" "}
-        <code>JSON</code> unique que produit désormais chaque solveur du site —
+        les autres, dont l'URL canonique <code>eternity2.dev</code> et le{" "}
+        <code>JSON</code> unique que produit désormais chaque solveur du site,
         avec un aperçu pour vérifier d'un coup d'œil que le fichier est bon. Vous
         découvrez les formats ?{" "}
         <Link to="/research/build/formats" className="font-medium text-primary underline-offset-4 hover:underline">
@@ -287,7 +287,7 @@ const T = {
         .
       </>
     ),
-    inputTitle: "Collez un plateau — n'importe quel format",
+    inputTitle: "Collez un plateau, n'importe quel format",
     inputHelp: (
       <>
         Tout format que cette page produit aussi, détecté automatiquement : un
@@ -332,7 +332,7 @@ const T = {
     editorTitle: "Modifier une case",
     editHint: "Cliquez sur une case pour modifier ses quatre couleurs de côté. Les valeurs invalides sont signalées en rouge et exclues des sorties jusqu'à correction.",
     selectPrompt: "Cliquez sur une case du plateau pour modifier ses côtés.",
-    cellLabel: (row: string, col: number) => `Case ${row}${col} — côtés (H, D, B, G)`,
+    cellLabel: (row: string, col: number) => `Case ${row}${col} : côtés (H, D, B, G)`,
     dirU: "Haut",
     dirR: "Droite",
     dirD: "Bas",
@@ -354,9 +354,9 @@ const T = {
         Los formatos de tablero de la comunidad nunca terminan de cuadrar: URL
         del visor, cadenas de letras <code>board_edges</code>, archivos numéricos{" "}
         <code>e2pieces.txt</code> y puzzles CSV dicen lo mismo en alfabetos
-        distintos. Pega cualquiera de ellos aquí y obtén los demás — incluida la
+        distintos. Pega cualquiera de ellos aquí y obtén los demás, incluida la
         URL canónica <code>eternity2.dev</code> y el <code>JSON</code> único de
-        tablero que ahora emite cada solucionador del sitio — con una vista
+        tablero que ahora emite cada solucionador del sitio, con una vista
         previa para comprobar de un vistazo que el archivo está bien. ¿Los
         formatos te resultan nuevos?{" "}
         <Link to="/research/build/formats" className="font-medium text-primary underline-offset-4 hover:underline">
@@ -365,7 +365,7 @@ const T = {
         .
       </>
     ),
-    inputTitle: "Pega un tablero — cualquier formato",
+    inputTitle: "Pega un tablero, cualquier formato",
     inputHelp: (
       <>
         Cualquier formato que esta página también emite, detectado
@@ -410,7 +410,7 @@ const T = {
     editorTitle: "Editar una celda",
     editHint: "Haz clic en cualquier celda para editar sus cuatro colores de arista. Los valores no válidos se marcan en rojo y se excluyen de las salidas hasta corregirlos.",
     selectPrompt: "Haz clic en una celda del tablero para editar sus aristas.",
-    cellLabel: (row: string, col: number) => `Celda ${row}${col} — aristas (A, D, B, I)`,
+    cellLabel: (row: string, col: number) => `Celda ${row}${col}: aristas (A, D, B, I)`,
     dirU: "Arriba",
     dirR: "Derecha",
     dirD: "Abajo",
@@ -428,7 +428,7 @@ const T = {
 };
 
 // A two-way, format-labelled field: it shows the board rendered into this
-// format, and it is editable — typing a board in this format re-derives every
+// format, and it is editable: typing a board in this format re-derives every
 // other field. Editing keeps the raw text; when it parses, the board updates
 // and this field snaps to the canonical rendering; when it does not, a red
 // message names the fault and the board is left untouched. A field can also be

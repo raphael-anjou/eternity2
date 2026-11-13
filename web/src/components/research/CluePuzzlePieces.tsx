@@ -1,6 +1,6 @@
 // The four recovered clue puzzles: each solved board rendered with the real
 // Eternity II motifs (same BoardSvg the record boards use, so no flat-triangle
-// stand-ins and no clipped border), plus two downloads per puzzle — the pieces as
+// stand-ins and no clipped border), plus two downloads per puzzle: the pieces as
 // solver-ready data (the dataset instance JSON) and as one SVG per piece,
 // mirroring the main puzzle's affordance (/puzzle). Clues 1 & 2 come from Le
 // Bail's SHORTER solver, Clues 3 & 4 from jwortmann's Eternity2Puzzles.jl; see

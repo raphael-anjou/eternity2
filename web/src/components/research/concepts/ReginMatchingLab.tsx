@@ -9,7 +9,7 @@ import { Lab } from "@/components/research/Lab";
 // instance. Phase 1 animates Kuhn's augmenting-path construction of a maximum
 // matching (conflicts, re-routing, path flips). Phase 2 orients the graph
 // around the matching, colours its strongly connected components, and deletes
-// every unmatched edge that crosses two components — exactly the edges that
+// every unmatched edge that crosses two components: exactly the edges that
 // belong to no maximum matching (Berge / Régin 1994). The instance is chosen
 // so the filter forces two cells that plain crossing-off would never catch.
 // Fully precomputed and deterministic: the component just replays frames.
@@ -236,7 +236,7 @@ const T = {
   en: {
     title: "Régin's filter, live: matching, components, deletions",
     intro:
-      "Six pieces, six cells, feasible edges in between. First build a maximum matching by augmenting paths — watch a taken piece get re-routed. Then Régin's insight: orient the graph around the matching, compute its strongly connected components, and every unmatched edge that crosses two components belongs to no maximum matching. Delete them, soundly — here that forces two cells that simple crossing-off never notices.",
+      "Six pieces, six cells, feasible edges in between. First build a maximum matching by augmenting paths, and watch a taken piece get re-routed. Then Régin's insight: orient the graph around the matching, compute its strongly connected components, and every unmatched edge that crosses two components belongs to no maximum matching. Delete them, soundly. Here that forces two cells that simple crossing-off never notices.",
     findMatching: "1 · Find maximum matching",
     runFilter: "2 · Run Régin's filter",
     step: "Step",
@@ -248,30 +248,30 @@ const T = {
     domains: "Domains",
     forced: "forced!",
     nStart: "The bipartite graph: an edge wherever a piece is still in a cell's candidate list.",
-    nConsider: (c: string) => `${c} needs a piece — start a search for an augmenting path.`,
+    nConsider: (c: string) => `${c} needs a piece: start a search for an augmenting path.`,
     nTryFree: (c: string, p: string) => `${c} tries ${p}: free! Match them.`,
     nConflict: (c: string, p: string, o: string) =>
       `${c} wants ${p}, but ${p} is taken by ${o}. Try to re-route ${o} to another piece…`,
-    nDeadEdge: (c: string, p: string) => `No re-route works through ${p} — back up and try ${c}'s next edge.`,
+    nDeadEdge: (c: string, p: string) => `No re-route works through ${p}: back up and try ${c}'s next edge.`,
     nAugmentShort: (c: string) => `${c} matched directly.`,
     nAugmentLong: (c: string, len: number) =>
-      `Augmenting path found (${len} edges): flip it — unmatched edges become matched and vice versa. ${c} is served and nobody lost their piece.`,
+      `Augmenting path found (${len} edges): flip it: unmatched edges become matched and vice versa. ${c} is served and nobody lost their piece.`,
     nMatchedAll: "Maximum matching found: all 6 cells covered. If this had failed, the position would already be dead.",
     nOrient: "Now orient every edge: matched edges run cell → piece, unmatched edges piece → cell. Alternating paths become directed paths.",
     nScc: (i: number, size: number) =>
       `Strongly connected component ${i}: ${size} nodes trade pieces among themselves along an alternating cycle.`,
-    nSingles: "Every remaining node is its own tiny component — no cycle passes through it.",
+    nSingles: "Every remaining node is its own tiny component: no cycle passes through it.",
     nKeep: (c: string, p: string) =>
       `${c}–${p} stays: both ends sit in the same component, so an alternating cycle can swap it into some maximum matching.`,
     nDrop: (c: string, p: string) =>
-      `${c}–${p} crosses two components and is unmatched: it belongs to no maximum matching. Deleted — soundly.`,
+      `${c}–${p} crosses two components and is unmatched: it belongs to no maximum matching. Deleted, soundly.`,
     nFiltered: (r: number, f: number) =>
       `Filter done: ${r} edges deleted in one matching + one SCC pass, ${f} cells now forced. Pairwise crossing-off would have found none of this.`,
   },
   fr: {
     title: "Le filtre de Régin, en direct : couplage, composantes, suppressions",
     intro:
-      "Six pièces, six cases, et les arêtes faisables entre les deux. D'abord un couplage maximum par chemins augmentants — regardez une pièce déjà prise se faire re-router. Puis l'idée de Régin : orienter le graphe autour du couplage, calculer ses composantes fortement connexes, et toute arête non couplée qui traverse deux composantes n'appartient à aucun couplage maximum. On les supprime, en toute correction — ici, cela force deux cases que le simple rayage ne remarquerait jamais.",
+      "Six pièces, six cases, et les arêtes faisables entre les deux. D'abord un couplage maximum par chemins augmentants, et regardez une pièce déjà prise se faire re-router. Puis l'idée de Régin : orienter le graphe autour du couplage, calculer ses composantes fortement connexes, et toute arête non couplée qui traverse deux composantes n'appartient à aucun couplage maximum. On les supprime, en toute correction. Ici, cela force deux cases que le simple rayage ne remarquerait jamais.",
     findMatching: "1 · Trouver le couplage maximum",
     runFilter: "2 · Lancer le filtre de Régin",
     step: "Pas",
@@ -283,23 +283,23 @@ const T = {
     domains: "Domaines",
     forced: "forcée !",
     nStart: "Le graphe biparti : une arête partout où une pièce figure encore dans la liste de candidats d'une case.",
-    nConsider: (c: string) => `${c} a besoin d'une pièce — on cherche un chemin augmentant.`,
+    nConsider: (c: string) => `${c} a besoin d'une pièce : on cherche un chemin augmentant.`,
     nTryFree: (c: string, p: string) => `${c} essaie ${p} : libre ! On les couple.`,
     nConflict: (c: string, p: string, o: string) =>
       `${c} veut ${p}, mais ${p} est prise par ${o}. On tente de re-router ${o} vers une autre pièce…`,
-    nDeadEdge: (c: string, p: string) => `Aucun re-routage ne passe par ${p} — on recule et on essaie l'arête suivante de ${c}.`,
+    nDeadEdge: (c: string, p: string) => `Aucun re-routage ne passe par ${p} : on recule et on essaie l'arête suivante de ${c}.`,
     nAugmentShort: (c: string) => `${c} couplée directement.`,
     nAugmentLong: (c: string, len: number) =>
-      `Chemin augmentant trouvé (${len} arêtes) : on le bascule — les arêtes libres deviennent couplées et inversement. ${c} est servie et personne n'a perdu sa pièce.`,
+      `Chemin augmentant trouvé (${len} arêtes) : on le bascule : les arêtes libres deviennent couplées et inversement. ${c} est servie et personne n'a perdu sa pièce.`,
     nMatchedAll: "Couplage maximum trouvé : les 6 cases sont couvertes. S'il avait échoué, la position serait déjà morte.",
     nOrient: "On oriente maintenant chaque arête : les arêtes couplées vont de la case vers la pièce, les autres de la pièce vers la case. Les chemins alternants deviennent des chemins orientés.",
     nScc: (i: number, size: number) =>
       `Composante fortement connexe ${i} : ${size} nœuds s'échangent leurs pièces le long d'un cycle alternant.`,
-    nSingles: "Chaque nœud restant est sa propre petite composante — aucun cycle ne passe par lui.",
+    nSingles: "Chaque nœud restant est sa propre petite composante : aucun cycle ne passe par lui.",
     nKeep: (c: string, p: string) =>
       `${c}–${p} reste : ses deux extrémités sont dans la même composante, un cycle alternant peut donc la faire entrer dans un couplage maximum.`,
     nDrop: (c: string, p: string) =>
-      `${c}–${p} traverse deux composantes sans être couplée : elle n'appartient à aucun couplage maximum. Supprimée — en toute correction.`,
+      `${c}–${p} traverse deux composantes sans être couplée : elle n'appartient à aucun couplage maximum. Supprimée, en toute correction.`,
     nFiltered: (r: number, f: number) =>
       `Filtre terminé : ${r} arêtes supprimées en un couplage + une passe de composantes, ${f} cases désormais forcées. Le rayage par paires n'en aurait trouvé aucune.`,
   },
@@ -325,7 +325,7 @@ const T = {
     nDeadEdge: (c: string, p: string) => `Ningún re-enrutamiento pasa por ${p}: se retrocede y se prueba la siguiente arista de ${c}.`,
     nAugmentShort: (c: string) => `${c} emparejada directamente.`,
     nAugmentLong: (c: string, len: number) =>
-      `Camino aumentante encontrado (${len} aristas): se invierte — las aristas no emparejadas pasan a estar emparejadas y viceversa. ${c} queda atendida y nadie perdió su pieza.`,
+      `Camino aumentante encontrado (${len} aristas): se invierte: las aristas no emparejadas pasan a estar emparejadas y viceversa. ${c} queda atendida y nadie perdió su pieza.`,
     nMatchedAll: "Emparejamiento máximo encontrado: las 6 celdas quedan cubiertas. Si hubiera fallado, la posición ya estaría muerta.",
     nOrient: "Ahora se orienta cada arista: las emparejadas van de la celda a la pieza, las demás de la pieza a la celda. Los caminos alternantes se vuelven caminos dirigidos.",
     nScc: (i: number, size: number) =>

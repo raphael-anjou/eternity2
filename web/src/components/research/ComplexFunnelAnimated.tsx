@@ -25,7 +25,7 @@ const T = {
         line: "Every placement still has dozens of legal successors. The tree widens fast.",
       },
       plateau: {
-        label: "Plateau — the wall",
+        label: "Plateau: the wall",
         line: "The tree is astronomically wide and almost nothing prunes. A backtracker burns ~99% of its time crossing this band.",
       },
       collapse: {
@@ -51,7 +51,7 @@ const T = {
         line: "Chaque placement a encore des dizaines de successeurs légaux. L'arbre s'élargit vite.",
       },
       plateau: {
-        label: "Plateau — le mur",
+        label: "Plateau : le mur",
         line: "L'arbre est astronomiquement large et presque rien n'élague. Un backtracker passe ~99 % de son temps à traverser cette bande.",
       },
       collapse: {
@@ -77,7 +77,7 @@ const T = {
         line: "Cada colocación todavía tiene decenas de sucesores válidos. El árbol se ensancha rápido.",
       },
       plateau: {
-        label: "Meseta — el muro",
+        label: "Meseta: el muro",
         line: "El árbol es astronómicamente ancho y casi nada se poda. Un backtracker consume ~99 % de su tiempo cruzando esta franja.",
       },
       collapse: {
@@ -90,13 +90,13 @@ const T = {
 
 // The E2 funnel as an animated explainer. A "search head" sweeps depth 1 → 256
 // along the expected-branches curve (Brendan Owen's complex-theory numbers). As
-// it crosses each regime — exponential growth, the vast plateau where the tree
-// is widest, then the collapse — the band lights up and a live readout names
+// it crosses each regime (exponential growth, the vast plateau where the tree
+// is widest, then the collapse), the band lights up and a live readout names
 // what is happening and how many ways there are to extend the partial board.
 //
 // This is the static ComplexFunnel made temporal: a static curve shows the
-// shape, but watching the head crawl through the plateau — where the counter
-// barely moves for a hundred cells — is what makes "the wall" land.
+// shape, but watching the head crawl through the plateau (where the counter
+// barely moves for a hundred cells) is what makes "the wall" land.
 //
 // The animation pauses off-screen / when collapsed (useRunWhileVisible) and
 // respects prefers-reduced-motion (starts paused, no auto-play).

@@ -3,7 +3,7 @@
 // Puzzle generation must be reproducible: the same (size, colors, seed) must
 // produce the exact same puzzle in every language. We therefore carry our own
 // tiny generator rather than the host's built-in RNG. This is the single most
-// fragile part of any port — every downstream choice (which colours, which
+// fragile part of any port: every downstream choice (which colours, which
 // piece order, which rotations) flows from these bits, so the 64-bit math must
 // be reproduced *exactly*.
 //

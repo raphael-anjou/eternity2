@@ -118,8 +118,8 @@ const T = {
         ],
         surprise: {
           to: "/research/why/sigma-cycles",
-          title: "Why basin-hopping is impossible",
-          why: "A structural reason a whole class of local search cannot work.",
+          title: "Interpolating between record boards fails",
+          why: "Every partial step from one record board toward another scores worse than its start.",
         },
       },
     ] as Profile[],
@@ -216,8 +216,8 @@ const T = {
         ],
         surprise: {
           to: "/research/why/sigma-cycles",
-          title: "Pourquoi le saut de bassin est impossible",
-          why: "Une raison de structure qui condamne toute une classe de recherche locale.",
+          title: "L'interpolation entre plateaux records échoue",
+          why: "Chaque pas partiel d'un plateau record vers un autre fait moins bien que son départ.",
         },
       },
     ] as Profile[],
@@ -314,8 +314,8 @@ const T = {
         ],
         surprise: {
           to: "/research/why/sigma-cycles",
-          title: "Por qué el salto entre cuencas es imposible",
-          why: "Una razón estructural por la que toda una clase de búsqueda local no puede funcionar.",
+          title: "Interpolar entre tableros récord fracasa",
+          why: "Cada paso parcial de un tablero récord hacia otro puntúa peor que su inicio.",
         },
       },
     ] as Profile[],

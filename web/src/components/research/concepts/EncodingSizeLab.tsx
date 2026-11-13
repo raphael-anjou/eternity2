@@ -10,7 +10,7 @@ import { Lab } from "@/components/research/Lab";
 
 // Interactive encoding-size explorer. Slide the board size n and colour count c
 // and watch the direct clausal encoding blow up against Heule's seam-colour
-// encoding — the counts are computed live from the formulas the page derives,
+// encoding. The counts are computed live from the formulas the page derives,
 // on a log scale, with the community's practical pure-SAT ceiling (≈10×10) and
 // Eternity II (16×16) marked. Below it, a six-clause unit-propagation cascade
 // shows what CDCL actually feeds on: chains of forced assignments ending in a
@@ -20,7 +20,7 @@ const T = {
   en: {
     title: "How big is the CNF? Slide and see",
     intro:
-      "Both encodings are computed live from the page's own derivation: p = n² pieces, 4 rotations, n² cells give 4n⁴ placement variables. The direct encoding forbids every disagreeing pair of placements across every seam; Heule's seam encoding names the colour on each seam and forbids disagreement once per seam. The bars are log-scale — each tick is ×10.",
+      "Both encodings are computed live from the page's own derivation: p = n² pieces, 4 rotations, n² cells give 4n⁴ placement variables. The direct encoding forbids every disagreeing pair of placements across every seam; Heule's seam encoding names the colour on each seam and forbids disagreement once per seam. The bars are log-scale: each tick is ×10.",
     boardSize: (n: number) => `Board size n = ${n} (${n}×${n})`,
     colors: (c: number) => `Edge colours c = ${c}`,
     variables: "variables",
@@ -38,12 +38,12 @@ const T = {
     e2: "Eternity II",
     withinReach: "Within the range complete solvers have actually dispatched.",
     beyondReach:
-      "Beyond every demonstrated pure-SAT success on Eternity-style instances — loadable, and unsolved.",
+      "Beyond every demonstrated pure-SAT success on Eternity-style instances: loadable, and unsolved.",
     e2Note: (v: string, cl: string) =>
-      `At n = 16, c = 17 the direct form reaches ${v} variables and ≈ ${cl} conflict clauses — the same “hundreds of millions” the community reported for full-board CNFs.`,
+      `At n = 16, c = 17 the direct form reaches ${v} variables and ≈ ${cl} conflict clauses, the same “hundreds of millions” the community reported for full-board CNFs.`,
     upTitle: "What CDCL feeds on: a unit-propagation cascade",
     upIntro:
-      "Six clauses, one decision. Assigning x₁ = true forces x₂, then x₃, x₄, x₅ — each step is a clause with a single live literal — until clause 6 has none left: conflict. Walking the chain back, the whole conflict compresses to one decision, so the solver learns the short clause ¬x₁. Eternity II starves exactly this: its chains are one link long, so its learned clauses come out wide and useless.",
+      "Six clauses, one decision. Assigning x₁ = true forces x₂, then x₃, x₄, x₅ (each step is a clause with a single live literal) until clause 6 has none left: conflict. Walking the chain back, the whole conflict compresses to one decision, so the solver learns the short clause ¬x₁. Eternity II starves exactly this: its chains are one link long, so its learned clauses come out wide and useless.",
     step: "Step",
     reset: "Reset",
     play: "Auto-play",
@@ -54,16 +54,16 @@ const T = {
       "c2 has one live literal: x₂ = true (forced).",
       "c3 forces x₃ = true.",
       "c4 forces x₄ = true.",
-      "c5 forces x₅ = true — a four-link chain from one decision.",
-      "c6 has no live literal left: CONFLICT. Every link traces back to x₁ — learn the 1-literal clause ¬x₁.",
+      "c5 forces x₅ = true: a four-link chain from one decision.",
+      "c6 has no live literal left: CONFLICT. Every link traces back to x₁: learn the 1-literal clause ¬x₁.",
     ],
-    learned: "learned clause: ¬x₁ — one literal, prunes half the tree",
+    learned: "learned clause: ¬x₁, one literal, prunes half the tree",
     note: "Counts are exact for the constraint families shown, except seam disagreement, which treats colours as uniform (×(1−1/c)); real piece sets deviate a little. The seam encoding uses sequential at-most-one for the cell and piece constraints, as the compact encodings in Heule's paper do. The 10×10 ceiling and the full-board CNF sizes are the ones this page reports from community experiments.",
   },
   fr: {
     title: "Quelle taille fait la CNF ? Faites glisser",
     intro:
-      "Les deux encodages sont calculés en direct depuis la dérivation de la page : p = n² pièces, 4 rotations, n² cases donnent 4n⁴ variables de placement. L'encodage direct interdit chaque paire de placements en désaccord sur chaque couture ; l'encodage à coutures de Heule nomme la couleur de chaque couture et interdit le désaccord une seule fois par couture. Les barres sont en échelle log — chaque graduation vaut ×10.",
+      "Les deux encodages sont calculés en direct depuis la dérivation de la page : p = n² pièces, 4 rotations, n² cases donnent 4n⁴ variables de placement. L'encodage direct interdit chaque paire de placements en désaccord sur chaque couture ; l'encodage à coutures de Heule nomme la couleur de chaque couture et interdit le désaccord une seule fois par couture. Les barres sont en échelle log : chaque graduation vaut ×10.",
     boardSize: (n: number) => `Taille du plateau n = ${n} (${n}×${n})`,
     colors: (c: number) => `Couleurs d'arête c = ${c}`,
     variables: "variables",
@@ -81,12 +81,12 @@ const T = {
     e2: "Eternity II",
     withinReach: "Dans la plage que les solveurs complets ont réellement expédiée.",
     beyondReach:
-      "Au-delà de tout succès démontré du SAT pur sur les instances de type Eternity — chargeable, et irrésolu.",
+      "Au-delà de tout succès démontré du SAT pur sur les instances de type Eternity : chargeable, et irrésolu.",
     e2Note: (v: string, cl: string) =>
-      `À n = 16, c = 17, la forme directe atteint ${v} variables et ≈ ${cl} clauses de conflit — les mêmes « centaines de millions » que la communauté rapporte pour les CNF du plateau entier.`,
+      `À n = 16, c = 17, la forme directe atteint ${v} variables et ≈ ${cl} clauses de conflit, les mêmes « centaines de millions » que la communauté rapporte pour les CNF du plateau entier.`,
     upTitle: "Ce dont se nourrit le CDCL : une cascade de propagation unitaire",
     upIntro:
-      "Six clauses, une décision. Poser x₁ = vrai force x₂, puis x₃, x₄, x₅ — chaque étape est une clause à un seul littéral vivant — jusqu'à ce que la clause 6 n'en ait plus : conflit. En remontant la chaîne, tout le conflit se compresse en une décision : le solveur apprend la clause courte ¬x₁. Eternity II affame exactement cela : ses chaînes n'ont qu'un maillon, donc ses clauses apprises sortent larges et inutiles.",
+      "Six clauses, une décision. Poser x₁ = vrai force x₂, puis x₃, x₄, x₅ (chaque étape est une clause à un seul littéral vivant) jusqu'à ce que la clause 6 n'en ait plus : conflit. En remontant la chaîne, tout le conflit se compresse en une décision : le solveur apprend la clause courte ¬x₁. Eternity II affame exactement cela : ses chaînes n'ont qu'un maillon, donc ses clauses apprises sortent larges et inutiles.",
     step: "Étape",
     reset: "Réinitialiser",
     play: "Lecture auto",
@@ -97,10 +97,10 @@ const T = {
       "c2 n'a qu'un littéral vivant : x₂ = vrai (forcé).",
       "c3 force x₃ = vrai.",
       "c4 force x₄ = vrai.",
-      "c5 force x₅ = vrai — une chaîne de quatre maillons pour une décision.",
-      "c6 n'a plus de littéral vivant : CONFLIT. Chaque maillon remonte à x₁ — on apprend la clause à 1 littéral ¬x₁.",
+      "c5 force x₅ = vrai : une chaîne de quatre maillons pour une décision.",
+      "c6 n'a plus de littéral vivant : CONFLIT. Chaque maillon remonte à x₁ : on apprend la clause à 1 littéral ¬x₁.",
     ],
-    learned: "clause apprise : ¬x₁ — un littéral, qui élague la moitié de l'arbre",
+    learned: "clause apprise : ¬x₁, un littéral, qui élague la moitié de l'arbre",
     note: "Les comptes sont exacts pour les familles montrées, sauf le désaccord de couture, qui traite les couleurs comme uniformes (×(1−1/c)) ; les jeux de pièces réels s'en écartent un peu. L'encodage à coutures utilise un au-plus-un séquentiel pour les contraintes de cases et de pièces, comme les encodages compacts de l'article de Heule. Le plafond 10×10 et les tailles de CNF du plateau entier sont ceux que cette page rapporte des expériences communautaires.",
   },
   es: {
@@ -129,7 +129,7 @@ const T = {
       `Con n = 16, c = 17 la forma directa alcanza ${v} variables y ≈ ${cl} cláusulas de conflicto: los mismos «cientos de millones» que la comunidad reportó para las CNF del tablero completo.`,
     upTitle: "De qué se alimenta el CDCL: una cascada de propagación unitaria",
     upIntro:
-      "Seis cláusulas, una decisión. Fijar x₁ = verdadero fuerza x₂, luego x₃, x₄, x₅ —cada paso es una cláusula con un solo literal vivo— hasta que la cláusula 6 no tiene ninguno: conflicto. Al remontar la cadena, todo el conflicto se comprime en una decisión, así que el solucionador aprende la cláusula corta ¬x₁. Eternity II mata de hambre justo esto: sus cadenas tienen un solo eslabón, de modo que sus cláusulas aprendidas salen anchas e inútiles.",
+      "Seis cláusulas, una decisión. Fijar x₁ = verdadero fuerza x₂, luego x₃, x₄, x₅ (cada paso es una cláusula con un solo literal vivo) hasta que la cláusula 6 no tiene ninguno: conflicto. Al remontar la cadena, todo el conflicto se comprime en una decisión, así que el solucionador aprende la cláusula corta ¬x₁. Eternity II mata de hambre justo esto: sus cadenas tienen un solo eslabón, de modo que sus cláusulas aprendidas salen anchas e inútiles.",
     step: "Paso",
     reset: "Reiniciar",
     play: "Reproducción automática",
@@ -143,7 +143,7 @@ const T = {
       "c5 fuerza x₅ = verdadero: una cadena de cuatro eslabones a partir de una decisión.",
       "c6 no tiene ningún literal vivo: CONFLICTO. Cada eslabón se remonta a x₁: se aprende la cláusula de 1 literal ¬x₁.",
     ],
-    learned: "cláusula aprendida: ¬x₁ — un literal, poda la mitad del árbol",
+    learned: "cláusula aprendida: ¬x₁, un literal, poda la mitad del árbol",
     note: "Los recuentos son exactos para las familias de restricciones mostradas, salvo el desacuerdo de costura, que trata los colores como uniformes (×(1−1/c)); los conjuntos de piezas reales se desvían un poco. La codificación por costuras usa un al-máximo-uno secuencial para las restricciones de celda y de pieza, como las codificaciones compactas del artículo de Heule. El techo de 10×10 y los tamaños de CNF del tablero completo son los que esta página reporta a partir de experimentos comunitarios.",
   },
 };
@@ -299,9 +299,9 @@ export function EncodingSizeLab() {
           <div className="flex justify-between text-[10px] text-muted-foreground">
             <span>4</span>
             <span className="text-emerald-600" title={t.ceiling}>
-              10 — {t.ceilingShort}
+              10 ({t.ceilingShort})
             </span>
-            <span className="text-amber-600">16 — {t.e2}</span>
+            <span className="text-amber-600">16 ({t.e2})</span>
           </div>
         </div>
         <div className="space-y-1.5">

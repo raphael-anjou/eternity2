@@ -3,30 +3,30 @@
 // The single-piece Solver (solver.ts) fills the board one cell at a time. This
 // solver fills it one *block* at a time: the user groups cells into blocks
 // (2×2, 2×1, 3×3, …) and the search treats each block as the atomic unit. At
-// each step it commits a whole valid sub-assembly — distinct loose pieces, all
+// each step it commits a whole valid sub-assembly (distinct loose pieces, all
 // internal edges of the block already matched, rim and already-placed
-// neighbours respected — then moves to the next block. On a dead end it
+// neighbours respected), then moves to the next block. On a dead end it
 // retracts the entire block and tries the next sub-assembly.
 //
 // This is the "place 2×2 tiles instead of single pieces" idea from the
 // complex-theory writeup (groups.io, Dan Karlsson) realised as a real search,
 // not just a counting model. The block frontier is what makes it different: a
 // block's internal edges are all resolved before any neighbouring block starts,
-// so the order in which whole regions are committed — not just cells — drives
+// so the order in which whole regions are committed, not just cells, drives
 // the cost.
 //
 // Correctness vs the single-piece solver. With every block of size 1 this
 // reduces exactly to a single-piece DFS over the same visit order (golden-tested
-// below). For larger blocks it explores the SAME solution set — a full board is
+// below). For larger blocks it explores the SAME solution set (a full board is
 // valid iff every block sub-assembly is internally consistent and all block
-// boundaries match — but in a different node order, so it finds the same
+// boundaries match) but in a different node order, so it finds the same
 // solutions, generally with far fewer top-level nodes and far more work hidden
 // inside each block's enumeration.
 //
 // Step-able like the single-piece solver: one `step()` advances the search by a
 // bounded amount so an animation loop stays responsive. A "block node" is one
 // committed block; we also expose the internal sub-assembly attempts so the cost
-// is honest.
+// is fully counted.
 
 import { rotated, BORDER, type Edges, type Puzzle } from "./types.ts";
 import type { SolverHandle, SolverReport } from "@/lib/types";
@@ -267,7 +267,7 @@ export class BlockSolver {
 
   /**
    * Advance the search. One unit of `budget` is one cell-level placement or
-   * retraction (so the internal block enumeration is charged honestly). A whole
+   * retraction (so the internal block enumeration is fully charged). A whole
    * block committing counts as one `node`.
    */
   step(budget: number): SolverReport {
@@ -376,7 +376,7 @@ export function createBlockSolver(
     report: () => solver.report(),
     // Display the committed board: whole blocks snap into place atomically,
     // hiding the internal cell-by-cell sub-assembly search (the half-built block
-    // flicker). Scoring still uses the true board so the count stays honest.
+    // flicker). Scoring still uses the true board so the count stays true.
     board: () => solver.committedBoard(),
     bestBoard: () => solver.bestBoard(),
     score: () => scoreBoard(puzzle, solver.board()),

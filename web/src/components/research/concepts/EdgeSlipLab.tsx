@@ -8,20 +8,20 @@ import { Button } from "@/components/ui/button";
 // Edge slipping, made slidable. Two linked views driven by one slider (the
 // allowed number of slipped edges, N):
 //
-//  1. the target-multiplication chart — how many near-miss boards exist at
+//  1. the target-multiplication chart: how many near-miss boards exist at
 //     score 480−N relative to perfect boards, using Max's community estimate
 //     S(480−N) ≈ 2^(N−1)·C(420,N)·S(480) (groups.io msg 6390), on a log axis.
 //     N=1 is a genuine gap: interior slips come in pairs (parity), and the
 //     complex-theory slip table (msg 6412) puts an exact zero there.
 //
-//  2. the slip-gate strip — a 16×16 board in scan order with the N unlock
+//  2. the slip-gate strip: a 16×16 board in scan order with the N unlock
 //     depths drawn on it, late (Verhaard/Blackwood style, depths 201–239) or,
 //     for contrast, early (depths 41–79). The strip shows why late slips are
 //     cheap: the earliest gate bounds how many later placements can ever sit
 //     on top of a defect.
 //
 // Everything is computed live in log-space (no big numbers, no RNG, fully
-// deterministic). The only animation is a frontier sweep across the strip —
+// deterministic). The only animation is a frontier sweep across the strip,
 // one cell per tick, gated on useRunWhileVisible, O(1) work per tick.
 
 const MAX_SLIPS = 13; // 480 − 13 = 467, Verhaard's score
@@ -56,16 +56,16 @@ function gateDepths(n: number, mode: GateMode): number[] {
 
 const T = {
   en: {
-    title: "The slip budget — more targets, one edge each",
+    title: "The slip budget: more targets, one edge each",
     intro:
-      "One slider, two consequences. Allowing N slipped edges multiplies the number of boards worth finding (left, log scale — Max's community estimate, msg 6390) while capping the score at 480 − N. Where the slips are allowed to land (right) decides whether the budget is cheap or fatal.",
+      "One slider, two consequences. Allowing N slipped edges multiplies the number of boards worth finding (left, log scale; Max's community estimate, msg 6390) while capping the score at 480 − N. Where the slips are allowed to land (right) decides whether the budget is cheap or fatal.",
     slider: "allowed slips N",
     target: (n: number) => `target score ${480 - n} / 480`,
     chartTitle: "Near-miss boards per perfect board (log scale)",
-    axisNote: "relative to the 480s — Max's estimate, msg 6390",
-    multPerfect: "×1 — the perfect boards themselves, never found by anyone",
+    axisNote: "relative to the 480s; Max's estimate, msg 6390",
+    multPerfect: "×1: the perfect boards themselves, never found by anyone",
     multParity:
-      "×0 — a lone interior mismatch is parity-forbidden; the slip table has an exact zero here",
+      "×0: a lone interior mismatch is parity-forbidden; the slip table has an exact zero here",
     mult: (mant: string, exp: number, score: number) =>
       `≈ ${mant} × 10^${exp} times more boards at score ${score} than at 480`,
     markRecord: "N = 10 → 470, the current record (Blackwood's break budget)",
@@ -74,29 +74,29 @@ const T = {
     gateLate: "Gates late (201–239)",
     gateEarly: "Gates early (41–79)",
     legendGate: "unlock depth (one more slip allowed from here on)",
-    legendZone: "slip zone — mismatches may appear here",
+    legendZone: "slip zone: mismatches may appear here",
     legendPlaced: "search frontier (animated sweep)",
-    noGates: "N = 0: no gates — the search must be flawless for all 256 placements.",
+    noGates: "N = 0: no gates; the search must be flawless for all 256 placements.",
     slipsUnlocked: (k: number, n: number) => `slips unlocked at the frontier: ${k} of ${n}`,
     lateMsg: (g: number, tail: number) =>
       `Earliest slip allowed at placement ${g} of 256: at most ${tail} later placements can ever sit on top of a defect, and the extra branching opens only where the tree has already narrowed to near-forced moves.`,
     earlyMsg: (g: number, tail: number) =>
-      `Earliest slip allowed at placement ${g} of 256: up to ${tail} later placements inherit the defect, and the extra branching multiplies the widest part of the tree — the budget is spent where it buys least and costs most.`,
+      `Earliest slip allowed at placement ${g} of 256: up to ${tail} later placements inherit the defect, and the extra branching multiplies the widest part of the tree: the budget is spent where it buys least and costs most.`,
     footnote:
-      "The late gates for N = 10 land on 201, 205, 209, … 239 — almost exactly Blackwood's real break indexes (201–239). Chart and strip are exact computations of the stated formulas; the formula itself is the community's rule-of-thumb estimate, not a theorem.",
+      "The late gates for N = 10 land on 201, 205, 209, … 239, almost exactly Blackwood's real break indexes (201–239). Chart and strip are exact computations of the stated formulas; the formula itself is the community's rule-of-thumb estimate, not a theorem.",
     fmtMant: (x: number) => x.toFixed(1),
   },
   fr: {
-    title: "Le budget de glissement — plus de cibles, une arête chacune",
+    title: "Le budget de glissement : plus de cibles, une arête chacune",
     intro:
-      "Un seul curseur, deux conséquences. Autoriser N arêtes glissées multiplie le nombre de plateaux qui valent la peine d'être trouvés (à gauche, échelle log — l'estimation communautaire de Max, msg 6390) tout en plafonnant le score à 480 − N. L'endroit où les glissements ont le droit d'atterrir (à droite) décide si le budget est bon marché ou fatal.",
+      "Un seul curseur, deux conséquences. Autoriser N arêtes glissées multiplie le nombre de plateaux qui valent la peine d'être trouvés (à gauche, échelle log ; l'estimation communautaire de Max, msg 6390) tout en plafonnant le score à 480 − N. L'endroit où les glissements ont le droit d'atterrir (à droite) décide si le budget est bon marché ou fatal.",
     slider: "glissements autorisés N",
     target: (n: number) => `score visé ${480 - n} / 480`,
     chartTitle: "Plateaux quasi parfaits par plateau parfait (échelle log)",
-    axisNote: "relatif aux 480 — estimation de Max, msg 6390",
-    multPerfect: "×1 — les plateaux parfaits eux-mêmes, que personne n'a jamais trouvés",
+    axisNote: "relatif aux 480 ; estimation de Max, msg 6390",
+    multPerfect: "×1 : les plateaux parfaits eux-mêmes, que personne n'a jamais trouvés",
     multParity:
-      "×0 — un défaut intérieur isolé est interdit par parité ; la table des glissements affiche ici un zéro exact",
+      "×0 : un défaut intérieur isolé est interdit par parité ; la table des glissements affiche ici un zéro exact",
     mult: (mant: string, exp: number, score: number) =>
       `≈ ${mant} × 10^${exp} fois plus de plateaux au score ${score} qu'à 480`,
     markRecord: "N = 10 → 470, le record actuel (le budget de breaks de Blackwood)",
@@ -105,29 +105,29 @@ const T = {
     gateLate: "Portes tardives (201–239)",
     gateEarly: "Portes précoces (41–79)",
     legendGate: "profondeur de déverrouillage (un glissement de plus autorisé à partir d'ici)",
-    legendZone: "zone de glissement — les défauts peuvent apparaître ici",
+    legendZone: "zone de glissement : les défauts peuvent apparaître ici",
     legendPlaced: "front de recherche (balayage animé)",
-    noGates: "N = 0 : aucune porte — la recherche doit être irréprochable sur les 256 placements.",
+    noGates: "N = 0 : aucune porte ; la recherche doit être irréprochable sur les 256 placements.",
     slipsUnlocked: (k: number, n: number) => `glissements déverrouillés au front : ${k} sur ${n}`,
     lateMsg: (g: number, tail: number) =>
       `Premier glissement autorisé au placement ${g} sur 256 : au plus ${tail} placements ultérieurs peuvent reposer sur un défaut, et le branchement supplémentaire ne s'ouvre que là où l'arbre s'est déjà rétréci en coups quasi forcés.`,
     earlyMsg: (g: number, tail: number) =>
-      `Premier glissement autorisé au placement ${g} sur 256 : jusqu'à ${tail} placements ultérieurs héritent du défaut, et le branchement supplémentaire multiplie la partie la plus large de l'arbre — le budget est dépensé là où il rapporte le moins et coûte le plus.`,
+      `Premier glissement autorisé au placement ${g} sur 256 : jusqu'à ${tail} placements ultérieurs héritent du défaut, et le branchement supplémentaire multiplie la partie la plus large de l'arbre : le budget est dépensé là où il rapporte le moins et coûte le plus.`,
     footnote:
-      "Les portes tardives pour N = 10 tombent sur 201, 205, 209, … 239 — presque exactement les vrais break indexes de Blackwood (201–239). Le graphique et la bande calculent exactement les formules énoncées ; la formule elle-même est l'estimation approchée de la communauté, pas un théorème.",
+      "Les portes tardives pour N = 10 tombent sur 201, 205, 209, … 239, presque exactement les vrais break indexes de Blackwood (201–239). Le graphique et la bande calculent exactement les formules énoncées ; la formule elle-même est l'estimation approchée de la communauté, pas un théorème.",
     fmtMant: (x: number) => x.toFixed(1).replace(".", ","),
   },
   es: {
-    title: "El presupuesto de deslizamiento — más objetivos, una arista cada uno",
+    title: "El presupuesto de deslizamiento: más objetivos, una arista cada uno",
     intro:
-      "Un solo control, dos consecuencias. Permitir N aristas deslizadas multiplica la cantidad de tableros que vale la pena encontrar (a la izquierda, escala logarítmica — la estimación comunitaria de Max, msg 6390) a la vez que limita la puntuación a 480 − N. Dónde se permite que caigan los deslizamientos (a la derecha) decide si el presupuesto es barato o fatal.",
+      "Un solo control, dos consecuencias. Permitir N aristas deslizadas multiplica la cantidad de tableros que vale la pena encontrar (a la izquierda, escala logarítmica; la estimación comunitaria de Max, msg 6390) a la vez que limita la puntuación a 480 − N. Dónde se permite que caigan los deslizamientos (a la derecha) decide si el presupuesto es barato o fatal.",
     slider: "deslizamientos permitidos N",
     target: (n: number) => `puntuación objetivo ${480 - n} / 480`,
     chartTitle: "Tableros casi perfectos por tablero perfecto (escala logarítmica)",
-    axisNote: "relativo a los 480 — estimación de Max, msg 6390",
-    multPerfect: "×1 — los propios tableros perfectos, que nadie ha encontrado jamás",
+    axisNote: "relativo a los 480; estimación de Max, msg 6390",
+    multPerfect: "×1: los propios tableros perfectos, que nadie ha encontrado jamás",
     multParity:
-      "×0 — un desajuste interior aislado está prohibido por paridad; aquí la tabla de deslizamientos marca un cero exacto",
+      "×0: un desajuste interior aislado está prohibido por paridad; aquí la tabla de deslizamientos marca un cero exacto",
     mult: (mant: string, exp: number, score: number) =>
       `≈ ${mant} × 10^${exp} veces más tableros con puntuación ${score} que con 480`,
     markRecord: "N = 10 → 470, el récord actual (el presupuesto de rupturas de Blackwood)",
@@ -136,16 +136,16 @@ const T = {
     gateLate: "Puertas tardías (201–239)",
     gateEarly: "Puertas tempranas (41–79)",
     legendGate: "profundidad de desbloqueo (un deslizamiento más permitido de aquí en adelante)",
-    legendZone: "zona de deslizamiento — aquí pueden aparecer desajustes",
+    legendZone: "zona de deslizamiento: aquí pueden aparecer desajustes",
     legendPlaced: "frontera de búsqueda (barrido animado)",
-    noGates: "N = 0: sin puertas — la búsqueda debe ser impecable en las 256 colocaciones.",
+    noGates: "N = 0: sin puertas; la búsqueda debe ser impecable en las 256 colocaciones.",
     slipsUnlocked: (k: number, n: number) => `deslizamientos desbloqueados en la frontera: ${k} de ${n}`,
     lateMsg: (g: number, tail: number) =>
       `Primer deslizamiento permitido en la colocación ${g} de 256: como mucho ${tail} colocaciones posteriores pueden asentarse sobre un defecto, y la ramificación adicional se abre solo donde el árbol ya se ha estrechado hasta movimientos casi forzados.`,
     earlyMsg: (g: number, tail: number) =>
-      `Primer deslizamiento permitido en la colocación ${g} de 256: hasta ${tail} colocaciones posteriores heredan el defecto, y la ramificación adicional multiplica la parte más ancha del árbol — el presupuesto se gasta donde menos rinde y más cuesta.`,
+      `Primer deslizamiento permitido en la colocación ${g} de 256: hasta ${tail} colocaciones posteriores heredan el defecto, y la ramificación adicional multiplica la parte más ancha del árbol: el presupuesto se gasta donde menos rinde y más cuesta.`,
     footnote:
-      "Las puertas tardías para N = 10 caen en 201, 205, 209, … 239 — casi exactamente los break indexes reales de Blackwood (201–239). El gráfico y la banda calculan con exactitud las fórmulas enunciadas; la fórmula en sí es la estimación aproximada de la comunidad, no un teorema.",
+      "Las puertas tardías para N = 10 caen en 201, 205, 209, … 239, casi exactamente los break indexes reales de Blackwood (201–239). El gráfico y la banda calculan con exactitud las fórmulas enunciadas; la fórmula en sí es la estimación aproximada de la comunidad, no un teorema.",
     fmtMant: (x: number) => x.toFixed(1).replace(".", ","),
   },
 };
@@ -257,7 +257,7 @@ export function EdgeSlipLab() {
             {LOG_MULT.map((l, i) => {
               const selHere = i === n;
               if (Number.isNaN(l)) {
-                // N = 1: parity zero — draw a gap marker, not a bar.
+                // N = 1: parity zero, so draw a gap marker, not a bar.
                 return (
                   <g key={i}>
                     <text
@@ -381,7 +381,7 @@ export function EdgeSlipLab() {
             />
           </svg>
           <p className="text-center text-[10px] text-muted-foreground">
-            {t.stripTitle} — {t.slipsUnlocked(unlocked, n)}
+            {t.stripTitle} · {t.slipsUnlocked(unlocked, n)}
           </p>
           <div className="flex justify-center gap-2">
             <Button

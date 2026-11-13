@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 // "Forbidden 2×2 count is a progress signal," made live. We decode real record
 // boards, scan every 2×2 window with the exact feasibility test (does any
 // rotation of the four pieces make the square match?), and count the forbidden
-// ones. The count falls as the score rises — a secondary objective the matched-
+// ones. The count falls as the score rises, a secondary objective the matched-
 // edge score alone doesn't expose. Computed live from each board's edges.
 
 // Boards spanning the score range, best first. One per score tier so the
@@ -23,40 +23,40 @@ const FEATURED: { id: string; fallbackLabel: string }[] = [
 
 const T = {
   en: {
-    title: "Count the forbidden squares — live",
+    title: "Count the forbidden squares, live",
     intro:
-      "Pick a real record board. We scan all 225 of its 2×2 windows and, for each, ask the exact question: can those four pieces be rotated so the little square matches? The ones where the answer is no are forbidden — outlined in red. A perfect 480 board would have none. Watch the count fall as the board gets better.",
+      "Pick a real record board. We scan all 225 of its 2×2 windows and, for each, ask the exact question: can those four pieces be rotated so the little square matches? The ones where the answer is no are forbidden, outlined in red. A perfect 480 board would have none. Watch the count fall as the board gets better.",
     boardLabel: "Board",
     forbidden: (n: number, total: number) => `${n} forbidden of ${total} windows`,
     scoreLabel: (s: number) => `${s} / 480 matched edges`,
-    scatterTitle: "Forbidden count vs score — every known top board",
+    scatterTitle: "Forbidden count vs score: every known top board",
     scatterX: "matched edges",
     scatterY: "forbidden 2×2",
-    note: "Across every known board the trend is monotone: the 470s sit near 18 forbidden squares, the 467s near 23, and weaker boards have dozens. So two boards with the same edge-score aren't equal — the one with fewer forbidden squares is structurally closer to a real solution. It is a second axis of progress the edge-count alone hides. (Counts are over fully-placed interior windows, computed live from each board's edges.)",
+    note: "Across every known board the trend is monotone: the 470s sit near 18 forbidden squares, the 467s near 23, and weaker boards have dozens. So two boards with the same edge-score aren't equal: the one with fewer forbidden squares is structurally closer to a real solution. It is a second axis of progress the edge-count alone hides. (Counts are over fully-placed interior windows, computed live from each board's edges.)",
   },
   fr: {
-    title: "Comptez les carrés interdits — en direct",
+    title: "Comptez les carrés interdits, en direct",
     intro:
-      "Choisissez un vrai plateau record. On scanne ses 225 fenêtres 2×2 et, pour chacune, on pose la question exacte : peut-on faire tourner ces quatre pièces pour que le petit carré s'accorde ? Celles où la réponse est non sont interdites — encadrées en rouge. Un plateau 480 parfait n'en aurait aucune. Observez le compte chuter à mesure que le plateau s'améliore.",
+      "Choisissez un vrai plateau record. On scanne ses 225 fenêtres 2×2 et, pour chacune, on pose la question exacte : peut-on faire tourner ces quatre pièces pour que le petit carré s'accorde ? Celles où la réponse est non sont interdites, encadrées en rouge. Un plateau 480 parfait n'en aurait aucune. Observez le compte chuter à mesure que le plateau s'améliore.",
     boardLabel: "Plateau",
     forbidden: (n: number, total: number) => `${n} interdits sur ${total} fenêtres`,
     scoreLabel: (s: number) => `${s} / 480 bords appariés`,
-    scatterTitle: "Compte d'interdits vs score — tous les meilleurs plateaux connus",
+    scatterTitle: "Compte d'interdits vs score : tous les meilleurs plateaux connus",
     scatterX: "bords appariés",
     scatterY: "2×2 interdits",
-    note: "Sur tous les plateaux connus, la tendance est monotone : les 470 sont autour de 18 carrés interdits, les 467 autour de 23, et les plateaux plus faibles en ont des dizaines. Donc deux plateaux de même score ne sont pas équivalents — celui qui a le moins de carrés interdits est structurellement plus proche d'une vraie solution. C'est un second axe de progrès que le compte de bords seul masque. (Comptes sur les fenêtres intérieures entièrement posées, calculés en direct depuis les bords de chaque plateau.)",
+    note: "Sur tous les plateaux connus, la tendance est monotone : les 470 sont autour de 18 carrés interdits, les 467 autour de 23, et les plateaux plus faibles en ont des dizaines. Donc deux plateaux de même score ne sont pas équivalents : celui qui a le moins de carrés interdits est structurellement plus proche d'une vraie solution. C'est un second axe de progrès que le compte de bords seul masque. (Comptes sur les fenêtres intérieures entièrement posées, calculés en direct depuis les bords de chaque plateau.)",
   },
   es: {
-    title: "Cuenta los cuadrados prohibidos — en vivo",
+    title: "Cuenta los cuadrados prohibidos, en vivo",
     intro:
-      "Elige un tablero récord real. Escaneamos sus 225 ventanas 2×2 y, para cada una, planteamos la pregunta exacta: ¿se pueden rotar esas cuatro piezas para que el pequeño cuadrado encaje? Aquellas donde la respuesta es no están prohibidas — remarcadas en rojo. Un tablero 480 perfecto no tendría ninguna. Observa cómo cae la cuenta a medida que el tablero mejora.",
+      "Elige un tablero récord real. Escaneamos sus 225 ventanas 2×2 y, para cada una, planteamos la pregunta exacta: ¿se pueden rotar esas cuatro piezas para que el pequeño cuadrado encaje? Aquellas donde la respuesta es no están prohibidas, remarcadas en rojo. Un tablero 480 perfecto no tendría ninguna. Observa cómo cae la cuenta a medida que el tablero mejora.",
     boardLabel: "Tablero",
     forbidden: (n: number, total: number) => `${n} prohibidas de ${total} ventanas`,
     scoreLabel: (s: number) => `${s} / 480 aristas coincidentes`,
-    scatterTitle: "Cuenta de prohibidos vs puntuación — todos los mejores tableros conocidos",
+    scatterTitle: "Cuenta de prohibidos vs puntuación: todos los mejores tableros conocidos",
     scatterX: "aristas coincidentes",
     scatterY: "2×2 prohibidos",
-    note: "En todos los tableros conocidos la tendencia es monótona: los 470 rondan los 18 cuadrados prohibidos, los 467 los 23, y los tableros más flojos tienen decenas. Así que dos tableros con la misma puntuación no son equivalentes — el que tiene menos cuadrados prohibidos está estructuralmente más cerca de una solución real. Es un segundo eje de progreso que la cuenta de aristas por sí sola oculta. (Cuentas sobre las ventanas interiores totalmente colocadas, calculadas en vivo a partir de las aristas de cada tablero.)",
+    note: "En todos los tableros conocidos la tendencia es monótona: los 470 rondan los 18 cuadrados prohibidos, los 467 los 23, y los tableros más flojos tienen decenas. Así que dos tableros con la misma puntuación no son equivalentes: el que tiene menos cuadrados prohibidos está estructuralmente más cerca de una solución real. Es un segundo eje de progreso que la cuenta de aristas por sí sola oculta. (Cuentas sobre las ventanas interiores totalmente colocadas, calculadas en vivo a partir de las aristas de cada tablero.)",
   },
 };
 

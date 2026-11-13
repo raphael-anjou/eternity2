@@ -1,4 +1,4 @@
-// Hint-layout geometries — the single source of truth for the Hint Study's
+// Hint-layout geometries: the single source of truth for the Hint Study's
 // board illustrations. Every layout is a pure function (size) -> cell indices,
 // mirroring the Rust generator in
 // `research/experiments/../engine/src/bin/hint_variants.rs` so the diagrams show
@@ -37,7 +37,7 @@ export function lattice(n: number, stride: number, offset = 1): number[] {
 }
 
 /** `k` evenly-spaced points per line (k×k cells), inset off the rim. Matches the
- * Rust generator's `lattice_per_line` — the clean "k per line" spread layouts. */
+ * Rust generator's `lattice_per_line`: the clean "k per line" spread layouts. */
 export function latticePerLine(n: number, k: number): number[] {
   if (k === 0) return [];
   const lo = 1;
@@ -143,7 +143,7 @@ export function clusteredClues(n: number, k: number): number[] {
     [off, n - off - k],
     [n - off - k, n - off - k],
     // Integer-division per axis to match the Rust generator's `n/2 - k/2` (two
-    // usize divisions), NOT floor(n/2 - k/2) — they differ for odd k (e.g. k=3:
+    // usize divisions), NOT floor(n/2 - k/2); they differ for odd k (e.g. k=3:
     // 8−1=7 vs floor(6.5)=6), which would desync this diagram from the board.
     [Math.floor(n / 2) - Math.floor(k / 2), Math.floor(n / 2) - Math.floor(k / 2)],
   ];
@@ -154,7 +154,7 @@ export function clusteredClues(n: number, k: number): number[] {
 
 /** A genuinely spread lattice whose count is *closest* to `target`. Mirrors the
  * Rust generator's `spread_count` EXACTLY: pick the stride whose full offset-1
- * lattice count is nearest to the target and return it unmodified — never a
+ * lattice count is nearest to the target and return it unmodified, never a
  * within-lattice downsample, which collapses low counts into near-linear rows (a
  * geometry change masquerading as a count change). So the returned count is a
  * lattice count near `target`, not `target` exactly. Keeping this identical to
@@ -208,7 +208,7 @@ export function pinnedSeamFloor(n: number, cells: number[]): number {
 export const maxScore = (n: number) => 2 * n * (n - 1);
 
 // --- fill paths + the frontier ---------------------------------------------
-// The open frontier of a (path, hints) pair is computable from geometry alone —
+// The open frontier of a (path, hints) pair is computable from geometry alone,
 // no solver. Its MEAN over the fill (the quantity the study's phase chart plots,
 // emitted by the pipeline into hint-study.json) tracks the measured score closely
 // (r ≈ −0.96); the peak below is the simpler summary and correlates a touch less
@@ -257,7 +257,7 @@ export function borderFirstSeq(n: number): number[] {
       (r === 0 || r === n - 1 || c === 0 || c === n - 1 ? b : i).push(idx(n, r, c));
   return [...b, ...i];
 }
-/** multi-source BFS out of the hint cells — the hint-seeking order. */
+/** multi-source BFS out of the hint cells: the hint-seeking order. */
 export function connectHintsSeq(n: number, hints: number[]): number[] {
   const seen = new Array<boolean>(n * n).fill(false);
   const order: number[] = [];

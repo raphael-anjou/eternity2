@@ -2,7 +2,7 @@
 // of the same puzzle (each cell → pieceId*4+rotation), σ is the permutation of
 // board positions that carries board A's piece arrangement to board B's: for the
 // piece sitting at cell i in A, σ(i) is the cell that same piece occupies in B.
-// Decomposing σ into disjoint cycles gives the "loops" the research describes —
+// Decomposing σ into disjoint cycles gives the "loops" the research describes:
 // apply a whole loop and you've moved every piece in it to the next one's spot.
 //
 // This is computed live from two real engine solutions; nothing here is faked.
@@ -50,7 +50,7 @@ export function decomposeCycles(sigma: number[]): number[][] {
 /**
  * Apply a chosen set of cycles to board A, moving each piece one step along its
  * cycle toward board B. `fraction` in [0,1] applies only the first `fraction` of
- * each selected cycle's edges — the "partial application" the research scores.
+ * each selected cycle's edges, the "partial application" the research scores.
  * Returns a new engine board (cell → pieceId*4+rot). Cells not covered by an
  * applied edge keep board A's piece; cells that receive a moved piece take it
  * with board B's rotation (so a fully-applied cycle reproduces B exactly there).

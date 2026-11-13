@@ -1,6 +1,13 @@
 import { useMemo, useState } from "react";
 import { useT } from "@/i18n";
-import { RECORDS, type RecordRow } from "@/data/records-timeline";
+import { RECORDS, STRICT_RECORD_ROW, type RecordRow } from "@/data/records-timeline";
+
+// The strict five-clue line's first row and its standing record, read from the
+// data so the idle caption moves when the timeline does.
+const STRICT_FIRST = RECORDS.find((r) => r.regime === "strict");
+if (!STRICT_FIRST) throw new Error("records-timeline has no strict row");
+const STRICT_FROM = `${STRICT_FIRST.score} (${STRICT_FIRST.date.slice(0, 4)})`;
+const STRICT_TO = `${STRICT_RECORD_ROW.score} (${STRICT_RECORD_ROW.date.slice(0, 4)})`;
 
 const T = {
   en: {
@@ -13,7 +20,7 @@ const T = {
     solutionLabel: "480: a full solution (never reached)",
     plateauLabel: "open record flat since 2021",
     idle:
-      "Hover or tab through a point to see who found it and how. The open record rose from Verhaard's 467 (2008) to Blackwood's 470 (2021), then stopped; the strict five-clue track climbed from 460 to 465 in 2026.",
+      `Hover or tab through a point to see who found it and how. The open record rose from Verhaard's 467 (2008) to Blackwood's 470 (2021), then stopped; the strict five-clue track went from ${STRICT_FROM} to ${STRICT_TO}.`,
   },
   fr: {
     chartAria: "Score record de la communauté Eternity II au fil du temps, de 2008 à 2026",
@@ -25,7 +32,7 @@ const T = {
     solutionLabel: "480 : une solution complète (jamais atteinte)",
     plateauLabel: "record ouvert stable depuis 2021",
     idle:
-      "Survolez un point ou parcourez-les au clavier pour voir qui l'a trouvé et comment. Le record ouvert est monté du 467 de Verhaard (2008) au 470 de Blackwood (2021), puis s'est arrêté ; la piste stricte à cinq indices est passée de 460 à 465 en 2026.",
+      `Survolez un point ou parcourez-les au clavier pour voir qui l'a trouvé et comment. Le record ouvert est monté du 467 de Verhaard (2008) au 470 de Blackwood (2021), puis s'est arrêté ; la piste stricte à cinq indices est passée de ${STRICT_FROM} à ${STRICT_TO}.`,
   },
   es: {
     chartAria: "Puntuación récord de la comunidad de Eternity II a lo largo del tiempo, de 2008 a 2026",
@@ -37,7 +44,7 @@ const T = {
     solutionLabel: "480: una solución completa (nunca alcanzada)",
     plateauLabel: "récord abierto estable desde 2021",
     idle:
-      "Pasa el cursor o recorre los puntos con el teclado para ver quién lo encontró y cómo. El récord abierto subió del 467 de Verhaard (2008) al 470 de Blackwood (2021), y luego se detuvo; la pista estricta de cinco pistas subió de 460 a 465 en 2026.",
+      `Pasa el cursor o recorre los puntos con el teclado para ver quién lo encontró y cómo. El récord abierto subió del 467 de Verhaard (2008) al 470 de Blackwood (2021), y luego se detuvo; la pista estricta de cinco pistas pasó de ${STRICT_FROM} a ${STRICT_TO}.`,
   },
 };
 
@@ -45,7 +52,8 @@ const T = {
 // announcement; this chart shows the *shape* of the history: the 467 of 2008,
 // the long silence to 2020, the fast 468 to 469 to 470 rise on Blackwood's
 // solver, and the flat line since 2021 that is the open record. A second,
-// lower track follows the strict-five-clue boards (460 to 465). Hover or focus a
+// lower track follows the strict-five-clue boards (the rows of records-timeline
+// with regime "strict", from Gauthier's 460 on). Hover or focus a
 // point to see who found it and how. A zoom toggle rescales both axes to the
 // recent window so the closely spaced modern boards separate out.
 //

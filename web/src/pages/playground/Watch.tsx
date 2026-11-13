@@ -246,7 +246,7 @@ export default function Watch() {
 
   useEffect(() => {
     // rebuild() constructs the WASM solver (an external system) and seeds the
-    // board/report state from it — a legitimate effect, not a render cascade.
+    // board/report state from it, a legitimate effect, not a render cascade.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     rebuild();
     return () => {

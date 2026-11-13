@@ -5,9 +5,9 @@ import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // KEYRING, schematically. At one cell, several pieces fit. A single rule of thumb
 // would always pick the same one and march into the same dead end. KEYRING scores
-// every candidate with three *learned* signals at once — where the piece likes to
+// every candidate with three *learned* signals at once (where the piece likes to
 // sit, which pieces like to be its neighbours, which 2x2 patches show up in good
-// boards — and adds them up. The winner shifts depending on the mix, which is what
+// boards) and adds them up. The winner shifts depending on the mix, which is what
 // keeps the search out of its rut. Here four candidates carry three stacked signal
 // bars; the combined height decides, and a small rotation of weights changes who
 // wins, frame to frame.
@@ -41,7 +41,7 @@ const T = {
     patch: "2×2 patches",
     winner: "placed",
     caption:
-      "Each candidate piece is scored by three learned signals at once and they're summed. The tallest stack wins. Because no single signal dominates, the winner changes with the mix — which is exactly what stops the search marching into the same dead end every time.",
+      "Each candidate piece is scored by three learned signals at once and they're summed. The tallest stack wins. Because no single signal dominates, the winner changes with the mix, which is exactly what stops the search marching into the same dead end every time.",
     busy: "Loading…",
   },
   fr: {
@@ -51,7 +51,7 @@ const T = {
     patch: "carrés 2×2",
     winner: "posée",
     caption:
-      "Chaque pièce candidate est notée par trois signaux appris à la fois, puis on les additionne. La pile la plus haute gagne. Comme aucun signal ne domine, le gagnant change selon le mélange — ce qui empêche justement la recherche de filer dans la même impasse à chaque fois.",
+      "Chaque pièce candidate est notée par trois signaux appris à la fois, puis on les additionne. La pile la plus haute gagne. Comme aucun signal ne domine, le gagnant change selon le mélange, ce qui empêche justement la recherche de filer dans la même impasse à chaque fois.",
     busy: "Chargement…",
   },
   es: {

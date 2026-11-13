@@ -14,7 +14,7 @@ import data from "@/data/dataset-corpus.json";
 
 // The score distribution of the strong-board corpus: one vertical bar per score
 // value across the full 400..469 range, gaps included as zero-height bars so the
-// shape is read honestly. The corpus is dominated by a large beam-producer
+// shape is read without distortion. The corpus is dominated by a large beam-producer
 // harvest concentrated in the low-450s, so the histogram spikes sharply at 453
 // and thins to a long tail into the 460s. Data is derived from the dataset
 // build's stats.json (web/src/data/dataset-corpus.json), and the board count is

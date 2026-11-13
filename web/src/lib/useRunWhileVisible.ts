@@ -29,8 +29,8 @@ export function yieldToBrowser(): Promise<void> {
  * input, paint and navigation stay responsive. Stops when the solver is no
  * longer running, when `cancelled()` flips (component unmounted, new run
  * started), or when a supplied cap is reached:
- *   - `keepGoing(report)` returns false — a cap on a report field (e.g. nodes);
- *   - `budgetCap` is exceeded — a cap on the total step budget *requested*
+ *   - `keepGoing(report)` returns false: a cap on a report field (e.g. nodes);
+ *   - `budgetCap` is exceeded: a cap on the total step budget *requested*
  *     (the sum of `batch` over all slices), matching the labs' old
  *     `spent += batch; spent < CAP` loops exactly.
  *
@@ -103,7 +103,7 @@ export function usePrefersReducedMotion(): boolean {
  * Pass `{ respectReducedMotion: true }` for animations that auto-play (loops
  * that start on scroll-into-view, with no user gesture): they then also stop
  * when the user has asked the OS to reduce motion (WCAG 2.2.2). Leave it off for
- * animations the user explicitly starts with a control — reducing motion should
+ * animations the user explicitly starts with a control; reducing motion should
  * not disable a solver the reader just pressed "run" on.
  */
 export function useRunWhileVisible(opts?: { respectReducedMotion?: boolean }): {

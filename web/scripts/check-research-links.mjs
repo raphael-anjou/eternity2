@@ -96,7 +96,7 @@ try {
     }
   }
 } catch {
-  /* no glossary yet — fine */
+  /* no glossary yet: fine */
 }
 
 if (bad > 0) {
@@ -104,5 +104,5 @@ if (bad > 0) {
   process.exit(1);
 }
 console.log(
-  `research wiki links OK — ${files.length} files, ${glossaryTerms} glossary terms, ${known.size} known routes`,
+  `research wiki links OK: ${files.length} files, ${glossaryTerms} glossary terms, ${known.size} known routes`,
 );

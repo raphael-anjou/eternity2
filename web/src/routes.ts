@@ -3,10 +3,10 @@ import { LANG_PREFIXES } from "../content.config";
 
 // One set of page modules, mounted once per registry language: at the root
 // (English) and under each language prefix (/fr, /es). We deliberately avoid a
-// per-language `basename` — basename + prerender + ssr:false is broken in
+// per-language `basename`: basename + prerender + ssr:false is broken in
 // react-router since 7.2.0 (remix-run/react-router#13615). The active language
 // is derived from the URL inside the shared layout, so the same module files
-// back every language tree (no content duplication — only the dictionaries
+// back every language tree (no content duplication; only the dictionaries
 // inside each page switch).
 //
 // React Router derives a route id from the module path, which would collide
@@ -41,7 +41,7 @@ function tree(code: string, prefix: string) {
 
 // Research wiki pages (web/content/research/**.mdx) resolve through one
 // catch-all per language. Explicit PAGES entries outrank the splat, so a
-// legacy TSX page keeps winning until its entry is removed — migration to
+// legacy TSX page keeps winning until its entry is removed, so migration to
 // MDX is page-by-page with no dead URLs. Adding an MDX file needs NO entry
 // here: the route resolves from the content manifest, and the prerender list
 // picks the path up via sitemap.config.ts → content.config.ts.

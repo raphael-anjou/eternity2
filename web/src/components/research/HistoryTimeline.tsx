@@ -10,7 +10,9 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 // over time); this is the narrative spine.
 //
 // Every event is sourced to the archive message where it happened, matching the
-// two history pages. Kept in sync by hand with those pages: this is a curated
+// two history pages; the one event with no archive message (the 466 of
+// September 2026) links its public board-library entry, the same source the
+// records timeline uses. Kept in sync by hand with those pages: this is a curated
 // shortlist of turning points, not every record.
 
 type Kind = "launch" | "record" | "milestone" | "theory";
@@ -166,12 +168,24 @@ const MILESTONES: Milestone[] = [
     kind: "record",
     head: { en: "A distributed fleet takes the five-clue line to 465", fr: "Une flotte distribuée porte la ligne à cinq indices à 465", es: "Una flota distribuida lleva la línea de cinco pistas a 465" },
     note: {
-      en: "Riotte opens his solver as a community fleet anyone can join. It reports eleven distinct 465 boards at launch and many more since, credited across contributors' machines.",
-      fr: "Riotte ouvre son solveur sous forme de flotte communautaire que chacun peut rejoindre. Elle annonce onze plateaux distincts à 465 au lancement, et beaucoup d'autres depuis, crédités aux machines de plusieurs contributeurs.",
-      es: "Riotte abre su solucionador como una flota comunitaria a la que cualquiera puede unirse. Anuncia once tableros distintos con 465 al lanzarse, y muchos más desde entonces, acreditados a máquinas de varios contribuidores.",
+      en: "Riotte opens his solver as a community fleet anyone can join. It reports eleven distinct 465 boards at launch in August and many more in the following weeks, credited across contributors' machines.",
+      fr: "Riotte ouvre son solveur sous forme de flotte communautaire que chacun peut rejoindre. Elle annonce onze plateaux distincts à 465 au lancement, en août, et beaucoup d'autres dans les semaines suivantes, crédités aux machines de plusieurs contributeurs.",
+      es: "Riotte abre su solucionador como una flota comunitaria a la que cualquiera puede unirse. Anuncia once tableros distintos con 465 al lanzarse, en agosto, y muchos más en las semanas siguientes, acreditados a máquinas de varios contribuidores.",
     },
     to: "/research/community/five-clue-fleet",
     src: "https://groups.io/g/eternity2/topic/120997660",
+  },
+  {
+    year: "2026",
+    kind: "record",
+    head: { en: "A 466 takes the five-clue line further", fr: "Un 466 pousse plus loin la ligne à cinq indices", es: "Un 466 lleva más lejos la línea de cinco pistas" },
+    note: {
+      en: "A strict five-clue board with 14 broken edges, listed in the Eternity@Home public board library as found by \"Jef\" on 19 September 2026, and re-verified on this site from the official pieces and rotations.",
+      fr: "Un plateau strict à cinq indices à 14 arêtes cassées, que la bibliothèque publique d'Eternity@Home attribue à « Jef » à la date du 19 septembre 2026, revérifié sur ce site à partir des pièces et rotations officielles.",
+      es: "Un tablero estricto de cinco pistas con 14 aristas rotas, que la biblioteca pública de Eternity@Home atribuye a «Jef» con fecha del 19 de septiembre de 2026, reverificado en este sitio a partir de las piezas y rotaciones oficiales.",
+    },
+    to: "/research/records",
+    src: "https://stats.eternityathome.org/library/board/2c037e70f7e93518a48733c7aacd096226b7f23728efabd6289088b91c0945cd",
   },
 ];
 

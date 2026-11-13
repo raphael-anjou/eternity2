@@ -1,6 +1,6 @@
 // A 3×3 DFS, one decision at a time, narrated. Now a thin wrapper over the shared
 // StepThroughSolver (which precomputes a real engine run into scrubable snapshots
-// and highlights the legal candidates at each step) — this keeps the original
+// and highlights the legal candidates at each step); this keeps the original
 // backtracking story while the same machinery backs the research-side explainers.
 
 import { StepThroughSolver, type Snapshot } from "@/components/research/StepThroughSolver";

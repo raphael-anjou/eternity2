@@ -6,12 +6,12 @@ import data from "@/data/rare-color-geography.json";
 
 const T = {
   en: {
-    pickPrompt: "Rare colours (border-only) — pick one:",
+    pickPrompt: "Rare colours (border-only). Pick one:",
     rareLabel: (c: number) => `Rare colour ${c}`,
     vsCommon: "vs a common one:",
     commonLabel: (c: number) => `Common colour ${c}`,
     boardLabel: (c: number, frame: number, interior: number) =>
-      `Board map: where colour ${c} lives — ${frame} frame edges, ${interior} interior`,
+      `Board map: where colour ${c} lives: ${frame} frame edges, ${interior} interior`,
     colour: (c: number) => `Colour ${c}`,
     rare: "rare",
     common: "common",
@@ -19,17 +19,17 @@ const T = {
     inInterior: "in the interior",
     totalEdges: "total edges",
     rareNote:
-      "Every one of this colour's edges sits on the frame ring. Not a single one appears in the 14×14 interior — that empty middle is the whole finding.",
+      "Every one of this colour's edges sits on the frame ring. Not a single one appears in the 14×14 interior. That empty middle is the whole finding.",
     commonNote:
-      "A common colour fills the interior and barely touches the frame — the mirror image of the rare five.",
+      "A common colour fills the interior and barely touches the frame: the mirror image of the rare five.",
   },
   fr: {
-    pickPrompt: "Couleurs rares (bordure uniquement) — choisissez-en une :",
+    pickPrompt: "Couleurs rares (bordure uniquement). Choisissez-en une :",
     rareLabel: (c: number) => `Couleur rare ${c}`,
     vsCommon: "contre une commune :",
     commonLabel: (c: number) => `Couleur commune ${c}`,
     boardLabel: (c: number, frame: number, interior: number) =>
-      `Carte du plateau : où vit la couleur ${c} — ${frame} arêtes de cadre, ${interior} à l'intérieur`,
+      `Carte du plateau : où vit la couleur ${c}, ${frame} arêtes de cadre, ${interior} à l'intérieur`,
     colour: (c: number) => `Couleur ${c}`,
     rare: "rare",
     common: "commune",
@@ -37,17 +37,17 @@ const T = {
     inInterior: "à l'intérieur",
     totalEdges: "arêtes au total",
     rareNote:
-      "Chaque arête de cette couleur se trouve sur l'anneau du cadre. Pas une seule n'apparaît dans l'intérieur 14×14 — ce centre vide, c'est tout le résultat.",
+      "Chaque arête de cette couleur se trouve sur l'anneau du cadre. Pas une seule n'apparaît dans l'intérieur 14×14 : ce centre vide, c'est tout le résultat.",
     commonNote:
-      "Une couleur commune remplit l'intérieur et ne touche presque pas le cadre — l'image inverse des cinq couleurs rares.",
+      "Une couleur commune remplit l'intérieur et ne touche presque pas le cadre : l'image inverse des cinq couleurs rares.",
   },
   es: {
-    pickPrompt: "Colores raros (solo en el borde) — elige uno:",
+    pickPrompt: "Colores raros (solo en el borde). Elige uno:",
     rareLabel: (c: number) => `Color raro ${c}`,
     vsCommon: "frente a uno común:",
     commonLabel: (c: number) => `Color común ${c}`,
     boardLabel: (c: number, frame: number, interior: number) =>
-      `Mapa del tablero: dónde vive el color ${c} — ${frame} aristas del marco, ${interior} en el interior`,
+      `Mapa del tablero: dónde vive el color ${c}, ${frame} aristas del marco, ${interior} en el interior`,
     colour: (c: number) => `Color ${c}`,
     rare: "raro",
     common: "común",
@@ -55,15 +55,15 @@ const T = {
     inInterior: "en el interior",
     totalEdges: "aristas en total",
     rareNote:
-      "Cada arista de este color se encuentra en el anillo del marco. Ni una sola aparece en el interior de 14×14 — ese centro vacío es todo el hallazgo.",
+      "Cada arista de este color se encuentra en el anillo del marco. Ni una sola aparece en el interior de 14×14. Ese centro vacío es todo el hallazgo.",
     commonNote:
-      "Un color común llena el interior y apenas toca el marco — la imagen inversa de los cinco colores raros.",
+      "Un color común llena el interior y apenas toca el marco: la imagen inversa de los cinco colores raros.",
   },
 };
 
 // The spatial companion to the rare-colour bar chart: a 16×16 board where the
-// frame ring is drawn apart from the interior, so the finding — the five rare
-// colours live *only* on the ring, never inside — is visible as a shape, not
+// frame ring is drawn apart from the interior, so the finding (the five rare
+// colours live *only* on the ring, never inside) is visible as a shape, not
 // just a number. Pick a rare colour and its 24 edges light up around the frame
 // while the 14×14 interior stays blank; pick a common colour and the interior
 // fills instead. The counts come from the same committed data the chart uses.

@@ -6,11 +6,11 @@ import { useIsClient } from "@/lib/utils";
 // the repair study takes apart, drawn as a controlled illustration (a small board
 // with hand-set colors, not a live engine run) so each phase is unambiguous:
 //
-//   0. Working board   — a full board; seams are matched (green) or broken (red).
-//   1. Destroy         — the operator lifts a set of cells (dashed holes); the
+//   0. Working board:   a full board; seams are matched (green) or broken (red).
+//   1. Destroy:         the operator lifts a set of cells (dashed holes); the
 //                        seams they carried disappear.
-//   2. Repair          — the hole is refilled from the lifted pieces (highlighted).
-//   3. Accept / revert — score the result; keep it if it did not lose, else put
+//   2. Repair:          the hole is refilled from the lifted pieces (highlighted).
+//   3. Accept / revert: score the result; keep it if it did not lose, else put
 //                        the snapshot back.
 //
 // The reader advances the phase; a caption narrates what changed and why. The

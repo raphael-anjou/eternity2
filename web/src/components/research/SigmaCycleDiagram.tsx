@@ -22,16 +22,16 @@ function pos(i: number) {
 const T = {
   en: {
     applied: "cells moved",
-    full: "Whole cycle applied — every cell lands matched.",
-    partial: "Only part applied — the chain breaks, the score drops.",
+    full: "Whole cycle applied: every cell lands matched.",
+    partial: "Only part applied: the chain breaks, the score drops.",
     sub: "Drag the slider: a partial cycle always leaves a broken seam.",
     fullCta: "Apply the whole cycle",
     busy: "Loading…",
   },
   fr: {
     applied: "cellules déplacées",
-    full: "Cycle entier appliqué — chaque cellule retombe accordée.",
-    partial: "Seulement une partie appliquée — la chaîne casse, le score baisse.",
+    full: "Cycle entier appliqué : chaque cellule retombe accordée.",
+    partial: "Seulement une partie appliquée : la chaîne casse, le score baisse.",
     sub: "Glissez le curseur : un cycle partiel laisse toujours une couture cassée.",
     fullCta: "Appliquer le cycle entier",
     busy: "Chargement…",

@@ -34,8 +34,8 @@ import { canonicalizeExportLinks } from "../src/lib/research/export-links";
  *  renders those components as interactive figures/labs; the raw-markdown sibling
  *  can only point at them, so each becomes an explicit note naming the component.
  *  Keeping the note (rather than dropping it) is deliberate: a crawling agent
- *  then knows the canonical page shows MORE than the markdown carries — a
- *  leaderboard, a chart, a live lab — and can go look or screenshot it. Authored
+ *  then knows the canonical page shows MORE than the markdown carries, a
+ *  leaderboard, a chart, a live lab, and can go look or screenshot it. Authored
  *  prose, inline links, tables and code fences pass through untouched. */
 function stripMdxEsm(body: string): string {
   const out: string[] = [];
@@ -63,14 +63,14 @@ function stripMdxEsm(body: string): string {
 /** Reduce the JSX component islands in an MDX body to clean markdown, in two
  *  classes:
  *
- *  1. CONTENT-bearing wrappers — `<Callout>` and `<Door>` — carry authored prose
+ *  1. CONTENT-bearing wrappers, `<Callout>` and `<Door>`, carry authored prose
  *     that must survive. A Callout is unwrapped into a titled blockquote note; a
  *     Door (a navigation card) becomes a markdown link with its blurb.
- *  2. FIGURE / LAB components — `<Figure>` and every other PascalCase island —
+ *  2. FIGURE / LAB components, `<Figure>` and every other PascalCase island,
  *     render a chart, board, leaderboard or live lab the markdown cannot carry.
  *     These become an explicit note NAMING the component, so a crawling agent
  *     knows the canonical page shows more than the export and can go look or
- *     screenshot it. (Deliberately not silent — the note is the signal.)
+ *     screenshot it. (Deliberately not silent, the note is the signal.)
  *
  *  Lowercase HTML tags, inline `<ProseLink>`-free links, tables and code fences
  *  are left untouched. */
@@ -90,7 +90,7 @@ function stripJsxIslands(md: string): string {
         const title = attr(attrs, "title");
         const blurb = tidy(body.replace(/<[^>]+>/g, ""));
         const label = title || blurb || to;
-        return to ? `- [${label}](${to})${title && blurb ? ` — ${blurb}` : ""}` : blurb;
+        return to ? `- [${label}](${to})${title && blurb ? `: ${blurb}` : ""}` : blurb;
       })
       // <Callout kind="note" title="X"> prose </Callout> → a titled blockquote.
       .replace(/<Callout\b([^>]*)>([\s\S]*?)<\/Callout>/g, (_m, attrs: string, body: string) => {
@@ -112,7 +112,7 @@ function stripJsxIslands(md: string): string {
         const title = attr(attrs, "title");
         const comps = compNames(body);
         const what = comps ? `interactive: ${comps}` : "interactive figure";
-        const named = title ? `${title} — ${what}` : what;
+        const named = title ? `${title} (${what})` : what;
         return `> **[Figure]** ${named}. Rendered on the canonical page (link above); not shown in this markdown export.`;
       })
       // A standalone self-closing island: <PascalCase ... />
@@ -128,8 +128,8 @@ function stripJsxIslands(md: string): string {
 
 /** A markdown link-list of docs (title, url, one-line blurb) under a `##`
  *  heading, or "" if there are none. Used to fold the two big blocks the docs
- *  shell renders around the MDX body — the hub's child pages and the related
- *  rail — into the raw-markdown export, which otherwise only carries the intro
+ *  shell renders around the MDX body, the hub's child pages and the related
+ *  rail, into the raw-markdown export, which otherwise only carries the intro
  *  prose. Links are absolute site paths in the canonical trailing-slash form the
  *  host serves at 200, so an agent following them never pays a redirect hop. */
 function mdLinkList(
@@ -143,7 +143,7 @@ function mdLinkList(
   if (items.length === 0) return "";
   const lines = items.map((d) => {
     const url = `${origin}${base}${canonical(localize(d.url))}`;
-    const blurb = d.description ? ` — ${d.description.trim().replace(/\s+/g, " ")}` : "";
+    const blurb = d.description ? `: ${d.description.trim().replace(/\s+/g, " ")}` : "";
     return `- [${d.title}](${url})${blurb}`;
   });
   return `\n\n## ${heading}\n\n${lines.join("\n")}`;
@@ -294,17 +294,17 @@ const OTHER_LANG_LABEL: Record<Lang, Record<Lang, string>> = {
 
 const FULL_HEAD: Record<Lang, { title: string; blurb: (wiki: string, map: string) => string }> = {
   en: {
-    title: "# Eternity II research corpus (eternity2.dev) — full text",
+    title: "# Eternity II research corpus (eternity2.dev), full text",
     blurb: (wiki, map) =>
       `Every research page on eternity2.dev, concatenated. This is the machine-ingestible mirror of the wiki at ${wiki}. The map with links is at ${map}.`,
   },
   fr: {
-    title: "# Corpus de recherche Eternity II (eternity2.dev) — texte intégral",
+    title: "# Corpus de recherche Eternity II (eternity2.dev), texte intégral",
     blurb: (wiki, map) =>
       `Toutes les pages de recherche traduites en français, mises bout à bout. Miroir lisible par machine du wiki à ${wiki}. La carte avec les liens se trouve à ${map}.`,
   },
   es: {
-    title: "# Corpus de investigación Eternity II (eternity2.dev) — texto completo",
+    title: "# Corpus de investigación Eternity II (eternity2.dev), texto completo",
     blurb: (wiki, map) =>
       `Todas las páginas de investigación traducidas al español, concatenadas. Espejo legible por máquina del wiki en ${wiki}. El mapa con los enlaces está en ${map}.`,
   },
@@ -475,7 +475,7 @@ const SEARCH_ID = (lang: Lang) => `virtual:research-search-${lang}`;
 // genuine <lang> rendering) so the root shell can decide whether to advertise
 // hreflang="<lang>" for a research page WITHOUT pulling the full ~400KB manifest
 // into every page's chunk. Non-research pages always have a /<lang> twin, so they
-// are not listed here — the root shell only consults this for /research paths.
+// are not listed here, the root shell only consults this for /research paths.
 const TRANSLATED_ID = (lang: Lang) => `virtual:research-translated-${lang}`;
 // The reverse-backlink map ("Referenced by"). Language-neutral (keys + values
 // are neutral /research URLs; the shell resolves display metadata per language),
@@ -563,7 +563,7 @@ export function researchContent(): Plugin {
     },
 
     // Researcher/LLM affordance: every research page ships a raw-markdown
-    // sibling (…/research/<slug>.md) built from the MDX source — frontmatter
+    // sibling (…/research/<slug>.md) built from the MDX source, frontmatter
     // header + body with the ESM plumbing stripped. The research wiki is
     // English-only, so only EN siblings are emitted.
     writeBundle(options) {
@@ -629,7 +629,7 @@ export function researchContent(): Plugin {
             ...(doc.updated ? [`- ${LABELS[lang].updated}: ${doc.updated}`] : []),
             ...(doc.topics.length ? [`- ${LABELS[lang].topics}: ${doc.topics.join(", ")}`] : []),
             ...(doc.repro?.cmd ? [`- ${LABELS[lang].reproduce}: \`${doc.repro.cmd}\``] : []),
-            ...doc.sources.map((s) => `- ${LABELS[lang].source}: ${s.label} — ${s.url}`),
+            ...doc.sources.map((s) => `- ${LABELS[lang].source}: ${s.label} (${s.url})`),
             "",
             "---",
             "",

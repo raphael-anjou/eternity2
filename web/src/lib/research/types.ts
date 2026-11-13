@@ -17,14 +17,14 @@ export type ReproKind = "exact" | "seeded" | "stochastic" | "heavy" | "prose";
 /** The *contribution* axis: what kind of research result a page is, independent
  *  of `kind` (which drives layout). Only `solver` results earn a row on the
  *  score chart / leaderboard. See lab/experiments/methodology for the full taxonomy.
- *  solver — produces a competitive board by searching (a real search score);
- *  analysis — proves/computes a property of an existing board or the instance;
- *  reconstruction — decodes/rebuilds community work to extract an insight;
- *  theory — a mathematical property, law, or impossibility proof;
- *  method — a technique described for reuse, not a scored run;
- *  measurement — a benchmark or empirical observation about solvers/instances;
- *  negative — a rigorously-run dead end (first-class, not a footnote);
- *  tool — a software artifact; exposition — an explainer for an audience. */
+ *  solver: produces a competitive board by searching (a real search score);
+ *  analysis: proves/computes a property of an existing board or the instance;
+ *  reconstruction: decodes/rebuilds community work to extract an insight;
+ *  theory: a mathematical property, law, or impossibility proof;
+ *  method: a technique described for reuse, not a scored run;
+ *  measurement: a benchmark or empirical observation about solvers/instances;
+ *  negative: a rigorously-run dead end (first-class, not a footnote);
+ *  tool: a software artifact; exposition: an explainer for an audience. */
 export type ContributionKind =
   | "solver"
   | "analysis"
@@ -42,7 +42,7 @@ export type ContributionKind =
  *  reviewed finding, cited and ~immutable. */
 export type StatusTier = "draft" | "report" | "live";
 
-/** How firmly a page's central claim is established — a scannable credibility
+/** How firmly a page's central claim is established: a scannable credibility
  *  signal (rendered as a badge). "proven" = a formal or exhaustive proof/
  *  certificate; "measured" = an empirical result on this project's engine;
  *  "conjectured" = a hypothesis or literature reading not yet established here. */
@@ -50,9 +50,9 @@ export type RigorKind = "proven" | "measured" | "conjectured";
 
 /** The *research-status* axis: how an experiment or finding ended, distinct from
  *  StatusTier (the publish pipeline) and RigorKind (how firm the claim is).
- *  plateaued — hit a measured ceiling; refuted — a rigorously-run dead end;
- *  parked — set aside, not exhausted; new-basin — opened a new family/region;
- *  superseded — beaten by a later result. */
+ *  plateaued: hit a measured ceiling; refuted: a rigorously-run dead end;
+ *  parked: set aside, not exhausted; new-basin: opened a new family/region;
+ *  superseded: beaten by a later result. */
 export type OutcomeKind = "plateaued" | "refuted" | "parked" | "new-basin" | "superseded";
 
 /** Which convention a board score is measured under, so a NNN/480 number is
@@ -74,7 +74,7 @@ export interface TocItem {
   depth: number;
   /** Plain heading text. */
   text: string;
-  /** Anchor id — matches what rehype-slug assigns. */
+  /** Anchor id; matches what rehype-slug assigns. */
   id: string;
 }
 
@@ -109,7 +109,7 @@ export type StageEngine =
 
 /** One stage of a run's pipeline. Named runs are compositions, not single
  *  algorithms; the stage list makes that composition explicit, and `published`
- *  records honestly when a stage leans on an engine that has no write-up yet. */
+ *  records explicitly when a stage leans on an engine that has no write-up yet. */
 export interface PipelineStage {
   engine: StageEngine;
   does: string;
@@ -118,32 +118,32 @@ export interface PipelineStage {
   published: boolean;
 }
 
-/** The class of compute a run leaned on — kept small and explicit so the
+/** The class of compute a run leaned on, kept small and explicit so the
  *  widget can badge it. `none` = plain CPU; the rest name the accelerator that
  *  did the heavy lifting. Quantum/FPGA/TPU are in the vocabulary from the start
  *  so a future run needs no schema migration. */
 export type AcceleratorKind = "none" | "gpu" | "quantum" | "fpga" | "tpu";
 
-/** The hardware an experiment actually ran on — mandatory on experiment pages
+/** The hardware an experiment actually ran on, mandatory on experiment pages
  *  so every measured result is comparable and reproducible. Split three ways:
  *  the *quantitative* fields are the comparable numbers; the *qualitative*
  *  fields name the exact kit; the *protocol* fields say what a single number
  *  means. `coreHours` is DERIVED by the widget (cores × wall-clock hours), the
- *  honest compute-cost figure that lets a 1-core bench and a 400-core cluster
+ *  true compute-cost figure that lets a 1-core bench and a 400-core cluster
  *  run sit in the same table. */
 export interface HardwareInfo {
-  // Quantitative — the comparable numbers.
+  // Quantitative: the comparable numbers.
   /** Total logical cores used (summed across nodes for a cluster). */
   cores: number;
   /** Machines the run spanned; omit or 1 for a single box. */
   nodes?: number;
-  /** OS threads spawned — differs from cores when oversubscribed. */
+  /** OS threads spawned; differs from cores when oversubscribed. */
   threads?: number;
   /** Total RAM available to the run, in GiB (summed across nodes). */
   ramGb?: number;
   /** GPU count; 0 for CPU-only. */
   gpus?: number;
-  // Qualitative — the exact kit and its provenance.
+  // Qualitative: the exact kit and its provenance.
   /** CPU brand/model, e.g. "Apple M2 Pro", "AMD EPYC 7742". */
   cpu?: string;
   /** GPU/accelerator model when present, e.g. "NVIDIA RTX 4090". */
@@ -153,7 +153,7 @@ export interface HardwareInfo {
   /** Human label for the box or cluster, e.g. "MacBook Pro 14 (2023)",
    *  "8× EPYC node cluster". */
   machine?: string;
-  // Protocol — what makes the number mean something.
+  // Protocol: what makes the number mean something.
   /** Budget per run and repeats as prose, e.g. "10 × 60 s", "10 h". */
   wallClock?: string;
   /** How many independent runs the reported figures aggregate. */
@@ -186,7 +186,7 @@ export interface Topic {
 /** A researcher who has authored pages on the wiki, resolved to one language.
  *  The registry (content/research/authors.json) holds the profile; the *list*
  *  of a person's pages is derived from every doc's `author` field, never
- *  hand-maintained — the same way topic membership is derived from `topics`. */
+ *  hand-maintained, the same way topic membership is derived from `topics`. */
 export interface Author {
   /** URL slug, e.g. "raphael-anjou" → /research/people/raphael-anjou. */
   slug: string;
@@ -216,7 +216,7 @@ export interface ResearchDoc {
   slug: string;
   /** Site path (language-neutral), e.g. "/research/why/border-balance". */
   url: string;
-  /** First slug segment, e.g. "why" — the sidebar section. */
+  /** First slug segment, e.g. "why"; the sidebar section. */
   section: string;
   title: string;
   description: string;
@@ -234,7 +234,7 @@ export interface ResearchDoc {
   author?: string;
   /** Secondary contributors credited in the byline beside `author` (e.g. the
    *  method behind a reimplementation, or the write-up of someone else's
-   *  solver). Credit only — no effect on hub membership or the score chart. */
+   *  solver). Credit only: no effect on hub membership or the score chart. */
   contributors?: Contributor[];
   /** 1 = flagship, 2 = finding, 3 = supporting. */
   tier?: number;
@@ -263,7 +263,7 @@ export interface ResearchDoc {
   /** The hardware a measured run leaned on (mandatory on experiment pages). */
   hardware?: HardwareInfo;
   /** External resources supporting the page's claims (groups.io posts,
-   *  papers, community pages) — every claim links its evidence. */
+   *  papers, community pages); every claim links its evidence. */
   sources: { label: string; url: string }[];
   /** Cross-cutting topic slugs (speed, search-space, dfs, gpu, quantum, …). */
   topics: string[];

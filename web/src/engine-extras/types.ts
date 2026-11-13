@@ -1,6 +1,6 @@
 // Core types for the pure-TypeScript engine port (ALGORITHM.md §2).
 //
-// The domain types live in @/lib/types — they are the camelCase shapes that
+// The domain types live in @/lib/types; they are the camelCase shapes that
 // the Rust/WASM engine serde-serializes (numColors, bestPlaced, …). This port
 // must produce the *identical* shapes so the website can swap engines at build
 // time, so we re-export them here rather than redefine them.

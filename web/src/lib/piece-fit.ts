@@ -1,6 +1,6 @@
 // Shared candidate-legality check for the step-through explainers. Given a piece
 // (in rotation 0), a target cell, and the current board, decide whether the piece
-// could legally sit there in *some* rotation — i.e. it would be one of the green
+// could legally sit there in *some* rotation, i.e. it would be one of the green
 // "candidates" the solver is choosing between at that cell. This is the same test
 // the real engine applies; the explainers use it only to *highlight* which pieces
 // are in play, never to drive the search itself (the engine does that).

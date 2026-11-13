@@ -1,7 +1,7 @@
 // The toolkit's board generator: make solvable Eternity-II boards with real
 // colour balance, one at a time or in a batch (a seed range, optional pinned
 // clues), and open any of them in the viewer to score edge by edge. This is the
-// browser twin of the starter kit's `generate` / `generate_batch` — the same
+// browser twin of the starter kit's `generate` / `generate_batch`, the same
 // WASM generator the site has always used, now on its own page rather than
 // buried in the viewer. The viewer keeps the scorer; this makes the boards.
 import { useMemo, useState } from "react";
@@ -217,7 +217,7 @@ const T = {
   en: {
     title: "Board generator",
     intro:
-      "Generate solvable boards with real Eternity-II colour balance — five border colours confined to the frame, the interior balanced, all pieces distinct. Every board is deterministic from its seed, so a seed range is a reproducible batch. Click any board to open it in the viewer and score it edge by edge.",
+      "Generate solvable boards with real Eternity-II colour balance: five border colours confined to the frame, the interior balanced, all pieces distinct. Every board is deterministic from its seed, so a seed range is a reproducible batch. Click any board to open it in the viewer and score it edge by edge.",
     sizeLabel: (n: number) => `Board size: ${n}×${n}`,
     colorsLabel: (n: number) => `Interior colours: ${n}`,
     framed: "Frame-restricted colours",
@@ -230,7 +230,7 @@ const T = {
     copyUrls: "Copy viewer URLs",
     copyJsonl: "Copy as JSONL",
     copied: "Copied ✓",
-    galleryHint: "Each board is its solution — open it in the viewer to see the pieces and score.",
+    galleryHint: "Each board is its solution; open it in the viewer to see the pieces and score.",
     openSeed: (s: number) => `Open seed ${s} in the viewer`,
     seedTag: (s: number) => `seed ${s}`,
   },
@@ -251,7 +251,7 @@ const T = {
     copyJsonl: "Copier en JSONL",
     copied: "Copié ✓",
     galleryHint:
-      "Chaque plateau est sa solution — ouvrez-le dans le visualiseur pour voir les pièces et le score.",
+      "Chaque plateau est sa solution ; ouvrez-le dans le visualiseur pour voir les pièces et le score.",
     openSeed: (s: number) => `Ouvrir la graine ${s} dans le visualiseur`,
     seedTag: (s: number) => `graine ${s}`,
   },
@@ -272,7 +272,7 @@ const T = {
     copyJsonl: "Copiar como JSONL",
     copied: "Copiado ✓",
     galleryHint:
-      "Cada tablero es su solución — ábrelo en el visor para ver las piezas y la puntuación.",
+      "Cada tablero es su solución; ábrelo en el visor para ver las piezas y la puntuación.",
     openSeed: (s: number) => `Abrir la semilla ${s} en el visor`,
     seedTag: (s: number) => `semilla ${s}`,
   },

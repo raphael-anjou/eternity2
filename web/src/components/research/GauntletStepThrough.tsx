@@ -3,7 +3,7 @@ import { useT, useLang, pick, type Dict, type Lang } from "@/i18n";
 
 // GAUNTLET's heart, one decision at a time, on the real engine. We step a single
 // fill direction (a spiral, here) and narrate *why* the order matters: at each
-// cell the spiral reaches, how many pieces actually fit — and how the choice the
+// cell the spiral reaches, how many pieces actually fit, and how the choice the
 // search is forced into depends entirely on which cell the order put next. Read
 // it next to the live four-lane race: this explains, slowly, why two orders on
 // the same pieces end up on different boards.
@@ -30,12 +30,12 @@ const T = {
   en: {
     title: "Why the scan order decides the board (real run, step by step)",
     footer:
-      "Same pieces, same rules — only the order of attack differs. The spiral commits to the frame early, where few pieces fit, so its forced choices ripple inward. A different order would force different cells first and land somewhere else entirely. That is exactly why GAUNTLET runs several orders at once.",
+      "Same pieces, same rules; only the order of attack differs. The spiral commits to the frame early, where few pieces fit, so its forced choices ripple inward. A different order would force different cells first and land somewhere else entirely. That is exactly why GAUNTLET runs several orders at once.",
   },
   fr: {
     title: "Pourquoi l'ordre de parcours décide le plateau (vraie exécution, pas à pas)",
     footer:
-      "Mêmes pièces, mêmes règles — seul l'ordre d'attaque change. La spirale s'engage tôt sur le cadre, où peu de pièces conviennent, et ses choix forcés se propagent vers l'intérieur. Un autre ordre forcerait d'autres cases d'abord et atterrirait ailleurs. C'est précisément pourquoi GAUNTLET lance plusieurs ordres à la fois.",
+      "Mêmes pièces, mêmes règles ; seul l'ordre d'attaque change. La spirale s'engage tôt sur le cadre, où peu de pièces conviennent, et ses choix forcés se propagent vers l'intérieur. Un autre ordre forcerait d'autres cases d'abord et atterrirait ailleurs. C'est précisément pourquoi GAUNTLET lance plusieurs ordres à la fois.",
   },
   es: {
     title: "Por qué el orden de recorrido decide el tablero (ejecución real, paso a paso)",
@@ -48,35 +48,35 @@ const NARR = {
   en: {
     fresh: (cell: string) => `Fresh board. The spiral order starts at ${cell}.`,
     solved: (nodes: number, bt: number) =>
-      `Filled! ${nodes} placements, ${bt} backtracks for this order. Another order reaches a different board — restarting…`,
+      `Filled! ${nodes} placements, ${bt} backtracks for this order. Another order reaches a different board. Restarting…`,
     deadEnd:
-      "No piece fits the cell this order reached. Dead end — un-place the last piece and try its next option. A different fill order would never have asked this cell yet.",
+      "No piece fits the cell this order reached. Dead end: un-place the last piece and try its next option. A different fill order would never have asked this cell yet.",
     placed: (cell: string, cands: number, tries: number) =>
       `Placed on ${cell}: ${cands} piece${cands === 1 ? "" : "s"} fit here, chosen after ${tries} attempt${tries === 1 ? "" : "s"}. The order put this cell next, so this is where the search was forced to commit.`,
     placedTight: (cell: string, cands: number) =>
-      `Placed on ${cell} — only ${cands} piece${cands === 1 ? "" : "s"} could go here. Tight cells like this, reached early by the spiral, are what steer the whole board.`,
+      `Placed on ${cell}: only ${cands} piece${cands === 1 ? "" : "s"} could go here. Tight cells like this, reached early by the spiral, are what steer the whole board.`,
   },
   fr: {
     fresh: (cell: string) => `Plateau vierge. L'ordre en spirale commence par ${cell}.`,
     solved: (nodes: number, bt: number) =>
-      `Rempli ! ${nodes} placements, ${bt} retours pour cet ordre. Un autre ordre atteint un autre plateau — on recommence…`,
+      `Rempli ! ${nodes} placements, ${bt} retours pour cet ordre. Un autre ordre atteint un autre plateau. On recommence…`,
     deadEnd:
-      "Aucune pièce ne convient à la case atteinte par cet ordre. Impasse — on retire la dernière pièce et on tente l'option suivante. Un autre ordre n'aurait pas encore demandé cette case.",
+      "Aucune pièce ne convient à la case atteinte par cet ordre. Impasse : on retire la dernière pièce et on tente l'option suivante. Un autre ordre n'aurait pas encore demandé cette case.",
     placed: (cell: string, cands: number, tries: number) =>
       `Posée sur ${cell} : ${cands} pièce${cands === 1 ? "" : "s"} y conviennent, choisie après ${tries} essai${tries === 1 ? "" : "s"}. L'ordre a placé cette case ensuite, c'est donc là que la recherche a dû s'engager.`,
     placedTight: (cell: string, cands: number) =>
-      `Posée sur ${cell} — seulement ${cands} pièce${cands === 1 ? "" : "s"} possible(s). Les cases serrées comme celle-ci, atteintes tôt par la spirale, orientent tout le plateau.`,
+      `Posée sur ${cell} : seulement ${cands} pièce${cands === 1 ? "" : "s"} possible(s). Les cases serrées comme celle-ci, atteintes tôt par la spirale, orientent tout le plateau.`,
   },
   es: {
     fresh: (cell: string) => `Tablero vacío. El orden en espiral empieza por ${cell}.`,
     solved: (nodes: number, bt: number) =>
-      `¡Completo! ${nodes} colocaciones, ${bt} vueltas atrás para este orden. Otro orden llega a un tablero distinto — reiniciando…`,
+      `¡Completo! ${nodes} colocaciones, ${bt} vueltas atrás para este orden. Otro orden llega a un tablero distinto. Reiniciando…`,
     deadEnd:
-      "Ninguna pieza encaja en la celda a la que llegó este orden. Callejón sin salida — se retira la última pieza y se prueba su siguiente opción. Otro orden de relleno aún no habría preguntado por esta celda.",
+      "Ninguna pieza encaja en la celda a la que llegó este orden. Callejón sin salida: se retira la última pieza y se prueba su siguiente opción. Otro orden de relleno aún no habría preguntado por esta celda.",
     placed: (cell: string, cands: number, tries: number) =>
       `Colocada en ${cell}: ${cands} pieza${cands === 1 ? "" : "s"} encaja${cands === 1 ? "" : "n"} aquí, elegida tras ${tries} intento${tries === 1 ? "" : "s"}. El orden situó esta celda a continuación, así que aquí es donde la búsqueda se vio forzada a comprometerse.`,
     placedTight: (cell: string, cands: number) =>
-      `Colocada en ${cell} — solo ${cands} pieza${cands === 1 ? "" : "s"} podía${cands === 1 ? "" : "n"} ir aquí. Las celdas ajustadas como esta, alcanzadas pronto por la espiral, son las que dirigen todo el tablero.`,
+      `Colocada en ${cell}: solo ${cands} pieza${cands === 1 ? "" : "s"} podía${cands === 1 ? "" : "n"} ir aquí. Las celdas ajustadas como esta, alcanzadas pronto por la espiral, son las que dirigen todo el tablero.`,
   },
 };
 

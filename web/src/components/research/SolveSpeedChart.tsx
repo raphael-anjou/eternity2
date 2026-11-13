@@ -9,7 +9,7 @@ import data from "@/data/hint-study-solve.json";
 // cannot: NODES-TO-SOLUTION. This chart plots it, on a log scale, for a spread
 // lattice vs a matched contiguous block across increasing hint counts. The story:
 // below a threshold scattered hints barely solve, but once dense enough they beat
-// the contiguous block by orders of magnitude — confirming the community
+// the contiguous block by orders of magnitude, confirming the community
 // hint-geometry claim in its proper regime.
 
 type Stat = { of: number; solved: number; median_nodes: number | null };

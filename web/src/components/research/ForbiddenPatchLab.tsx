@@ -51,7 +51,7 @@ const T = {
     rateLabel: "forbidden rate",
     exact: "exact value: 99.72%",
     statusFits: "This one fits.",
-    statusForbidden: "Forbidden — no rotation makes all four edges match.",
+    statusForbidden: "Forbidden: no rotation makes all four edges match.",
     busy: "Loading pieces…",
   },
   fr: {
@@ -68,7 +68,7 @@ const T = {
     rateLabel: "taux d'interdits",
     exact: "valeur exacte : 99,72 %",
     statusFits: "Celui-ci s'accorde.",
-    statusForbidden: "Interdit — aucune rotation n'accorde les quatre bords.",
+    statusForbidden: "Interdit : aucune rotation n'accorde les quatre bords.",
     busy: "Chargement des pièces…",
   },
   es: {

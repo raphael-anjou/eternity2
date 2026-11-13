@@ -2,7 +2,7 @@ import { maxScore, pinnedSeamFloor } from "@/lib/hint-layouts";
 
 // The one reusable board primitive for the Hint Study. Renders an n×n grid with
 // a set of hinted cells highlighted, and optionally draws the "banked" seams
-// (interior edges with both endpoints pinned — the free-score floor). Every
+// (interior edges with both endpoints pinned: the free-score floor). Every
 // layout illustration in the study is built from this, so the visual language is
 // identical everywhere: grey = empty, amber = hint, a thin line = a banked seam.
 
@@ -84,7 +84,7 @@ export function HintBoard({
 }
 
 /** A labelled board tile with its hint count and (optionally) its free-score
- * floor — the atom the layout gallery and the ladder are built from. */
+ * floor, the atom the layout gallery and the ladder are built from. */
 export function HintBoardTile({
   n,
   cells,

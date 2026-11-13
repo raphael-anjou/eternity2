@@ -8,7 +8,7 @@ import { TRIGGER_CLASS, COPY } from "./feedback-shared";
 // (.github/ISSUE_TEMPLATE/*.yml) in a new tab, so people can raise a bug, an
 // idea or a content fix without hunting for the repo.
 //
-// The site has no backend — GitHub is the feedback inbox — so this is a set of
+// The site has no backend (GitHub is the feedback inbox), so this is a set of
 // pre-filled deep links, nothing is sent from the page itself.
 //
 // Perf: the popover uses base-ui (~30KB gzip) and is on every page including the

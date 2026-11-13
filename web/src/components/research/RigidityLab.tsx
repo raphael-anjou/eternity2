@@ -10,7 +10,7 @@ import { driveSolver } from "@/lib/useRunWhileVisible";
 
 // Rigidity, hands-on. We hand you a real perfect solution of a small puzzle and
 // invite you to beat it: click two cells to swap their pieces, and the real
-// engine rescores instantly. You can't — every swap ties or loses. The "test
+// engine rescores instantly. You can't: every swap ties or loses. The "test
 // every swap" button proves it exhaustively: it runs all pairwise swaps through
 // the engine and reports how many improved (always zero). This is local rigidity
 // in miniature: a perfect board has no improving neighbour.
@@ -61,53 +61,53 @@ const T = {
   en: {
     title: "Try to beat a perfect board",
     intro:
-      "Here is a real perfect solution of a small puzzle. Click any two cells to swap their pieces; the real engine rescores instantly. Every swap ties or loses — a perfect board has no better neighbour. Or let the engine try every possible swap at once.",
+      "Here is a real perfect solution of a small puzzle. Click any two cells to swap their pieces; the real engine rescores instantly. Every swap ties or loses: a perfect board has no better neighbour. Or let the engine try every possible swap at once.",
     pick: "Click two cells to swap them.",
     swapResult: (s: number, max: number) => `After your swap: ${s} / ${max}`,
-    tie: "same score — no improvement",
-    worse: (d: number) => `−${d} — worse, as always`,
+    tie: "same score, no improvement",
+    worse: (d: number) => `−${d}, worse, as always`,
     perfect: "still perfect (you swapped two identical-fit cells)",
     testAll: "Test every swap",
     testing: "Testing…",
     reset: "Reset board",
     newPuzzle: "New puzzle",
-    allResult: (n: number) => `Tried all ${n} swaps with the engine — 0 improved the board.`,
+    allResult: (n: number) => `Tried all ${n} swaps with the engine: 0 improved the board.`,
     loading: "Solving a small puzzle with the engine…",
-    note: "Every score here is the real engine's. On the full 16×16 the same holds far more strongly: integer-programming proves that freeing and re-filling any region of a record board — out to dozens of cells at once — never beats what's already there. The good boards sit at the bottom of exact little valleys.",
+    note: "Every score here is the real engine's. On the full 16×16 the same holds far more strongly: integer-programming proves that freeing and re-filling any region of a record board (out to dozens of cells at once) never beats what's already there. The good boards sit at the bottom of exact little valleys.",
   },
   fr: {
     title: "Essayez de battre un plateau parfait",
     intro:
-      "Voici une vraie solution parfaite d'un petit puzzle. Cliquez sur deux cases pour échanger leurs pièces ; le vrai moteur recalcule aussitôt. Chaque échange égale ou perd — un plateau parfait n'a pas de meilleur voisin. Ou laissez le moteur essayer tous les échanges d'un coup.",
+      "Voici une vraie solution parfaite d'un petit puzzle. Cliquez sur deux cases pour échanger leurs pièces ; le vrai moteur recalcule aussitôt. Chaque échange égale ou perd : un plateau parfait n'a pas de meilleur voisin. Ou laissez le moteur essayer tous les échanges d'un coup.",
     pick: "Cliquez deux cases pour les échanger.",
     swapResult: (s: number, max: number) => `Après votre échange : ${s} / ${max}`,
-    tie: "même score — aucune amélioration",
-    worse: (d: number) => `−${d} — pire, comme toujours`,
+    tie: "même score, aucune amélioration",
+    worse: (d: number) => `−${d}, pire, comme toujours`,
     perfect: "toujours parfait (deux cases interchangeables)",
     testAll: "Tester tous les échanges",
     testing: "Test en cours…",
     reset: "Réinitialiser",
     newPuzzle: "Nouveau tirage",
-    allResult: (n: number) => `Tous les ${n} échanges testés avec le moteur — 0 a amélioré le plateau.`,
+    allResult: (n: number) => `Tous les ${n} échanges testés avec le moteur : 0 a amélioré le plateau.`,
     loading: "Résolution d'un petit puzzle avec le moteur…",
-    note: "Chaque score ici est celui du vrai moteur. Sur le 16×16 complet, c'est bien plus fort : la programmation en nombres entiers prouve que libérer et re-remplir n'importe quelle région d'un plateau record — jusqu'à des dizaines de cellules — ne bat jamais ce qui est déjà là. Les bons plateaux sont au fond de petites vallées exactes.",
+    note: "Chaque score ici est celui du vrai moteur. Sur le 16×16 complet, c'est bien plus fort : la programmation en nombres entiers prouve que libérer et re-remplir n'importe quelle région d'un plateau record (jusqu'à des dizaines de cellules) ne bat jamais ce qui est déjà là. Les bons plateaux sont au fond de petites vallées exactes.",
   },
   es: {
     title: "Intenta superar un tablero perfecto",
     intro:
-      "Esta es una solución perfecta real de un puzzle pequeño. Haz clic en dos celdas cualesquiera para intercambiar sus piezas; el motor real vuelve a puntuar al instante. Cada intercambio empata o empeora — un tablero perfecto no tiene mejor vecino. O deja que el motor pruebe todos los intercambios posibles a la vez.",
+      "Esta es una solución perfecta real de un puzzle pequeño. Haz clic en dos celdas cualesquiera para intercambiar sus piezas; el motor real vuelve a puntuar al instante. Cada intercambio empata o empeora: un tablero perfecto no tiene mejor vecino. O deja que el motor pruebe todos los intercambios posibles a la vez.",
     pick: "Haz clic en dos celdas para intercambiarlas.",
     swapResult: (s: number, max: number) => `Tras tu intercambio: ${s} / ${max}`,
-    tie: "misma puntuación — ninguna mejora",
-    worse: (d: number) => `−${d} — peor, como siempre`,
+    tie: "misma puntuación, ninguna mejora",
+    worse: (d: number) => `−${d}, peor, como siempre`,
     perfect: "sigue siendo perfecto (intercambiaste dos celdas de encaje idéntico)",
     testAll: "Probar todos los intercambios",
     testing: "Probando…",
     reset: "Reiniciar tablero",
     newPuzzle: "Nuevo puzzle",
-    allResult: (n: number) => `Se probaron los ${n} intercambios con el motor — 0 mejoraron el tablero.`,
+    allResult: (n: number) => `Se probaron los ${n} intercambios con el motor: 0 mejoraron el tablero.`,
     loading: "Resolviendo un puzzle pequeño con el motor…",
-    note: "Cada puntuación aquí es la del motor real. En el 16×16 completo esto se cumple con mucha más fuerza: la programación entera demuestra que liberar y volver a rellenar cualquier región de un tablero récord — hasta docenas de celdas a la vez — nunca supera lo que ya está ahí. Los buenos tableros se asientan en el fondo de pequeños valles exactos.",
+    note: "Cada puntuación aquí es la del motor real. En el 16×16 completo esto se cumple con mucha más fuerza: la programación entera demuestra que liberar y volver a rellenar cualquier región de un tablero récord (hasta docenas de celdas a la vez) nunca supera lo que ya está ahí. Los buenos tableros se asientan en el fondo de pequeños valles exactos.",
   },
 };
 

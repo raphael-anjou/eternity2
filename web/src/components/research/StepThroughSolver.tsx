@@ -3,7 +3,7 @@
 // snapshots, then let the reader play / pause / scrub back and forth, one
 // decision at a time. The piece supply shows which pieces could legally sit on
 // the current cell (green) and which are already used (dimmed). Nothing is
-// hardcoded — the board, the candidates, and the narration are all derived from
+// hardcoded: the board, the candidates, and the narration are all derived from
 // the engine's actual run.
 //
 // What varies between uses is supplied by props:

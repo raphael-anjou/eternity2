@@ -14,7 +14,7 @@ import { Lab } from "@/components/research/Lab";
 // The crossover-conflict argument (groups.io msgs 1500/2591), made visible.
 //
 // Two PERFECT parents of the same engine-generated framed 8×8: parent A is
-// the solved board; parent B is the same solution rotated 90° — a genuinely
+// the solved board; parent B is the same solution rotated 90°, a genuinely
 // different perfect board using the same 64 pieces (edge matching is
 // invariant under a global turn of a square board, and generated puzzles
 // have no fixed hint). One-point crossover at cut k takes cells 0..k-1 from
@@ -22,14 +22,14 @@ import { Lab } from "@/components/research/Lab";
 //
 // (Why 90° and not 180°? Under a 180° turn the duplicated cells and the
 // missing pieces' home cells coincide exactly, so a repair step can quietly
-// reconstruct parent A and fake a success. The 90° turn scatters them — the
-// honest, generic case.)
+// reconstruct parent A and fake a success. The 90° turn scatters them: the
+// fair, generic case.)
 //
 // The pathology is deterministic: away from the trivial cuts the child
-// duplicates some pieces and omits just as many — it is not a board. Yet it
+// duplicates some pieces and omits just as many, so it is not a board. Yet it
 // still *scores* almost perfectly (each half is internally solved), which is
 // precisely how a fitness function gets fooled. The repair step (replace
-// second occurrences with the missing pieces, greedy best rotation — the fix
+// second occurrences with the missing pieces, greedy best rotation, the fix
 // proposed in msg 1500) restores legality and collapses the score.
 //
 // Everything is measured by the same bucas-compatible scoring the viewer
@@ -44,16 +44,16 @@ const T = {
   en: {
     title: "Two perfect parents, one broken child",
     intro:
-      "Parent A is a solved board; parent B is the same solution turned a quarter turn — a different, equally perfect arrangement of the same 64 pieces. Drag the cut: the child takes the first k cells from A and the rest from B. Rose rings mark pieces the child now holds twice; just as many pieces are missing entirely.",
-    parentA: "Parent A — solved",
-    parentB: "Parent B — solved (turned 90°)",
+      "Parent A is a solved board; parent B is the same solution turned a quarter turn: a different, equally perfect arrangement of the same 64 pieces. Drag the cut: the child takes the first k cells from A and the rest from B. Rose rings mark pieces the child now holds twice; just as many pieces are missing entirely.",
+    parentA: "Parent A: solved",
+    parentB: "Parent B: solved (turned 90°)",
     childNaive: "Naive child",
     childRepaired: "Repaired child",
     cut: (k: number) => `crossover cut: ${k} cells from A, ${N - k} from B`,
     duplicates: (d: number) =>
       d === 0
-        ? "a clone of one parent — legal, but nothing was recombined"
-        : `${d} duplicated piece${d === 1 ? "" : "s"}, ${d} missing — not a legal board`,
+        ? "a clone of one parent: legal, but nothing was recombined"
+        : `${d} duplicated piece${d === 1 ? "" : "s"}, ${d} missing, not a legal board`,
     naiveScore: "naive child (illegal)",
     repairedScore: "repaired child (legal)",
     edges: "matched edges",
@@ -61,22 +61,22 @@ const T = {
     naive: "Show naive child",
     sweep: "Sweep",
     pause: "Pause",
-    note: "The naive child scores almost perfectly — both halves are internally solved — but it is not a permutation of the piece set, so its fitness is a lie. Repair keeps first occurrences and greedily re-places the missing pieces (best rotation per cell): legality returns, the score collapses. That collapse is the crossover-operator problem of the 2007 threads.",
+    note: "The naive child scores almost perfectly (both halves are internally solved), but it is not a permutation of the piece set, so its fitness is a lie. Repair keeps first occurrences and greedily re-places the missing pieces (best rotation per cell): legality returns, the score collapses. That collapse is the crossover-operator problem of the 2007 threads.",
     loading: "Generating a solved board…",
   },
   fr: {
     title: "Deux parents parfaits, un enfant cassé",
     intro:
-      "Le parent A est un plateau résolu ; le parent B est la même solution tournée d'un quart de tour — un arrangement différent, tout aussi parfait, des 64 mêmes pièces. Déplacez la coupure : l'enfant prend les k premières cases de A et le reste de B. Les anneaux roses marquent les pièces que l'enfant possède désormais en double ; autant de pièces manquent entièrement.",
-    parentA: "Parent A — résolu",
-    parentB: "Parent B — résolu (tourné de 90°)",
+      "Le parent A est un plateau résolu ; le parent B est la même solution tournée d'un quart de tour : un arrangement différent, tout aussi parfait, des 64 mêmes pièces. Déplacez la coupure : l'enfant prend les k premières cases de A et le reste de B. Les anneaux roses marquent les pièces que l'enfant possède désormais en double ; autant de pièces manquent entièrement.",
+    parentA: "Parent A : résolu",
+    parentB: "Parent B : résolu (tourné de 90°)",
     childNaive: "Enfant naïf",
     childRepaired: "Enfant réparé",
     cut: (k: number) => `coupure : ${k} cases de A, ${N - k} de B`,
     duplicates: (d: number) =>
       d === 0
-        ? "un clone d'un des parents — légal, mais rien n'a été recombiné"
-        : `${d} pièce${d === 1 ? "" : "s"} en double, ${d} manquante${d === 1 ? "" : "s"} — ce n'est pas un plateau légal`,
+        ? "un clone d'un des parents : légal, mais rien n'a été recombiné"
+        : `${d} pièce${d === 1 ? "" : "s"} en double, ${d} manquante${d === 1 ? "" : "s"} : ce n'est pas un plateau légal`,
     naiveScore: "enfant naïf (illégal)",
     repairedScore: "enfant réparé (légal)",
     edges: "arêtes appariées",
@@ -84,15 +84,15 @@ const T = {
     naive: "Voir l'enfant naïf",
     sweep: "Balayer",
     pause: "Pause",
-    note: "L'enfant naïf a un score presque parfait — chaque moitié est résolue en interne — mais ce n'est pas une permutation du jeu de pièces : sa fitness est un mensonge. La réparation garde les premières occurrences et replace les pièces manquantes (meilleure rotation, gloutonnement) : la légalité revient, le score s'effondre. Cet effondrement, c'est le problème de l'opérateur de croisement des fils de 2007.",
+    note: "L'enfant naïf a un score presque parfait (chaque moitié est résolue en interne), mais ce n'est pas une permutation du jeu de pièces : sa fitness est un mensonge. La réparation garde les premières occurrences et replace les pièces manquantes (meilleure rotation, gloutonnement) : la légalité revient, le score s'effondre. Cet effondrement, c'est le problème de l'opérateur de croisement des fils de 2007.",
     loading: "Génération d'un plateau résolu…",
   },
   es: {
     title: "Dos padres perfectos, un hijo roto",
     intro:
       "El padre A es un tablero resuelto; el padre B es la misma solución girada un cuarto de vuelta: una disposición distinta, igual de perfecta, de las mismas 64 piezas. Arrastra el corte: el hijo toma las primeras k celdas de A y el resto de B. Los anillos rosa marcan las piezas que el hijo tiene ahora por duplicado; otras tantas faltan por completo.",
-    parentA: "Padre A — resuelto",
-    parentB: "Padre B — resuelto (girado 90°)",
+    parentA: "Padre A: resuelto",
+    parentB: "Padre B: resuelto (girado 90°)",
     childNaive: "Hijo ingenuo",
     childRepaired: "Hijo reparado",
     cut: (k: number) => `corte de cruce: ${k} celdas de A, ${N - k} de B`,
@@ -107,13 +107,13 @@ const T = {
     naive: "Ver el hijo ingenuo",
     sweep: "Barrer",
     pause: "Pausar",
-    note: "El hijo ingenuo obtiene una puntuación casi perfecta —cada mitad está resuelta internamente—, pero no es una permutación del conjunto de piezas: su aptitud es una mentira. La reparación conserva las primeras apariciones y vuelve a colocar las piezas ausentes (mejor rotación, de forma voraz): la legalidad regresa y la puntuación se desploma. Ese desplome es el problema del operador de cruce de los hilos de 2007.",
+    note: "El hijo ingenuo obtiene una puntuación casi perfecta (cada mitad está resuelta internamente), pero no es una permutación del conjunto de piezas: su aptitud es una mentira. La reparación conserva las primeras apariciones y vuelve a colocar las piezas ausentes (mejor rotación, de forma voraz): la legalidad regresa y la puntuación se desploma. Ese desplome es el problema del operador de cruce de los hilos de 2007.",
     loading: "Generando un tablero resuelto…",
   },
 };
 
 /** Parent B: the same solution turned 90° clockwise. The piece from A cell
- *  (r, c) lands at (c, S-1-r) rotated one quarter turn — so B cell (r, c)
+ *  (r, c) lands at (c, S-1-r) rotated one quarter turn, so B cell (r, c)
  *  holds the piece whose A cell is (S-1-c, r). */
 function parentBCell(pos: number): number {
   const r = Math.floor(pos / SIZE);
@@ -322,7 +322,7 @@ export function CrossoverClashLab() {
             overlay={overlay}
           />
           <p className="text-center text-[11px] text-muted-foreground">
-            {repaired ? t.childRepaired : t.childNaive} — {t.cut(k)}
+            {repaired ? t.childRepaired : t.childNaive}, {t.cut(k)}
           </p>
         </div>
 

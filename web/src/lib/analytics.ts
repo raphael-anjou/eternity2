@@ -10,7 +10,7 @@
 // outright: the app raises its first page_view during mount, but `window.gtag`
 // only exists once inject() has run (idle, i.e. hundreds of ms later), so an
 // optional-chained `window.gtag?.(...)` silently discarded it and the effect
-// never retried. That lost the landing page view of EVERY session — GA then
+// never retried. That lost the landing page view of EVERY session: GA then
 // reported the second page as the landing page, and single-page sessions (most
 // organic search traffic here) recorded nothing at all. Measured before the
 // fix: "(not set)" was the single largest landing page, 641 of 2183 sessions.
@@ -36,7 +36,7 @@ let started = false;
 /** Events raised before the GA script was injected, in order. Flushed by
  *  inject() after `config` (GA processes dataLayer in order, so an event pushed
  *  before its config would be attributed to no property). Bounded so a page that
- *  never loads GA — a bot, a blocked request, a user who leaves immediately —
+ *  never loads GA (a bot, a blocked request, a user who leaves immediately)
  *  cannot grow it without limit. */
 const pending: unknown[][] = [];
 const MAX_PENDING = 50;

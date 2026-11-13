@@ -9,7 +9,7 @@ import { driveSolver, yieldToBrowser } from "@/lib/useRunWhileVisible";
 // puzzle at each colour count, right now, with the real engine, and plot the
 // actual work (nodes explored) it took. Few colours: many solutions, easy. Many
 // colours: tightly constrained, also findable fast (or quickly proven hard).
-// In between sits the peak — about one expected solution — where the engine
+// In between sits the peak (about one expected solution), where the engine
 // grinds hardest. This is the SAT/CSP phase transition, drawn from real runs in
 // your browser rather than precomputed numbers.
 
@@ -24,7 +24,7 @@ interface Point {
 
 // Each solve runs in time-boxed bursts (~8ms of synchronous work, measured with
 // performance.now()), yielding to the browser between bursts so the page stays
-// responsive — the medians come out the same, just without blocking the UI.
+// responsive; the medians come out the same, just without blocking the UI.
 async function medianNodesAt(
   size: number,
   colors: number,
@@ -54,29 +54,29 @@ const T = {
   en: {
     title: "Build the hardness curve, live",
     intro:
-      "Press play. For each number of colours, the engine solves a fresh small puzzle here and now and records the work it took. The curve rises to a peak and falls — that peak is the phase transition, where there's about one solution to find and the search is hardest. Eternity II's designers placed the real puzzle right on it.",
+      "Press play. For each number of colours, the engine solves a fresh small puzzle here and now and records the work it took. The curve rises to a peak and falls; that peak is the phase transition, where there's about one solution to find and the search is hardest. Eternity II's designers placed the real puzzle right on it.",
     run: "Measure all colour counts",
     running: (c: number) => `Solving at ${c} colours…`,
     again: "Run again",
     yLabel: "nodes explored (median, log)",
     xLabel: "number of colours",
-    peakAt: (c: number) => `Hardest at ${c} colours — the peak`,
+    peakAt: (c: number) => `Hardest at ${c} colours, the peak`,
     loading: "Loading the engine…",
-    note: "Every point is a median over a few real solves on a 6×6 board, run live in your browser. The shape — easy, then a peak, then easy again — is the SAT/CSP phase transition. The full 16×16 with its ~17 interior colours sits on the analogous peak; that placement is what Ansótegui et al. identified as the empirical hardness maximum.",
+    note: "Every point is a median over a few real solves on a 6×6 board, run live in your browser. The shape (easy, then a peak, then easy again) is the SAT/CSP phase transition. The full 16×16 with its ~17 interior colours sits on the analogous peak; that placement is what Ansótegui et al. identified as the empirical hardness maximum.",
     idle: "Press the button to measure.",
   },
   fr: {
     title: "Construisez la courbe de difficulté, en direct",
     intro:
-      "Appuyez sur lecture. Pour chaque nombre de couleurs, le moteur résout ici et maintenant un petit puzzle frais et note le travail qu'il a fallu. La courbe monte vers un pic puis redescend — ce pic est la transition de phase, là où il y a environ une solution à trouver et où la recherche est la plus dure. Les concepteurs d'Eternity II y ont placé le vrai puzzle.",
+      "Appuyez sur lecture. Pour chaque nombre de couleurs, le moteur résout ici et maintenant un petit puzzle frais et note le travail qu'il a fallu. La courbe monte vers un pic puis redescend ; ce pic est la transition de phase, là où il y a environ une solution à trouver et où la recherche est la plus dure. Les concepteurs d'Eternity II y ont placé le vrai puzzle.",
     run: "Mesurer tous les nombres de couleurs",
     running: (c: number) => `Résolution à ${c} couleurs…`,
     again: "Relancer",
     yLabel: "nœuds explorés (médiane, log)",
     xLabel: "nombre de couleurs",
-    peakAt: (c: number) => `Le plus dur à ${c} couleurs — le pic`,
+    peakAt: (c: number) => `Le plus dur à ${c} couleurs, le pic`,
     loading: "Chargement du moteur…",
-    note: "Chaque point est une médiane sur quelques vraies résolutions sur un plateau 6×6, en direct dans votre navigateur. La forme — facile, puis un pic, puis facile à nouveau — est la transition de phase SAT/CSP. Le 16×16 complet avec ses ~17 couleurs intérieures est sur le pic analogue ; c'est ce placement qu'Ansótegui et al. ont identifié comme le maximum empirique de difficulté.",
+    note: "Chaque point est une médiane sur quelques vraies résolutions sur un plateau 6×6, en direct dans votre navigateur. La forme (facile, puis un pic, puis facile à nouveau) est la transition de phase SAT/CSP. Le 16×16 complet avec ses ~17 couleurs intérieures est sur le pic analogue ; c'est ce placement qu'Ansótegui et al. ont identifié comme le maximum empirique de difficulté.",
     idle: "Appuyez sur le bouton pour mesurer.",
   },
   es: {
@@ -90,7 +90,7 @@ const T = {
     xLabel: "número de colores",
     peakAt: (c: number) => `Lo más difícil con ${c} colores: el pico`,
     loading: "Cargando el motor…",
-    note: "Cada punto es una mediana sobre unas pocas resoluciones reales en un tablero de 6×6, ejecutadas en directo en tu navegador. La forma —fácil, luego un pico y de nuevo fácil— es la transición de fase SAT/CSP. El 16×16 completo, con sus ~17 colores interiores, se sitúa sobre el pico análogo; ese emplazamiento es el que Ansótegui et al. identificaron como el máximo empírico de dificultad.",
+    note: "Cada punto es una mediana sobre unas pocas resoluciones reales en un tablero de 6×6, ejecutadas en directo en tu navegador. La forma (fácil, luego un pico y de nuevo fácil) es la transición de fase SAT/CSP. El 16×16 completo, con sus ~17 colores interiores, se sitúa sobre el pico análogo; ese emplazamiento es el que Ansótegui et al. identificaron como el máximo empírico de dificultad.",
     idle: "Pulsa el botón para medir.",
   },
 };

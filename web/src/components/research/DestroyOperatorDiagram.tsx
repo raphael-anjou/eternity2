@@ -3,8 +3,8 @@ import { useIsClient } from "@/lib/utils";
 
 // The four destroy operators the study compares, each drawn as the set of cells
 // it lifts on the *same* illustrative board of broken seams. The point the
-// picture makes: the operators differ only in shape — scattered, conflict-picked,
-// a whole band, or one connected tangle plus a halo — and that shape is what the
+// picture makes: the operators differ only in shape (scattered, conflict-picked,
+// a whole band, or one connected tangle plus a halo), and that shape is what the
 // study measures. The broken seams (red) are identical across all four panels;
 // only the chosen cells (violet) change.
 

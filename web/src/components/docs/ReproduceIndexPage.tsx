@@ -3,7 +3,7 @@
 // badge, whether the command re-runs the SEARCH or only re-verifies a stored
 // ARTIFACT, the expected wall-clock cost, a compact core-hours figure, and a
 // link to the research/topics pipeline it comes from. Route-generated (like the
-// glossary and the topic hubs): no MDX file backs it — it walks the manifest.
+// glossary and the topic hubs): no MDX file backs it; it walks the manifest.
 
 import { useMemo, useState } from "react";
 import { useLang, useT } from "@/i18n";
@@ -23,7 +23,7 @@ const REPRO_LABEL: Record<ReproKind, Record<Lang, string>> = {
   seeded: { en: "seeded", fr: "graine", es: "con semilla" },
   stochastic: { en: "stochastic", fr: "stochastique", es: "estocástico" },
   heavy: { en: "heavy", fr: "lourd", es: "pesado" },
-  prose: { en: "—", fr: "—", es: "—" },
+  prose: { en: "–", fr: "–", es: "–" },
 };
 
 const REPRO_STYLE: Record<ReproKind, string> = {
@@ -255,12 +255,12 @@ export function ReproduceIndexPage() {
                           </span>
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap tabular-nums text-muted-foreground">
-                          {r.wallClock || "—"}
+                          {r.wallClock || "–"}
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap text-right tabular-nums text-muted-foreground">
-                          {r.coreHours != null ? formatCoreHours(r.coreHours) : "—"}
+                          {r.coreHours != null ? formatCoreHours(r.coreHours) : "–"}
                         </td>
-                        <td className="px-3 py-2 text-muted-foreground">{r.topic ?? "—"}</td>
+                        <td className="px-3 py-2 text-muted-foreground">{r.topic ?? "–"}</td>
                       </tr>
                     ))}
                   </tbody>

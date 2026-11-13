@@ -1,4 +1,4 @@
-// Brendan Owen's Complex Theory — a faithful port of Peter McGavin's reference
+// Brendan Owen's Complex Theory: a faithful port of Peter McGavin's reference
 // C implementation (libgmp), validated to reproduce his published table exactly
 // (4, 44.8, 493.37, 5340.6, …, 14702 expected solutions at depth 256, cumulative
 // 1.365×10⁴⁷).
@@ -32,7 +32,7 @@
 //
 // We evaluate everything in log10 (with log-sum-exp for validm/validb's sums and
 // lgamma for factorials), so the 10⁴⁷-scale intermediates never overflow Float64
-// — the C uses GNU MP for the same reason. This is a FIRST-MOMENT estimate: it
+// (the C uses GNU MP for the same reason). This is a FIRST-MOMENT estimate: it
 // counts expected valid partials treating colours as independently drawn, so it
 // is accurate to ~×2 (McGavin's small-puzzle calibration) and is blind to the
 // global-distinctness wall (see /research/why/entropy-area-law). Use it for tree

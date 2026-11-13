@@ -1,5 +1,5 @@
 // A board preview that mounts its heavy 16x16 SVG only when it scrolls near the
-// viewport — and never at build time. The notable-boards page shows dozens of
+// viewport, and never at build time. The notable-boards page shows dozens of
 // full boards at once; a 256-cell BoardSvg is ~1,300 SVG nodes, so prerendering
 // them all inlined a ~6 MB HTML file with tens of thousands of nodes, which is
 // slow on desktop and crashes phones. So: the server (prerender) and the first

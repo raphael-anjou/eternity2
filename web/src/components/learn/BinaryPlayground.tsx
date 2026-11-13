@@ -32,14 +32,14 @@ const T = {
     rotation: {
       title: "3 · Rotating = one bit-rotate",
       explainer:
-        "Because a piece is one packed word, a quarter-turn is a single CPU rotate: slide the bits round, and the edge that falls off the end wraps back to the front. No drawing is ever turned. Our own engine goes one step further — it works out all four orientations once at startup and just looks them up, so a rotation costs nothing at all during the search.",
+        "Because a piece is one packed word, a quarter-turn is a single CPU rotate: slide the bits round, and the edge that falls off the end wraps back to the front. No drawing is ever turned. Our own engine goes one step further: it works out all four orientations once at startup and just looks them up, so a rotation costs nothing at all during the search.",
       before: "before",
       after: "after ↻",
     },
     mask: {
       title: "4 · 256 pieces = 256 bits of “still free?”",
       explainer:
-        "Fast solvers track which pieces are still unused as one 256-bit number, one bit each. “Is piece #137 free?” is a single bit-test; “mark it used” flips one bit. So checking and updating availability stays almost instant even with 256 pieces. Our own engine tracks piece availability exactly this way — one bit per piece.",
+        "Fast solvers track which pieces are still unused as one 256-bit number, one bit each. “Is piece #137 free?” is a single bit-test; “mark it used” flips one bit. So checking and updating availability stays almost instant even with 256 pieces. Our own engine tracks piece availability exactly this way: one bit per piece.",
       placing: (n: number) => `placing piece #${n}…`,
       free: "free",
       used: "used",
@@ -71,7 +71,7 @@ const T = {
     mask: {
       title: "4 · 256 pièces = 256 bits pour dire « encore libre ? »",
       explainer:
-        "Les solveurs rapides suivent les pièces encore disponibles dans un unique nombre de 256 bits, à raison d'un bit par pièce. « La pièce n°137 est-elle libre ? » se réduit à la lecture d'un seul bit ; la « marquer comme utilisée » revient à en basculer un. Consulter et mettre à jour les disponibilités reste donc quasi instantané, même avec 256 pièces. Notre propre moteur suit la disponibilité des pièces exactement de cette façon — un bit par pièce.",
+        "Les solveurs rapides suivent les pièces encore disponibles dans un unique nombre de 256 bits, à raison d'un bit par pièce. « La pièce n°137 est-elle libre ? » se réduit à la lecture d'un seul bit ; la « marquer comme utilisée » revient à en basculer un. Consulter et mettre à jour les disponibilités reste donc quasi instantané, même avec 256 pièces. Notre propre moteur suit la disponibilité des pièces exactement de cette façon : un bit par pièce.",
       placing: (n: number) => `pose de la pièce n°${n}…`,
       free: "libre",
       used: "utilisée",

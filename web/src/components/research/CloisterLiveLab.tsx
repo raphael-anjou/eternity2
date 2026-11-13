@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { driveSolver } from "@/lib/useRunWhileVisible";
 
 // CLOISTER's idea, measured live: does anchoring the border first save work?
-// We solve the same small puzzle two ways with the real engine — once border-
+// We solve the same small puzzle two ways with the real engine: once border-
 // first (the frame's edges constrain the interior from the start, CLOISTER-style)
-// and once whole-board row-major (frame and interior solved together) — and
+// and once whole-board row-major (frame and interior solved together), and
 // compare the nodes each explored. Border-first rejects doomed interiors earlier,
 // so it usually does less work. Same puzzle, same engine; only the order differs.
 
@@ -48,9 +48,9 @@ async function solveCount(
 
 const T = {
   en: {
-    title: "Border-first vs whole-board — count the wasted work",
+    title: "Border-first vs whole-board: count the wasted work",
     intro:
-      "The same small puzzle, solved twice by the real engine. Border-first fills the frame, then the interior, so the frame's edges constrain every interior placement from the start — a doomed interior is rejected early. Whole-board fills row by row, discovering frame conflicts late. Run it and compare the nodes each explored.",
+      "The same small puzzle, solved twice by the real engine. Border-first fills the frame, then the interior, so the frame's edges constrain every interior placement from the start, so a doomed interior is rejected early. Whole-board fills row by row, discovering frame conflicts late. Run it and compare the nodes each explored.",
     run: "Solve it both ways",
     again: "New puzzle",
     bf: "Border-first (CLOISTER)",
@@ -61,12 +61,12 @@ const T = {
     tie: "About the same on this puzzle",
     loading: "Loading the engine…",
     idle: "Press to solve the same puzzle both ways.",
-    note: "Both runs are the real engine on the same 6×6 puzzle; only the fill order differs. The effect varies puzzle to puzzle (and a hard one may hit the node cap before solving), but border-first usually wins by rejecting interiors that can't meet the frame. The full CLOISTER goes further: it fixes a proven-perfect 16×16 frame and collects extra matched edges from interiors grown against it — value that can't be retrofitted afterwards.",
+    note: "Both runs are the real engine on the same 6×6 puzzle; only the fill order differs. The effect varies puzzle to puzzle (and a hard one may hit the node cap before solving), but border-first usually wins by rejecting interiors that can't meet the frame. The full CLOISTER goes further: it fixes a proven-perfect 16×16 frame and collects extra matched edges from interiors grown against it, value that can't be retrofitted afterwards.",
   },
   fr: {
-    title: "Cadre d'abord vs plateau entier — comptez le travail gaspillé",
+    title: "Cadre d'abord vs plateau entier : comptez le travail gaspillé",
     intro:
-      "Le même petit puzzle, résolu deux fois par le vrai moteur. « Cadre d'abord » remplit le cadre puis l'intérieur, si bien que les bords du cadre contraignent chaque pose intérieure dès le départ — un intérieur condamné est rejeté tôt. « Plateau entier » remplit rangée par rangée, découvrant les conflits de cadre tard. Lancez et comparez les nœuds explorés.",
+      "Le même petit puzzle, résolu deux fois par le vrai moteur. « Cadre d'abord » remplit le cadre puis l'intérieur, si bien que les bords du cadre contraignent chaque pose intérieure dès le départ : un intérieur condamné est rejeté tôt. « Plateau entier » remplit rangée par rangée, découvrant les conflits de cadre tard. Lancez et comparez les nœuds explorés.",
     run: "Résoudre des deux façons",
     again: "Nouveau tirage",
     bf: "Cadre d'abord (CLOISTER)",
@@ -77,10 +77,10 @@ const T = {
     tie: "À peu près pareil sur ce puzzle",
     loading: "Chargement du moteur…",
     idle: "Appuyez pour résoudre le même puzzle des deux façons.",
-    note: "Les deux exécutions sont le vrai moteur sur le même puzzle 6×6 ; seul l'ordre de remplissage change. L'effet varie d'un puzzle à l'autre (et un puzzle difficile peut atteindre le plafond de nœuds avant de résoudre), mais « cadre d'abord » l'emporte d'ordinaire en rejetant les intérieurs incompatibles avec le cadre. Le CLOISTER complet va plus loin : il fixe un cadre 16×16 prouvé parfait et collecte des bords appariés supplémentaires d'intérieurs bâtis contre lui — une valeur non récupérable après coup.",
+    note: "Les deux exécutions sont le vrai moteur sur le même puzzle 6×6 ; seul l'ordre de remplissage change. L'effet varie d'un puzzle à l'autre (et un puzzle difficile peut atteindre le plafond de nœuds avant de résoudre), mais « cadre d'abord » l'emporte d'ordinaire en rejetant les intérieurs incompatibles avec le cadre. Le CLOISTER complet va plus loin : il fixe un cadre 16×16 prouvé parfait et collecte des bords appariés supplémentaires d'intérieurs bâtis contre lui, une valeur non récupérable après coup.",
   },
   es: {
-    title: "Borde primero vs. tablero completo — cuenta el trabajo desperdiciado",
+    title: "Borde primero vs. tablero completo: cuenta el trabajo desperdiciado",
     intro:
       "El mismo puzzle pequeño, resuelto dos veces por el motor real. «Borde primero» rellena el marco y luego el interior, de modo que las aristas del marco restringen cada colocación interior desde el principio: un interior condenado se descarta pronto. «Tablero completo» rellena fila a fila y descubre los conflictos del marco tarde. Ejecútalo y compara los nodos que exploró cada uno.",
     run: "Resolver de ambas formas",
@@ -93,7 +93,7 @@ const T = {
     tie: "Aproximadamente igual en este puzzle",
     loading: "Cargando el motor…",
     idle: "Pulsa para resolver el mismo puzzle de ambas formas.",
-    note: "Ambas ejecuciones son el motor real sobre el mismo puzzle 6×6; solo cambia el orden de relleno. El efecto varía de un puzzle a otro (y uno difícil puede alcanzar el tope de nodos antes de resolverse), pero «borde primero» suele ganar al descartar interiores que no encajan con el marco. El CLOISTER completo va más allá: fija un marco 16×16 demostrado perfecto y recoge aristas coincidentes adicionales de interiores construidos contra él — un valor que no se puede recuperar a posteriori.",
+    note: "Ambas ejecuciones son el motor real sobre el mismo puzzle 6×6; solo cambia el orden de relleno. El efecto varía de un puzzle a otro (y uno difícil puede alcanzar el tope de nodos antes de resolverse), pero «borde primero» suele ganar al descartar interiores que no encajan con el marco. El CLOISTER completo va más allá: fija un marco 16×16 demostrado perfecto y recoge aristas coincidentes adicionales de interiores construidos contra él, un valor que no se puede recuperar a posteriori.",
   },
 };
 

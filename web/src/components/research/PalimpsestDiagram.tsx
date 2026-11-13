@@ -5,7 +5,7 @@ import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // PALIMPSEST, schematically. Lay many strong boards on top of one another and a
 // consensus appears: most cells agree (the board is "written over" again and
-// again in the same place). But a handful of cells agree *too* much — the whole
+// again in the same place). But a handful of cells agree *too* much: the whole
 // corpus made the same quiet choice there, and that shared choice is exactly what
 // caps every board below the top. PALIMPSEST finds those cells and targets them.
 // The animation stacks boards one by one; cells darken toward consensus, and once
@@ -29,7 +29,7 @@ const T = {
   en: {
     title: "Stack the strong boards; find the shared choice",
     boards: "boards overlaid",
-    locked: "over-agreed cell — a quiet lock PALIMPSEST targets",
+    locked: "over-agreed cell: a quiet lock PALIMPSEST targets",
     caption:
       "Overlay many strong boards and most cells reach a normal consensus. A few agree too much: the whole corpus made the same choice there, and that shared choice is what caps every board below the top. PALIMPSEST flags those cells and aims the search at breaking them.",
     busy: "Loading…",
@@ -37,7 +37,7 @@ const T = {
   fr: {
     title: "Empiler les bons plateaux ; trouver le choix partagé",
     boards: "plateaux superposés",
-    locked: "cellule sur-accordée — un verrou discret que PALIMPSEST cible",
+    locked: "cellule sur-accordée : un verrou discret que PALIMPSEST cible",
     caption:
       "Superposez de nombreux bons plateaux et la plupart des cellules atteignent un consensus normal. Quelques-unes s'accordent trop : tout le corpus y a fait le même choix, et ce choix partagé est ce qui plafonne chaque plateau sous le sommet. PALIMPSEST repère ces cellules et oriente la recherche vers leur déverrouillage.",
     busy: "Chargement…",

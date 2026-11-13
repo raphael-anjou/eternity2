@@ -7,7 +7,7 @@ import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 // for each position, how concentrated the choice of piece is across good boards.
 // Some cells are nearly always the same piece (a sharp prior); others are a
 // coin-toss (flat). The heat map shows that learned confidence. When the live
-// build hits a tie — two pieces matching the same number of edges — the prior
+// build hits a tie (two pieces matching the same number of edges), the prior
 // breaks it toward the piece that's typical *for that spot*. The animation sweeps
 // a fill front across the board; at each newly-filled cell, sharp-prior cells snap
 // decisively, flat-prior cells wobble.
@@ -16,7 +16,7 @@ const N = 12;
 const CELL = 16;
 
 // Deterministic per-cell prior "sharpness" in [0,1]: corners and border ring are
-// the most constrained (sharpest), the deep interior the flattest — mirroring the
+// the most constrained (sharpest), the deep interior the flattest, mirroring the
 // real puzzle, where the frame is far more determined than the centre.
 function sharpness(r: number, c: number): number {
   const ring = Math.min(r, c, N - 1 - r, N - 1 - c); // 0 on border, grows inward
@@ -32,7 +32,7 @@ const T = {
     sharp: "sharp prior (almost always the same piece)",
     flat: "flat prior (a coin-toss)",
     caption:
-      "PRIOR learns, for every position, how concentrated the piece choice is across strong boards. The frame is sharply determined; the deep interior is nearly a coin-toss. On a tie the prior breaks it toward the typical piece for that spot — strong guidance where it's sharp, harmless where it's flat.",
+      "PRIOR learns, for every position, how concentrated the piece choice is across strong boards. The frame is sharply determined; the deep interior is nearly a coin-toss. On a tie the prior breaks it toward the typical piece for that spot: strong guidance where it's sharp, harmless where it's flat.",
     busy: "Loading…",
   },
   fr: {
@@ -40,7 +40,7 @@ const T = {
     sharp: "prior pointu (presque toujours la même pièce)",
     flat: "prior plat (pile ou face)",
     caption:
-      "PRIOR apprend, pour chaque position, à quel point le choix de pièce est concentré dans les bons plateaux. Le cadre est nettement déterminé ; l'intérieur profond est presque un pile ou face. En cas d'égalité, le prior tranche vers la pièce typique de cet endroit — un guidage fort là où c'est pointu, inoffensif là où c'est plat.",
+      "PRIOR apprend, pour chaque position, à quel point le choix de pièce est concentré dans les bons plateaux. Le cadre est nettement déterminé ; l'intérieur profond est presque un pile ou face. En cas d'égalité, le prior tranche vers la pièce typique de cet endroit : un guidage fort là où c'est pointu, inoffensif là où c'est plat.",
     busy: "Chargement…",
   },
   es: {

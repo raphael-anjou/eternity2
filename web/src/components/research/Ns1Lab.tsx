@@ -13,9 +13,9 @@ import { cn } from "@/lib/utils";
 
 // NS-1 deficit, made live. A framed solved board starts balanced (Δ = 0). Click
 // a border cell to lift its piece: the border↔interior interface loses colours
-// on one side and the deficit rises — you can watch exactly which colours fall
+// on one side and the deficit rises; you can watch exactly which colours fall
 // out of balance. The "swap two border pieces" button shows the catch: a swap
-// permutes the colours without changing either multiset, so Δ stays 0 — NS-1 is
+// permutes the colours without changing either multiset, so Δ stays 0: NS-1 is
 // blind to it. This is the vault's "necessary-but-loose" point, made visible.
 
 const SIZE = 8;
@@ -23,13 +23,13 @@ const COLORS = 6;
 
 const T = {
   en: {
-    title: "Watch the border balance — live",
+    title: "Watch the border balance, live",
     intro:
-      "A solved board is balanced: every colour the border shows the interior is a colour the interior shows back (Δ = 0). Lift a border piece and the balance breaks — the deficit counts the interface edges now mismatched. Try the swap button too: swapping two border pieces keeps Δ at 0, because it shuffles colours without changing the multiset. That blind spot is exactly why NS-1 only rejects bad boards, never confirms good ones.",
+      "A solved board is balanced: every colour the border shows the interior is a colour the interior shows back (Δ = 0). Lift a border piece and the balance breaks: the deficit counts the interface edges now mismatched. Try the swap button too: swapping two border pieces keeps Δ at 0, because it shuffles colours without changing the multiset. That blind spot is exactly why NS-1 only rejects bad boards, never confirms good ones.",
     deficit: "deficit Δ",
-    balanced: "balanced — a solution is still possible",
+    balanced: "balanced: a solution is still possible",
     broken: (d: number) => `${d} interface edge${d === 1 ? "" : "s"} out of balance`,
-    swapInvisible: "swap kept Δ = 0 — NS-1 can't see a permutation",
+    swapInvisible: "swap kept Δ = 0; NS-1 can't see a permutation",
     lift: "Click a border cell to lift its piece.",
     swap: "Swap two border pieces",
     reset: "Reset",
@@ -37,16 +37,16 @@ const T = {
     aLabel: "border → interior (A)",
     bLabel: "interior → border (B)",
     loading: "Loading the engine…",
-    note: "On the real 16×16 this is a genuine necessary condition: all four known 480-boards satisfy A = B exactly. As a solver check it prunes 10–28% of deep nodes — but ≥85% of a near-solution's mismatches are interior-to-interior, which this invariant never sees. Computed live from the engine's board.",
+    note: "On the real 16×16 this is a genuine necessary condition: all four known 480-boards satisfy A = B exactly. As a solver check it prunes 10–28% of deep nodes, but ≥85% of a near-solution's mismatches are interior-to-interior, which this invariant never sees. Computed live from the engine's board.",
   },
   fr: {
-    title: "Observez l'équilibre du bord — en direct",
+    title: "Observez l'équilibre du bord, en direct",
     intro:
-      "Un plateau résolu est équilibré : chaque couleur que le bord montre à l'intérieur est une couleur que l'intérieur lui renvoie (Δ = 0). Retirez une pièce de bord et l'équilibre se rompt — le déficit compte les arêtes d'interface désormais déséquilibrées. Essayez aussi le bouton d'échange : permuter deux pièces de bord laisse Δ à 0, car cela mélange les couleurs sans changer le multiset. Cet angle mort explique pourquoi NS-1 ne rejette que les mauvais plateaux, sans jamais confirmer les bons.",
+      "Un plateau résolu est équilibré : chaque couleur que le bord montre à l'intérieur est une couleur que l'intérieur lui renvoie (Δ = 0). Retirez une pièce de bord et l'équilibre se rompt : le déficit compte les arêtes d'interface désormais déséquilibrées. Essayez aussi le bouton d'échange : permuter deux pièces de bord laisse Δ à 0, car cela mélange les couleurs sans changer le multiset. Cet angle mort explique pourquoi NS-1 ne rejette que les mauvais plateaux, sans jamais confirmer les bons.",
     deficit: "déficit Δ",
-    balanced: "équilibré — une solution reste possible",
+    balanced: "équilibré : une solution reste possible",
     broken: (d: number) => `${d} arête${d === 1 ? "" : "s"} d'interface déséquilibrée${d === 1 ? "" : "s"}`,
-    swapInvisible: "l'échange a gardé Δ = 0 — NS-1 ne voit pas une permutation",
+    swapInvisible: "l'échange a gardé Δ = 0 ; NS-1 ne voit pas une permutation",
     lift: "Cliquez sur une case de bord pour en retirer la pièce.",
     swap: "Échanger deux pièces de bord",
     reset: "Réinitialiser",
@@ -54,16 +54,16 @@ const T = {
     aLabel: "bord → intérieur (A)",
     bLabel: "intérieur → bord (B)",
     loading: "Chargement du moteur…",
-    note: "Sur le vrai 16×16, c'est une vraie condition nécessaire : les quatre plateaux 480 connus vérifient A = B exactement. Comme test de solveur, cela élague 10 à 28 % des nœuds profonds — mais ≥85 % des erreurs d'une quasi-solution sont intérieur-à-intérieur, que cet invariant ne voit jamais. Calculé en direct depuis le plateau du moteur.",
+    note: "Sur le vrai 16×16, c'est une vraie condition nécessaire : les quatre plateaux 480 connus vérifient A = B exactement. Comme test de solveur, cela élague 10 à 28 % des nœuds profonds, mais ≥85 % des erreurs d'une quasi-solution sont intérieur-à-intérieur, que cet invariant ne voit jamais. Calculé en direct depuis le plateau du moteur.",
   },
   es: {
-    title: "Observa el equilibrio del borde — en directo",
+    title: "Observa el equilibrio del borde, en directo",
     intro:
-      "Un tablero resuelto está equilibrado: cada color que el borde muestra al interior es un color que el interior le devuelve (Δ = 0). Levanta una pieza de borde y el equilibrio se rompe — el déficit cuenta las aristas de interfaz que ahora no coinciden. Prueba también el botón de intercambio: intercambiar dos piezas de borde mantiene Δ en 0, porque baraja los colores sin alterar el multiconjunto. Ese punto ciego es justamente la razón por la que NS-1 solo rechaza tableros malos, sin confirmar nunca los buenos.",
+      "Un tablero resuelto está equilibrado: cada color que el borde muestra al interior es un color que el interior le devuelve (Δ = 0). Levanta una pieza de borde y el equilibrio se rompe: el déficit cuenta las aristas de interfaz que ahora no coinciden. Prueba también el botón de intercambio: intercambiar dos piezas de borde mantiene Δ en 0, porque baraja los colores sin alterar el multiconjunto. Ese punto ciego es justamente la razón por la que NS-1 solo rechaza tableros malos, sin confirmar nunca los buenos.",
     deficit: "déficit Δ",
-    balanced: "equilibrado — todavía es posible una solución",
+    balanced: "equilibrado: todavía es posible una solución",
     broken: (d: number) => `${d} arista${d === 1 ? "" : "s"} de interfaz desequilibrada${d === 1 ? "" : "s"}`,
-    swapInvisible: "el intercambio mantuvo Δ = 0 — NS-1 no ve una permutación",
+    swapInvisible: "el intercambio mantuvo Δ = 0; NS-1 no ve una permutación",
     lift: "Haz clic en una celda de borde para levantar su pieza.",
     swap: "Intercambiar dos piezas de borde",
     reset: "Reiniciar",
@@ -71,7 +71,7 @@ const T = {
     aLabel: "borde → interior (A)",
     bLabel: "interior → borde (B)",
     loading: "Cargando el motor…",
-    note: "En el 16×16 real es una verdadera condición necesaria: los cuatro tableros 480 conocidos cumplen A = B exactamente. Como comprobación del solucionador poda entre el 10 y el 28 % de los nodos profundos — pero ≥85 % de los errores de una casi-solución son de interior a interior, algo que este invariante nunca ve. Calculado en directo a partir del tablero del motor.",
+    note: "En el 16×16 real es una verdadera condición necesaria: los cuatro tableros 480 conocidos cumplen A = B exactamente. Como comprobación del solucionador poda entre el 10 y el 28 % de los nodos profundos, pero ≥85 % de los errores de una casi-solución son de interior a interior, algo que este invariante nunca ve. Calculado en directo a partir del tablero del motor.",
   },
 };
 

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 //     search frontier one cell per tick;
 //
 //  2. a live constraint-count curve: for every placement k, how many of the
-//     new cell's four orthogonal neighbours are already on the board — the
+//     new cell's four orthogonal neighbours are already on the board, the
 //     first-order quantity that makes orders good or bad. A second line
 //     accumulates the joins collected so far (every complete order collects
 //     exactly the same 480 joins; only the *schedule* differs), with row
@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 //
 // The highlighted band, placements 121–185, is the stretch Brendan Owen
 // identified as the only one that really matters for node counts (groups.io
-// msg 2714). Everything is exact and deterministic — no RNG, no solver; the
+// msg 2714). Everything is exact and deterministic: no RNG, no solver; the
 // only animation is the frontier sweep, gated on useRunWhileVisible with
 // O(1) work per tick.
 
@@ -29,14 +29,14 @@ const N = 16;
 const CELLS = N * N;
 const PEAK_LO = 121; // Owen's "sizes between 121-185" band, 1-based (msg 2714)
 const PEAK_HI = 185;
-const TOTAL_JOINS = 2 * N * (N - 1); // 480 — invariant across all orders
+const TOTAL_JOINS = 2 * N * (N - 1); // 480, invariant across all orders
 
 const PAUSE_TICKS = 40;
 const TICK_MS = 30;
 
 const idx = (x: number, y: number) => y * N + x;
 
-/** Bottom-up, left-to-right row scan — Verhaard's orientation (msg 6015). */
+/** Bottom-up, left-to-right row scan, Verhaard's orientation (msg 6015). */
 function rowScanOrder(): number[] {
   const o: number[] = [];
   for (let y = N - 1; y >= 0; y--) for (let x = 0; x < N; x++) o.push(idx(x, y));
@@ -122,75 +122,75 @@ function seqColor(t: number): string {
 
 const T = {
   en: {
-    title: "The fill-order lab — one path, one tree",
+    title: "The fill-order lab: one path, one tree",
     intro:
-      "Pick an order and watch two things at once: the visit sequence sweeping the board (blue first, red last), and how many already-placed neighbours each new cell meets. Every complete order collects exactly the same 480 joins — the only choice is when each join is paid, and early is what prunes.",
+      "Pick an order and watch two things at once: the visit sequence sweeping the board (blue first, red last), and how many already-placed neighbours each new cell meets. Every complete order collects exactly the same 480 joins. The only choice is when each join is paid, and early is what prunes.",
     presetRows: "Row scan",
     presetSpiral: "Spiral in",
     presetDiagonal: "Diagonal",
     presetComb: "Comb",
     teeth: "teeth length",
-    gridCaption: "visit sequence — colour is position in the order (blue → red)",
+    gridCaption: "visit sequence: colour is position in the order (blue → red)",
     chartTitle: "Already-placed neighbours of each new cell",
     axisJoins: "joins collected",
     legendCount: "neighbours at placement k (left axis, 0–4)",
     legendCum: "joins collected so far (right axis, of 480)",
     legendRef: "row scan reference (joins collected)",
-    legendBand: "placements 121–185 — the band that decides the node count (msg 2714)",
+    legendBand: "placements 121–185, the band that decides the node count (msg 2714)",
     weak: (n: number) => `weakly constrained placements (≤ 1 neighbour): ${n}`,
     avgBand: (v: string) => `mean neighbours across the 121–185 band: ${v}`,
     cumAt: (j: number, ref: number) =>
       `joins matched by placement 185: ${j} of 480 (row scan: ${ref})`,
     footnote:
-      "Exact computation, no randomness: the curve is a property of the order alone. It counts joins, not shapes — two orders with identical curves can still differ through the shape of their frontier, which is what the magic 10×16 square and complex theory score.",
+      "Exact computation, no randomness: the curve is a property of the order alone. It counts joins, not shapes. Two orders with identical curves can still differ through the shape of their frontier, which is what the magic 10×16 square and complex theory score.",
     fmt: (x: number) => x.toFixed(2),
   },
   fr: {
-    title: "Le labo des ordres de remplissage — un chemin, un arbre",
+    title: "Le labo des ordres de remplissage : un chemin, un arbre",
     intro:
-      "Choisissez un ordre et regardez deux choses à la fois : la séquence de visite qui balaie le plateau (bleu d'abord, rouge à la fin), et le nombre de voisins déjà posés que rencontre chaque nouvelle case. Tout ordre complet collecte exactement les mêmes 480 jointures — le seul choix est le moment où chacune est payée, et c'est tôt qu'elle élague.",
+      "Choisissez un ordre et regardez deux choses à la fois : la séquence de visite qui balaie le plateau (bleu d'abord, rouge à la fin), et le nombre de voisins déjà posés que rencontre chaque nouvelle case. Tout ordre complet collecte exactement les mêmes 480 jointures. Le seul choix est le moment où chacune est payée, et c'est tôt qu'elle élague.",
     presetRows: "Balayage par lignes",
     presetSpiral: "Spirale",
     presetDiagonal: "Diagonale",
     presetComb: "Peigne",
     teeth: "longueur des dents",
-    gridCaption: "séquence de visite — la couleur est la position dans l'ordre (bleu → rouge)",
+    gridCaption: "séquence de visite : la couleur est la position dans l'ordre (bleu → rouge)",
     chartTitle: "Voisins déjà posés de chaque nouvelle case",
     axisJoins: "jointures collectées",
     legendCount: "voisins au placement k (axe gauche, 0–4)",
     legendCum: "jointures collectées (axe droit, sur 480)",
     legendRef: "référence balayage par lignes (jointures collectées)",
-    legendBand: "placements 121–185 — la bande qui décide du nombre de nœuds (msg 2714)",
+    legendBand: "placements 121–185, la bande qui décide du nombre de nœuds (msg 2714)",
     weak: (n: number) => `placements faiblement contraints (≤ 1 voisin) : ${n}`,
     avgBand: (v: string) => `voisins moyens sur la bande 121–185 : ${v}`,
     cumAt: (j: number, ref: number) =>
       `jointures appariées au placement 185 : ${j} sur 480 (balayage par lignes : ${ref})`,
     footnote:
-      "Calcul exact, aucun aléa : la courbe est une propriété de l'ordre seul. Elle compte des jointures, pas des formes — deux ordres à courbes identiques peuvent encore différer par la forme de leur front, ce que notent le carré magique 10×16 et la théorie complexe.",
+      "Calcul exact, aucun aléa : la courbe est une propriété de l'ordre seul. Elle compte des jointures, pas des formes. Deux ordres à courbes identiques peuvent encore différer par la forme de leur front, ce que notent le carré magique 10×16 et la théorie complexe.",
     fmt: (x: number) => x.toFixed(2).replace(".", ","),
   },
   es: {
-    title: "El laboratorio de órdenes de relleno — un camino, un árbol",
+    title: "El laboratorio de órdenes de relleno: un camino, un árbol",
     intro:
-      "Elige un orden y observa dos cosas a la vez: la secuencia de visita que barre el tablero (azul primero, rojo al final) y cuántos vecinos ya colocados encuentra cada celda nueva. Todo orden completo reúne exactamente las mismas 480 uniones — la única elección es cuándo se paga cada una, y pagarlas pronto es lo que poda.",
+      "Elige un orden y observa dos cosas a la vez: la secuencia de visita que barre el tablero (azul primero, rojo al final) y cuántos vecinos ya colocados encuentra cada celda nueva. Todo orden completo reúne exactamente las mismas 480 uniones. La única elección es cuándo se paga cada una, y pagarlas pronto es lo que poda.",
     presetRows: "Recorrido por filas",
     presetSpiral: "En espiral",
     presetDiagonal: "Diagonal",
     presetComb: "Peine",
     teeth: "longitud de los dientes",
-    gridCaption: "secuencia de visita — el color indica la posición en el orden (azul → rojo)",
+    gridCaption: "secuencia de visita: el color indica la posición en el orden (azul → rojo)",
     chartTitle: "Vecinos ya colocados de cada celda nueva",
     axisJoins: "uniones reunidas",
     legendCount: "vecinos en la colocación k (eje izquierdo, 0–4)",
     legendCum: "uniones reunidas hasta ahora (eje derecho, de 480)",
     legendRef: "referencia del recorrido por filas (uniones reunidas)",
-    legendBand: "colocaciones 121–185 — la banda que decide el número de nodos (msg 2714)",
+    legendBand: "colocaciones 121–185, la banda que decide el número de nodos (msg 2714)",
     weak: (n: number) => `colocaciones débilmente restringidas (≤ 1 vecino): ${n}`,
     avgBand: (v: string) => `media de vecinos en la banda 121–185: ${v}`,
     cumAt: (j: number, ref: number) =>
       `uniones emparejadas en la colocación 185: ${j} de 480 (recorrido por filas: ${ref})`,
     footnote:
-      "Cálculo exacto, sin azar: la curva es una propiedad del orden en sí mismo. Cuenta uniones, no formas — dos órdenes con curvas idénticas aún pueden diferir por la forma de su frontera, que es lo que puntúan el cuadrado mágico de 10×16 y la teoría de la complejidad.",
+      "Cálculo exacto, sin azar: la curva es una propiedad del orden en sí mismo. Cuenta uniones, no formas. Dos órdenes con curvas idénticas aún pueden diferir por la forma de su frontera, que es lo que puntúan el cuadrado mágico de 10×16 y la teoría de la complejidad.",
     fmt: (x: number) => x.toFixed(2).replace(".", ","),
   },
 };

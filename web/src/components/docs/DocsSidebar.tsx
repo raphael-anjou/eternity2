@@ -1,4 +1,4 @@
-// The research sidebar — scoped to the ACTIVE section only (the subnav is how
+// The research sidebar, scoped to the ACTIVE section only (the subnav is how
 // a reader changes section, so this stays short and readable). On topic pages
 // it lists the topic categories with page counts instead. Desktop: sticky
 // left column. Mobile: a collapsible disclosure above the article.
@@ -40,7 +40,7 @@ function containsActive(item: NavItem, active: string): boolean {
 }
 
 /** A collapsible group of pages nested INSIDE an author hub (the engines, the
- *  runs, the analyses). The author hub itself stays a flat heading — this is
+ *  runs, the analyses). The author hub itself stays a flat heading; this is
  *  the level below it, where a long list needs folding. Open by default when it
  *  holds the active page; otherwise remembers whatever the reader last chose. */
 function SubHub({
@@ -116,7 +116,7 @@ function SideLink({
   item: NavItem;
   depth: number;
   active: string;
-  /** When true, render only this item — its children are placed elsewhere
+  /** When true, render only this item; its children are placed elsewhere
    *  (e.g. flattened into sidebar groups), so don't recurse. */
   flat?: boolean;
   /** When true, print the page's kind label beside the dot (sections that mix
@@ -126,7 +126,7 @@ function SideLink({
   const { lang } = useLang();
   const isActive = active === item.url;
   // A per-author hub (its own experiments nested beneath) renders as a
-  // first-class heading — bold, no bullet, a touch of top space — so the lab
+  // first-class heading (bold, no bullet, a touch of top space) so the lab
   // reads as "these people, each with their runs" rather than a uniform list.
   // Only at depth 0: nav lifts author hubs to the top of their section, so a
   // deeper page carrying the same `author` is a sub-hub INSIDE one, not an

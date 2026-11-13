@@ -20,7 +20,7 @@ import { RECORD_BOARDS } from "@/data/record-boards";
 // rule the engine uses (conflictEdges), and bin them by row. Community boards
 // (built border-first / bottom-up) pile their few mismatches in the TOP rows;
 // this project's from-scratch boards (built top-down) mirror them into the
-// BOTTOM rows. Nothing is hand-placed — the per-row counts and the highlighted
+// BOTTOM rows. Nothing is hand-placed: the per-row counts and the highlighted
 // band are derived from the board data every render.
 
 type BoardChoice = {
@@ -61,7 +61,7 @@ const T = {
     perfect: "every other row is perfect",
     busy: "Computing…",
     caption:
-      "The shaded band is where the mismatches actually fall, highlighted on the real board; the bars count them per row. Switch boards: the community's pile sits at the top, this project's at the bottom — the same puzzle, opposite scan directions.",
+      "The shaded band is where the mismatches actually fall, highlighted on the real board; the bars count them per row. Switch boards: the community's pile sits at the top, this project's at the bottom: the same puzzle, opposite scan directions.",
   },
   fr: {
     pick: "Plateau",
@@ -80,7 +80,7 @@ const T = {
     perfect: "toutes les autres rangées sont parfaites",
     busy: "Calcul…",
     caption:
-      "La bande ombrée est l'endroit où tombent réellement les défauts, surlignée sur le vrai plateau ; les barres les comptent par rangée. Changez de plateau : le tas de la communauté est en haut, celui de ce projet en bas — le même puzzle, des sens de balayage opposés.",
+      "La bande ombrée est l'endroit où tombent réellement les défauts, surlignée sur le vrai plateau ; les barres les comptent par rangée. Changez de plateau : le tas de la communauté est en haut, celui de ce projet en bas : le même puzzle, des sens de balayage opposés.",
   },
   es: {
     pick: "Tablero",
@@ -99,7 +99,7 @@ const T = {
     perfect: "todas las demás filas son perfectas",
     busy: "Calculando…",
     caption:
-      "La banda sombreada es donde caen realmente los desajustes, resaltada sobre el tablero real; las barras los cuentan por fila. Cambia de tablero: el montón de la comunidad se sitúa arriba y el de este proyecto abajo — el mismo puzzle, con sentidos de recorrido opuestos.",
+      "La banda sombreada es donde caen realmente los desajustes, resaltada sobre el tablero real; las barras los cuentan por fila. Cambia de tablero: el montón de la comunidad se sitúa arriba y el de este proyecto abajo: el mismo puzzle, con sentidos de recorrido opuestos.",
   },
 };
 
@@ -178,7 +178,7 @@ export function MismatchGeometryLab() {
             <span className="font-semibold tabular-nums">{t.total(total)}</span>
             {band && (
               <span className="text-muted-foreground">
-                {" — "}
+                {", "}
                 {t.band(band[0], band[1])}; {t.perfect}.
               </span>
             )}

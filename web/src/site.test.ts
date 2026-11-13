@@ -4,7 +4,7 @@ import { canonicalPath } from "./site";
 // canonicalPath decides the exact URL form every internal link and canonical
 // tag emits. GitHub Pages serves an extensionless path only at its trailing-
 // slash variant and 301-redirects the bare form, so the slash must land on the
-// path portion — never inside a ?query or #hash — and never on the root or a
+// path portion (never inside a ?query or #hash) and never on the root or a
 // file with an extension.
 describe("canonicalPath", () => {
   it("adds a trailing slash to an extensionless page path", () => {

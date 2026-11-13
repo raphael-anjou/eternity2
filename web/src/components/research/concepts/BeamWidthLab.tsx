@@ -6,12 +6,12 @@ import { Lab } from "@/components/research/Lab";
 
 // A synthetic search tree descended by a beam, to make three things visible:
 //
-//  1. the mechanics — every survivor spawns b children, all children are
+//  1. the mechanics: every survivor spawns b children, all children are
 //     pooled and scored, only the top K live on (nothing is ever revisited);
-//  2. diversity collapse — the dots' horizontal position encodes the path
+//  2. diversity collapse: the dots' horizontal position encodes the path
 //     prefix, so you can watch the beam huddle into one cluster while the
 //     "distinct prefixes" counter falls toward 1;
-//  3. greedy vs wide — K = 1 is drawn alongside as the rose trace; amber
+//  3. greedy vs wide: K = 1 is drawn alongside as the rose trace; amber
 //     "trap" nodes pay a big immediate score but poison their subtree (the
 //     synthetic stand-in for piece theft), which is exactly what greedy eats.
 //
@@ -115,7 +115,7 @@ const T = {
   en: {
     title: "Watch a beam descend",
     intro:
-      "A synthetic tree, branching 4, depth 14, deterministic scores. Every tick each survivor spawns its 4 children; the pooled children are sorted and only the top K survive. Horizontal position encodes the path prefix — watch the survivors huddle. Amber nodes are traps: a big score now, a poisoned subtree after (the synthetic stand-in for piece theft). The rose trace is K = 1, plain greedy.",
+      "A synthetic tree, branching 4, depth 14, deterministic scores. Every tick each survivor spawns its 4 children; the pooled children are sorted and only the top K survive. Horizontal position encodes the path prefix: watch the survivors huddle. Amber nodes are traps: a big score now, a poisoned subtree after (the synthetic stand-in for piece theft). The rose trace is K = 1, plain greedy.",
     width: "beam width K",
     depth: "depth",
     beamBest: "beam best",
@@ -126,13 +126,13 @@ const T = {
     scoreCurve: "best score by depth",
     diversityCurve: "distinct depth-3 prefixes among survivors",
     finalNote: (k: number, beam: string, greedy: string) =>
-      `Final: beam(${k}) = ${beam}, greedy = ${greedy}. Slide K — each doubling buys less.`,
+      `Final: beam(${k}) = ${beam}, greedy = ${greedy}. Slide K: each doubling buys less.`,
     loading: "Loading…",
   },
   fr: {
     title: "Regarder un faisceau descendre",
     intro:
-      "Un arbre synthétique : branchement 4, profondeur 14, scores déterministes. À chaque pas, chaque survivant engendre ses 4 enfants ; les enfants réunis sont triés et seuls les K meilleurs survivent. La position horizontale encode le préfixe du chemin — regardez les survivants se blottir. Les nœuds ambre sont des pièges : gros score immédiat, sous-arbre empoisonné ensuite (l'équivalent synthétique du vol de pièces). Le tracé rose est K = 1, le glouton pur.",
+      "Un arbre synthétique : branchement 4, profondeur 14, scores déterministes. À chaque pas, chaque survivant engendre ses 4 enfants ; les enfants réunis sont triés et seuls les K meilleurs survivent. La position horizontale encode le préfixe du chemin : regardez les survivants se blottir. Les nœuds ambre sont des pièges : gros score immédiat, sous-arbre empoisonné ensuite (l'équivalent synthétique du vol de pièces). Le tracé rose est K = 1, le glouton pur.",
     width: "largeur du faisceau K",
     depth: "profondeur",
     beamBest: "meilleur du faisceau",
@@ -143,7 +143,7 @@ const T = {
     scoreCurve: "meilleur score par profondeur",
     diversityCurve: "préfixes de profondeur 3 distincts parmi les survivants",
     finalNote: (k: number, beam: string, greedy: string) =>
-      `Bilan : faisceau(${k}) = ${beam}, glouton = ${greedy}. Faites glisser K — chaque doublement rapporte moins.`,
+      `Bilan : faisceau(${k}) = ${beam}, glouton = ${greedy}. Faites glisser K : chaque doublement rapporte moins.`,
     loading: "Chargement…",
   },
   es: {

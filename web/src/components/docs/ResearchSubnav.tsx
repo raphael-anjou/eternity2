@@ -1,6 +1,6 @@
 // The research section's own navigation bar, under the site header: the reading
 // MODES (Overview + the three door sections) + People + Glossary + search. The
-// nine solving PATHS are not repeated here — they live in the homepage tree and
+// nine solving PATHS are not repeated here; they live in the homepage tree and
 // in the persistent left rail ("The nine roads"), so a third navbar row would
 // only duplicate them. The left sidebar shows the ACTIVE section's tree; this
 // bar is how a reader changes territory. (There is no "All themes" tab: it

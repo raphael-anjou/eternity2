@@ -7,7 +7,7 @@ import type { Puzzle } from "@/lib/types";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 
-// The one term every research page leans on — "matched edges out of 480" — made
+// The one term every research page leans on ("matched edges out of 480"), made
 // concrete on a real, engine-generated board. We generate a genuinely solvable
 // 4x4 puzzle, lay its pieces in the solution (every interior edge matched), then
 // let the reader rotate a piece. Rotating breaks the edges around it; the live
@@ -23,25 +23,25 @@ const T = {
   en: {
     title: "First: what does \"matched edges\" mean?",
     intro:
-      "Every score on this site is a count of matched interior edges. Here is a real, solvable 4×4 puzzle laid out in its solution — every touching pair of colours agrees, so the score is the maximum. Click a piece to rotate it and watch matched edges break.",
+      "Every score on this site is a count of matched interior edges. Here is a real, solvable 4×4 puzzle laid out in its solution: every touching pair of colours agrees, so the score is the maximum. Click a piece to rotate it and watch matched edges break.",
     score: "matched edges",
     rotateHint: "Click any piece to rotate it 90°.",
     reset: "Reset to the solution",
-    perfect: "Perfect — every interior edge matches. This is what 480/480 would be on the full 16×16.",
+    perfect: "Perfect: every interior edge matches. This is what 480/480 would be on the full 16×16.",
     broken: (n: number) =>
-      `${n} ${n === 1 ? "edge is" : "edges are"} now mismatched (marked red). The score dropped by exactly that many. On the real puzzle the best anyone has reached is 470 — ten short of perfect.`,
+      `${n} ${n === 1 ? "edge is" : "edges are"} now mismatched (marked red). The score dropped by exactly that many. On the real puzzle the best anyone has reached is 470, ten short of perfect.`,
     loading: "Generating a solvable board…",
   },
   fr: {
     title: "D'abord : que veut dire « bords appariés » ?",
     intro:
-      "Chaque score de ce site est un décompte de bords intérieurs appariés. Voici un vrai puzzle 4×4 soluble, disposé dans sa solution — chaque paire de couleurs qui se touche concorde, donc le score est maximal. Cliquez sur une pièce pour la tourner et regardez des bords appariés se rompre.",
+      "Chaque score de ce site est un décompte de bords intérieurs appariés. Voici un vrai puzzle 4×4 soluble, disposé dans sa solution : chaque paire de couleurs qui se touche concorde, donc le score est maximal. Cliquez sur une pièce pour la tourner et regardez des bords appariés se rompre.",
     score: "bords appariés",
     rotateHint: "Cliquez une pièce pour la tourner de 90°.",
     reset: "Revenir à la solution",
-    perfect: "Parfait — chaque bord intérieur concorde. C'est ce que serait 480/480 sur le 16×16 complet.",
+    perfect: "Parfait : chaque bord intérieur concorde. C'est ce que serait 480/480 sur le 16×16 complet.",
     broken: (n: number) =>
-      `${n} bord${n === 1 ? "" : "s"} ${n === 1 ? "est" : "sont"} désormais non apparié${n === 1 ? "" : "s"} (marqué${n === 1 ? "" : "s"} en rouge). Le score a chuté d'exactement autant. Sur le vrai puzzle, le meilleur jamais atteint est 470 — dix de moins que la perfection.`,
+      `${n} bord${n === 1 ? "" : "s"} ${n === 1 ? "est" : "sont"} désormais non apparié${n === 1 ? "" : "s"} (marqué${n === 1 ? "" : "s"} en rouge). Le score a chuté d'exactement autant. Sur le vrai puzzle, le meilleur jamais atteint est 470, dix de moins que la perfection.`,
     loading: "Génération d'un plateau soluble…",
   },
   es: {
@@ -64,7 +64,7 @@ export function ScoringPrimer() {
   // Per-cell rotation offset added to the identity solution.
   const [rots, setRots] = useState<number[]>(() => new Array<number>(SIZE * SIZE).fill(0));
 
-  // The solved puzzle is a pure function of the engine being ready — derive it
+  // The solved puzzle is a pure function of the engine being ready; derive it
   // rather than holding it in state and setting it from an effect.
   const puzzle = useMemo<Puzzle | null>(
     () => (ready ? getGeneratedSolvedPuzzle(SIZE, COLORS, SEED) : null),

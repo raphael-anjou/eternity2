@@ -1,6 +1,6 @@
 // The reading shell for research wiki pages: breadcrumbs, title block with
 // kind/tier/score badges, the article itself (prose + MDX), a reproducibility
-// block, prev/next, and the related rail — flanked by the sidebar tree (left)
+// block, prev/next, and the related rail, flanked by the sidebar tree (left)
 // and the on-page TOC (right).
 
 import type { ReactNode } from "react";
@@ -37,14 +37,14 @@ const T = {
   en: {
     research: "Research",
     notTranslated:
-      "This page hasn't been translated to French yet — showing the English version.",
+      "This page hasn't been translated to French yet; showing the English version.",
     reproduce: "Reproduce this result",
     reproKind: {
-      exact: "deterministic — reproduces byte-for-byte",
-      seeded: "seeded — reproduces with the given seed",
-      stochastic: "stochastic — won't reproduce exactly; the board is verifiable",
-      heavy: "heavy compute — script and results are committed",
-      prose: "prose — no computation behind this page",
+      exact: "deterministic: reproduces byte-for-byte",
+      seeded: "seeded: reproduces with the given seed",
+      stochastic: "stochastic: won't reproduce exactly; the board is verifiable",
+      heavy: "heavy compute: script and results are committed",
+      prose: "prose: no computation behind this page",
     } satisfies Record<ReproKind, string>,
     computedFrom: "Code & data on GitHub",
     source: "Sources",
@@ -124,14 +124,14 @@ const T = {
   fr: {
     research: "Recherche",
     notTranslated:
-      "Cette page n'est pas encore traduite en français — version anglaise affichée.",
+      "Cette page n'est pas encore traduite en français ; version anglaise affichée.",
     reproduce: "Reproduire ce résultat",
     reproKind: {
-      exact: "déterministe — se reproduit à l'octet près",
-      seeded: "avec graine — se reproduit avec la graine donnée",
-      stochastic: "stochastique — ne se reproduit pas exactement ; le plateau est vérifiable",
-      heavy: "calcul lourd — script et résultats sont dans le dépôt",
-      prose: "prose — aucun calcul derrière cette page",
+      exact: "déterministe : se reproduit à l'octet près",
+      seeded: "avec graine : se reproduit avec la graine donnée",
+      stochastic: "stochastique : ne se reproduit pas exactement ; le plateau est vérifiable",
+      heavy: "calcul lourd : script et résultats sont dans le dépôt",
+      prose: "prose : aucun calcul derrière cette page",
     } satisfies Record<ReproKind, string>,
     computedFrom: "Code & données sur GitHub",
     source: "Sources",
@@ -209,14 +209,14 @@ const T = {
   es: {
     research: "Investigación",
     notTranslated:
-      "Esta página aún no se ha traducido al español — se muestra la versión en inglés.",
+      "Esta página aún no se ha traducido al español; se muestra la versión en inglés.",
     reproduce: "Reproducir este resultado",
     reproKind: {
-      exact: "determinista — se reproduce bit a bit",
-      seeded: "con semilla — se reproduce con la semilla indicada",
-      stochastic: "estocástico — no se reproduce exactamente; el tablero es verificable",
-      heavy: "cómputo intensivo — el script y los resultados están en el repositorio",
-      prose: "prosa — no hay ningún cálculo detrás de esta página",
+      exact: "determinista: se reproduce bit a bit",
+      seeded: "con semilla: se reproduce con la semilla indicada",
+      stochastic: "estocástico: no se reproduce exactamente; el tablero es verificable",
+      heavy: "cómputo intensivo: el script y los resultados están en el repositorio",
+      prose: "prosa: no hay ningún cálculo detrás de esta página",
     } satisfies Record<ReproKind, string>,
     computedFrom: "Código y datos en GitHub",
     source: "Fuentes",
@@ -435,7 +435,7 @@ function ComplexityBlock({ doc }: { doc: ResearchDoc }) {
   );
 }
 
-/** Author credit line — links to the researcher's auto-generated hub, and lists
+/** Author credit line, links to the researcher's auto-generated hub, and lists
  *  any secondary contributors beside them (e.g. "· method by …"). */
 function Byline({ doc }: { doc: ResearchDoc }) {
   const t = useT(T);
@@ -626,7 +626,7 @@ function ReproBlock({ doc }: { doc: ResearchDoc }) {
   );
 }
 
-/** The default hub card: kind tag on top, title, two-line clamped blurb —
+/** The default hub card: kind tag on top, title, two-line clamped blurb,
  *  compact so mixed-kind hubs tile two-up. */
 function HubCard({ item }: { item: NavItem }) {
   const { lang } = useLang();
@@ -669,7 +669,7 @@ function NegativeChip({ item }: { item: NavItem }) {
 }
 
 /** The author-hub card: no repeated kind tag (every child is the same kind),
- *  and the full subtitle unclamped — meant for a single column, so a
+ *  and the full subtitle unclamped, meant for a single column, so a
  *  researcher's experiments read like a list with room to breathe. */
 function AuthorHubCard({ item }: { item: NavItem }) {
   return (
@@ -834,7 +834,7 @@ export function DocsShell({
 }: {
   doc: ResearchDoc;
   children: ReactNode;
-  /** Override the left rail — "people" shows the alphabetical contributor list
+  /** Override the left rail, "people" shows the alphabetical contributor list
    *  (used by the /research/people gallery so it matches the person hubs). */
   sidebarVariant?: "people";
 }) {
@@ -903,7 +903,7 @@ export function DocsShell({
           </a>
           {/* Raw-markdown sibling, emitted at build time (404 on dev servers).
               Siblings are English-only (the wiki's canonical markdown), so every
-              language links the same neutral `/research/<slug>.md` — `doc.url` is
+              language links the same neutral `/research/<slug>.md`, `doc.url` is
               already language-neutral. The root hub (`/research`) is emitted as
               `/research/index.md`, not `/research.md`, so link that explicitly. */}
           <a

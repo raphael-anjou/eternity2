@@ -16,7 +16,7 @@ import type { RigorKind, ReproKind, OutcomeKind, ScoringConvention } from "@/lib
 //    frontmatter via the manifest, so the table never drifts from the pages it
 //    summarizes.
 //  - MANIFEST mode (the cross-researcher hub, `manifest` prop): rows are
-//    discovered from the manifest itself — every `kind: experiment` page that
+//    discovered from the manifest itself: every `kind: experiment` page that
 //    carries a `score`, grouped by author. There is no per-page family in
 //    frontmatter, so this mode drops the method column and adds a
 //    scoring-convention pill beside each score.
@@ -73,7 +73,7 @@ const REPRO_LABEL: Record<ReproKind, string> = {
   seeded: "seeded",
   stochastic: "stochastic",
   heavy: "heavy",
-  prose: "—",
+  prose: "–",
 };
 
 interface Row {
@@ -253,7 +253,7 @@ export function ExperimentResultsTable({
         </td>
         {!manifest && (
           <td className="px-3 py-2 text-muted-foreground">
-            {FAMILY_LABEL[r.family ?? ""] ?? r.family ?? "—"}
+            {FAMILY_LABEL[r.family ?? ""] ?? r.family ?? "–"}
           </td>
         )}
         <td className="px-3 py-2">
@@ -267,7 +267,7 @@ export function ExperimentResultsTable({
           )}
         </td>
         <td className="px-3 py-2 whitespace-nowrap text-muted-foreground tabular-nums">
-          {monthYear(r.date) || "—"}
+          {monthYear(r.date) || "–"}
         </td>
         <td className="px-3 py-2 whitespace-nowrap text-right tabular-nums">
           {r.coreHours != null ? (
@@ -278,7 +278,7 @@ export function ExperimentResultsTable({
               {formatCoreHours(r.coreHours)}
             </span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">–</span>
           )}
         </td>
         <td className="px-3 py-2">
@@ -288,7 +288,7 @@ export function ExperimentResultsTable({
             </span>
           )}
         </td>
-        <td className="px-3 py-2 text-muted-foreground">{r.repro ? REPRO_LABEL[r.repro] : "—"}</td>
+        <td className="px-3 py-2 text-muted-foreground">{r.repro ? REPRO_LABEL[r.repro] : "–"}</td>
       </tr>
     ));
 

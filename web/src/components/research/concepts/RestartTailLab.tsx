@@ -7,8 +7,8 @@ import { Lab } from "@/components/research/Lab";
 // A runtime-distribution simulator for restart policies:
 //
 //  1. draw many DFS "runs" from a deterministic, seeded heavy-tailed mixture
-//     (a lognormal body of lucky openings + an exponential-in-log — i.e.
-//     Pareto-like — tail of trapped runs, calibrated so the spread echoes the
+//     (a lognormal body of lucky openings + an exponential-in-log (i.e.
+//     Pareto-like) tail of trapped runs, calibrated so the spread echoes the
 //     2007 Txibilis measurement: median in the millions of nodes, worst runs
 //     in the tens of billions);
 //  2. fill a log-x histogram run by run, so the reader watches the median
@@ -43,14 +43,14 @@ function clamp(x: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, x));
 }
 
-/** Node counts (log10) for all runs — seeded, computed once. */
+/** Node counts (log10) for all runs, seeded, computed once. */
 function drawRuns(): number[] {
   const rnd = mulberry32(0xe2707);
   const runs: number[] = [];
   for (let i = 0; i < N_RUNS; i++) {
     let lg: number;
     if (rnd() < 0.72) {
-      // Body: a lucky opening — lognormal around ~2M nodes. The left side is
+      // Body: a lucky opening, lognormal around ~2M nodes. The left side is
       // steeper (0.28 vs 0.45): real solvers have a floor of unavoidable work,
       // so ultra-fast runs thin out quickly. This keeps the fastest of the 400
       // runs above the slider minimum, making the "cutoff below every run →
@@ -60,7 +60,7 @@ function drawRuns(): number[] {
       const g = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
       lg = 6.3 + (g < 0 ? 0.28 : 0.45) * g;
     } else {
-      // Tail: a trapped run — exponential in log10(T), i.e. Pareto in T.
+      // Tail: a trapped run, exponential in log10(T), i.e. Pareto in T.
       lg = 6.6 + 1.15 * -Math.log(Math.max(rnd(), 1e-12));
     }
     runs.push(clamp(lg, LOG_MIN + 0.05, LOG_MAX - 0.05));
@@ -143,7 +143,7 @@ const T = {
   en: {
     title: "The tail, and the knife",
     intro:
-      "400 runs of the same solver on the same puzzle class, drawn from a seeded heavy-tailed mixture (deterministic — replay gives the same story). The x axis is total nodes, logarithmic. Sky runs finish under the restart cutoff; amber runs would blow past it and are cut off at the dashed line, then retried with fresh randomness. Watch the median settle within seconds while the mean keeps lurching right — every landing tail run drags it.",
+      "400 runs of the same solver on the same puzzle class, drawn from a seeded heavy-tailed mixture (deterministic: replay gives the same story). The x axis is total nodes, logarithmic. Sky runs finish under the restart cutoff; amber runs would blow past it and are cut off at the dashed line, then retried with fresh randomness. Watch the median settle within seconds while the mean keeps lurching right: every landing tail run drags it.",
     cutoff: "restart cutoff",
     nodes: "nodes",
     runs: "runs",
@@ -156,8 +156,8 @@ const T = {
     p99: "P99",
     metric: "work to first solution",
     successShare: (pct: string, attempts: string) =>
-      `${pct} of runs finish under the cutoff — about ${attempts} attempt(s) expected per success.`,
-    noSuccess: "No run finishes under this cutoff: the policy never succeeds — expected time is infinite.",
+      `${pct} of runs finish under the cutoff, about ${attempts} attempt(s) expected per success.`,
+    noSuccess: "No run finishes under this cutoff: the policy never succeeds; expected time is infinite.",
     speedup: (x: string) => `Expected speedup from restarting: ×${x}.`,
     slowdown: (x: string) => `This cutoff is too greedy: restarting is ×${x} slower than just running on.`,
     meanMarker: "mean",
@@ -168,7 +168,7 @@ const T = {
   fr: {
     title: "La queue, et le couteau",
     intro:
-      "400 exécutions du même solveur sur la même classe de puzzle, tirées d'un mélange à queue lourde avec graine fixe (déterministe — rejouer raconte la même histoire). L'axe des x compte les nœuds, en échelle log. Les exécutions bleues finissent sous le seuil de redémarrage ; les ambre le dépasseraient : on les coupe à la ligne pointillée et on retente avec un aléa frais. Regardez la médiane se stabiliser en quelques secondes pendant que la moyenne continue de bondir vers la droite — chaque exécution de la queue la traîne.",
+      "400 exécutions du même solveur sur la même classe de puzzle, tirées d'un mélange à queue lourde avec graine fixe (déterministe : rejouer raconte la même histoire). L'axe des x compte les nœuds, en échelle log. Les exécutions bleues finissent sous le seuil de redémarrage ; les ambre le dépasseraient : on les coupe à la ligne pointillée et on retente avec un aléa frais. Regardez la médiane se stabiliser en quelques secondes pendant que la moyenne continue de bondir vers la droite : chaque exécution de la queue la traîne.",
     cutoff: "seuil de redémarrage",
     nodes: "nœuds",
     runs: "exécutions",
@@ -181,8 +181,8 @@ const T = {
     p99: "P99",
     metric: "travail jusqu'à la première solution",
     successShare: (pct: string, attempts: string) =>
-      `${pct} des exécutions finissent sous le seuil — environ ${attempts} tentative(s) par succès en espérance.`,
-    noSuccess: "Aucune exécution ne finit sous ce seuil : la politique ne réussit jamais — temps espéré infini.",
+      `${pct} des exécutions finissent sous le seuil, environ ${attempts} tentative(s) par succès en espérance.`,
+    noSuccess: "Aucune exécution ne finit sous ce seuil : la politique ne réussit jamais ; temps espéré infini.",
     speedup: (x: string) => `Accélération espérée grâce aux redémarrages : ×${x}.`,
     slowdown: (x: string) => `Seuil trop gourmand : redémarrer est ×${x} plus lent que laisser courir.`,
     meanMarker: "moyenne",
@@ -193,7 +193,7 @@ const T = {
   es: {
     title: "La cola, y el cuchillo",
     intro:
-      "400 ejecuciones del mismo solucionador sobre la misma clase de puzzle, extraídas de una mezcla de cola pesada con semilla fija (determinista — repetirla cuenta la misma historia). El eje x mide los nodos, en escala logarítmica. Las ejecuciones azules terminan por debajo del umbral de reinicio; las ámbar lo superarían: se cortan en la línea punteada y se reintentan con un azar nuevo. Observa cómo la mediana se estabiliza en segundos mientras la media sigue saltando hacia la derecha — cada ejecución de la cola tira de ella.",
+      "400 ejecuciones del mismo solucionador sobre la misma clase de puzzle, extraídas de una mezcla de cola pesada con semilla fija (determinista: repetirla cuenta la misma historia). El eje x mide los nodos, en escala logarítmica. Las ejecuciones azules terminan por debajo del umbral de reinicio; las ámbar lo superarían: se cortan en la línea punteada y se reintentan con un azar nuevo. Observa cómo la mediana se estabiliza en segundos mientras la media sigue saltando hacia la derecha: cada ejecución de la cola tira de ella.",
     cutoff: "umbral de reinicio",
     nodes: "nodos",
     runs: "ejecuciones",
@@ -206,8 +206,8 @@ const T = {
     p99: "P99",
     metric: "trabajo hasta la primera solución",
     successShare: (pct: string, attempts: string) =>
-      `${pct} de las ejecuciones terminan por debajo del umbral — alrededor de ${attempts} intento(s) esperados por éxito.`,
-    noSuccess: "Ninguna ejecución termina por debajo de este umbral: la política nunca tiene éxito — el tiempo esperado es infinito.",
+      `${pct} de las ejecuciones terminan por debajo del umbral, alrededor de ${attempts} intento(s) esperados por éxito.`,
+    noSuccess: "Ninguna ejecución termina por debajo de este umbral: la política nunca tiene éxito; el tiempo esperado es infinito.",
     speedup: (x: string) => `Aceleración esperada al reiniciar: ×${x}.`,
     slowdown: (x: string) => `Este umbral es demasiado agresivo: reiniciar es ×${x} más lento que dejar correr la ejecución.`,
     meanMarker: "media",
@@ -390,10 +390,10 @@ export function RestartTailLab() {
               <td className="py-1.5 text-left text-muted-foreground">{t.colOne}</td>
               {cells.map((c) => (
                 <td key={c.label} className="py-1.5 font-semibold tabular-nums">
-                  {raw ? fmtNodes(c.one, t.suffixes) : "—"}
+                  {raw ? fmtNodes(c.one, t.suffixes) : "–"}
                 </td>
               ))}
-              {cells.length === 0 && <td className="py-1.5" colSpan={3}>—</td>}
+              {cells.length === 0 && <td className="py-1.5" colSpan={3}>–</td>}
             </tr>
             <tr className="border-t">
               <td className="py-1.5 text-left text-muted-foreground">{t.colRestart}</td>
@@ -407,10 +407,10 @@ export function RestartTailLab() {
                       : "text-rose-500",
                   )}
                 >
-                  {restarted ? fmtNodes(c.restart, t.suffixes) : "—"}
+                  {restarted ? fmtNodes(c.restart, t.suffixes) : "–"}
                 </td>
               ))}
-              {cells.length === 0 && <td className="py-1.5" colSpan={3}>—</td>}
+              {cells.length === 0 && <td className="py-1.5" colSpan={3}>–</td>}
             </tr>
           </tbody>
         </table>

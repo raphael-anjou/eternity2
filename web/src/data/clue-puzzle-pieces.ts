@@ -6,7 +6,7 @@
 // research/topics/clue-puzzle-pieces for provenance and the reproducible solve.
 import type { Edges } from "@/lib/bucas";
 
-// 36, 6x6 — from Le Bail's 2007 SHORTER solver.
+// 36, 6x6, from Le Bail's 2007 SHORTER solver.
 export const CLUE1_PIECES: Edges[] = [
   [1, 2, 0, 0],
   [0, 1, 1, 0],
@@ -46,7 +46,7 @@ export const CLUE1_PIECES: Edges[] = [
   [5, 4, 5, 7],
 ];
 
-// 72, 12x6 — from Le Bail's 2007 SHORTER solver.
+// 72, 12x6, from Le Bail's 2007 SHORTER solver.
 export const CLUE2_PIECES: Edges[] = [
   [0, 0, 1, 2],
   [0, 0, 2, 2],
@@ -122,7 +122,7 @@ export const CLUE2_PIECES: Edges[] = [
   [5, 7, 6, 8],
 ];
 
-// 36, 6x6 — from jwortmann's Eternity2Puzzles.jl.
+// 36, 6x6, from jwortmann's Eternity2Puzzles.jl.
 export const CLUE3_PIECES: Edges[] = [
   [1, 2, 0, 3],
   [0, 0, 4, 4],
@@ -162,7 +162,7 @@ export const CLUE3_PIECES: Edges[] = [
   [1, 1, 7, 1],
 ];
 
-// 72, 12x6 — from jwortmann's Eternity2Puzzles.jl.
+// 72, 12x6, from jwortmann's Eternity2Puzzles.jl.
 export const CLUE4_PIECES: Edges[] = [
   [1, 2, 3, 4],
   [1, 3, 2, 3],

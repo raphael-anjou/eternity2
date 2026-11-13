@@ -5,7 +5,7 @@
 //
 // The site's URLs were reshuffled heavily during the July 2026 rebuild, but the
 // site had no external inbound links then, so those transient reorg URLs need no
-// redirect — they're gone. The only entries kept are the two whose OLD path
+// redirect; they're gone. The only entries kept are the two whose OLD path
 // still names a page a reader might reach for: the retired "topics index" and
 // its records theme, both of which now fold into an existing page.
 export const RESEARCH_REDIRECTS: Record<string, string> = {

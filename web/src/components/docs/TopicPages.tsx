@@ -1,6 +1,6 @@
 // Auto-generated topic pages: /research/topics (the category index) and
 // /research/topics/<slug> (one hub per category, listing every page tagged
-// with it, grouped by section). No content file exists for these — they are
+// with it, grouped by section). No content file exists for these; they are
 // entirely derived from the registry + manifests.
 
 import { useLang, useT, pick } from "@/i18n";
@@ -29,7 +29,7 @@ const T = {
       "The research, sliced by theme instead of by section: pick the wall you care about and everything the wiki knows about it is in one place.",
     pages: (n: number) => (n === 1 ? "1 page" : `${n} pages`),
     empty:
-      "Nothing published under this theme yet — the community history exists and the write-ups are on their way.",
+      "Nothing published under this theme yet. The community history exists and the write-ups are on their way.",
     neighbours: "Neighbouring roads",
     allRoads: "All nine roads",
   },
@@ -40,7 +40,7 @@ const T = {
       "La recherche découpée par thème plutôt que par section : choisissez le mur qui vous intéresse, tout ce que le wiki en sait se trouve au même endroit.",
     pages: (n: number) => (n === 1 ? "1 page" : `${n} pages`),
     empty:
-      "Rien de publié sur ce thème pour l'instant — l'historique communautaire existe, la rédaction arrive.",
+      "Rien de publié sur ce thème pour l'instant. L'historique communautaire existe, la rédaction arrive.",
     neighbours: "Voies voisines",
     allRoads: "Les neuf voies",
   },
@@ -51,7 +51,7 @@ const T = {
       "La investigación organizada por tema en lugar de por sección: elige el muro que te interese y todo lo que la wiki sabe sobre él estará en un mismo lugar.",
     pages: (n: number) => (n === 1 ? "1 página" : `${n} páginas`),
     empty:
-      "Aún no hay nada publicado sobre este tema — la historia de la comunidad existe y los artículos están en camino.",
+      "Aún no hay nada publicado sobre este tema. La historia de la comunidad existe y los artículos están en camino.",
     neighbours: "Vías vecinas",
     allRoads: "Las nueve vías",
   },

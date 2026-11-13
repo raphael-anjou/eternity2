@@ -24,8 +24,8 @@ export function absoluteUrl(pathname: string): string {
 /** Add the canonical trailing slash to an in-app path, matching the exact form
  *  the host serves at 200. GitHub Pages serves an extensionless path only at its
  *  trailing-slash variant and 301-redirects the bare form (/research →
- *  /research/), so any URL without the slash — a canonical/sitemap/og:url, or an
- *  internal <a href> a crawler follows — points at a redirect, which wastes crawl
+ *  /research/), so any URL without the slash (a canonical/sitemap/og:url, or an
+ *  internal <a href> a crawler follows) points at a redirect, which wastes crawl
  *  budget and lands the source in Search Console's "Page with redirect" bucket.
  *
  *  A `?query` or `#hash` suffix is preserved: only the path portion is slashed,

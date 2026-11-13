@@ -6,7 +6,7 @@ import { researchDocs, researchAuthors } from "@/lib/research/manifest";
 // hand-listed: any researcher who has an experiment page under
 // lab/experiments/<slug>/ gets a tile linking to their section, followed by the
 // standing "your section here" invite. Adding an author is then adding their
-// pages (with `author:` frontmatter) and a registry entry — no edit here.
+// pages (with `author:` frontmatter) and a registry entry; no edit here.
 //
 // "Has an experiment page" = a doc of kind `experiment` under the author's own
 // /research/lab/experiments/<slug>/ folder. That excludes the gallery hubs
@@ -73,7 +73,7 @@ export function ExperimentAuthors() {
       count,
     });
   }
-  // Most experiments first, then alphabetical — a stable, sensible order.
+  // Most experiments first, then alphabetical: a stable, sensible order.
   tiles.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
   return (

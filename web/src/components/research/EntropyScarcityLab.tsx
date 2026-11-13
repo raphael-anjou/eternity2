@@ -3,18 +3,19 @@ import { useT } from "@/i18n";
 import { cn } from "@/lib/utils";
 import data from "@/data/entropy-area-law.json";
 
-// The area law, made tangible. For each block size n, two exact counts on the
+// The use-once rule, made tangible. For each block size n, two exact counts on the
 // real E2 interior pieces: how many colour-valid n×n blocks exist if pieces may
 // repeat (Variant A, the matching grammar) versus if each piece is used once
 // (Variant B, true E2). Their ratio B/A is the scarcity penalty: it starts at 1
 // and drops as the block grows, because every added cell is another chance to
-// need a piece already spent. That decline, compounding over the AREA of a
-// patch, is the wall. Numbers are exact and computed in-repo by
+// need a piece already spent. The counts shown are exact and computed in-repo by
 // research/topics/entropy-area-law/compute: A(n) by a dense broken-profile
 // transfer DP, B(n) by a parallel distinct-counting DFS, for A(1..4) and
 // B(1..3). B(2)=4,059,952 cross-checks the in-repo subgrid-placement-counts
 // reference table. At n=4 the reusable count A(4) is about 6.3e16, past exact
-// distinct enumeration in reasonable time, so B(4) is left blank. This is not a
+// distinct enumeration in reasonable time, so B(4) is left blank; the notes
+// quote the sampled fractions beyond 3x3 (sampledDistinctFraction in the data
+// file). This is not a
 // toy simulation: a small generated board would not reproduce E2's real
 // scarcity, so we show the real exact counts instead.
 
@@ -39,8 +40,8 @@ const T = {
     densityLabel: "freedom per cell (entropy density)",
     densityHint:
       "Even with reusable pieces, each added cell adds less freedom than the last; the grammar alone tightens as blocks grow.",
-    n3note: "At 4×4 the distinct count is past exact enumeration in reasonable time (the reusable count A(4) is already about 6.3×10¹⁶); the reusable count is still computed exactly in-repo, as are every 1×1, 2×2 and 3×3 count.",
-    note: "The distinct-realizable fraction collapses with the AREA of the patch, not its perimeter, and area grows as n². The in-repo fit over blocks up to 3×3 gives an area-law exponent near 0.044; extrapolating, the fraction drops below one in a thousand near 155 cells, the scale of the smallest moves between the best known boards. The hardness isn't in matching colours (that grammar stays rich); it's in the quiet once-each rule, whose cost compounds over area.",
+    n3note: "At 4×4 the distinct count is past exact enumeration in reasonable time (the reusable count A(4) is already about 6.3×10¹⁶); random sampling puts the share that survives near 33%. The reusable count is still computed exactly in-repo, as are every 1×1, 2×2 and 3×3 count.",
+    note: "The share of colour-valid patches that use distinct pieces falls fast as patches grow. Past 3×3 it is sampled, not counted: for patches four cells wide, about 33% at 16 cells, 11% at 24, 2.4% at 32 and 0.04% at 48, below one in a thousand near 44 cells. Over that range it falls faster than any fixed area law. Matching colours alone leaves plenty of valid patches; the use-once rule is what removes most of them.",
   },
   fr: {
     title: "Voir la rareté mordre, bloc par bloc",
@@ -53,8 +54,8 @@ const T = {
     densityLabel: "liberté par cellule (densité d'entropie)",
     densityHint:
       "Même avec des pièces répétables, chaque cellule ajoutée apporte moins de liberté que la précédente ; la grammaire seule se resserre quand les blocs grandissent.",
-    n3note: "En 4×4, le compte distinct dépasse l'énumération exacte en temps raisonnable (le compte réutilisable A(4) atteint déjà environ 6,3×10¹⁶) ; le compte réutilisable reste calculé exactement dans le dépôt, tout comme chaque compte 1×1, 2×2 et 3×3.",
-    note: "La fraction réalisable distincte s'effondre avec l'AIRE du patch, pas son périmètre, et l'aire croît en n². L'ajustement dans le dépôt sur les blocs jusqu'à 3×3 donne un exposant de loi d'aire proche de 0,044 ; par extrapolation, la fraction tombe sous un sur mille vers 155 cellules, la taille des plus petits mouvements entre les meilleurs plateaux connus. La difficulté n'est pas dans l'accord des couleurs (cette grammaire reste riche) ; elle est dans la règle discrète « une fois chacune », dont le coût se compose sur l'aire.",
+    n3note: "En 4×4, le compte distinct dépasse l'énumération exacte en temps raisonnable (le compte réutilisable A(4) atteint déjà environ 6,3×10¹⁶) ; un tirage aléatoire situe la part qui survit vers 33 %. Le compte réutilisable reste calculé exactement dans le dépôt, tout comme chaque compte 1×1, 2×2 et 3×3.",
+    note: "La part des patchs valides en couleurs qui utilisent des pièces distinctes chute vite quand le patch grandit. Au-delà de 3×3, elle est estimée par tirage et non comptée : pour des patchs larges de quatre cellules, environ 33 % à 16 cellules, 11 % à 24, 2,4 % à 32 et 0,04 % à 48, sous un sur mille vers 44 cellules. Sur cette plage, la chute est plus rapide que toute loi d'aire à exposant fixe. L'accord des couleurs laisse à lui seul quantité de patchs valides ; c'est la règle « une fois chacune » qui en élimine la plupart.",
   },
   es: {
     title: "Observa cómo muerde la escasez, bloque a bloque",
@@ -67,8 +68,8 @@ const T = {
     densityLabel: "libertad por celda (densidad de entropía)",
     densityHint:
       "Incluso con piezas repetibles, cada celda añadida aporta menos libertad que la anterior; la gramática por sí sola se estrecha a medida que crecen los bloques.",
-    n3note: "En 4×4 el recuento de piezas distintas queda más allá de la enumeración exacta en un tiempo razonable (el recuento reutilizable A(4) ya ronda 6,3×10¹⁶); el recuento reutilizable se sigue calculando de forma exacta en el repositorio, igual que cada recuento 1×1, 2×2 y 3×3.",
-    note: "La fracción realizable con piezas distintas se desploma con el ÁREA del parche, no con su perímetro, y el área crece como n². El ajuste en el repositorio sobre bloques hasta 3×3 da un exponente de ley de área cercano a 0,044; por extrapolación, la fracción cae por debajo de uno entre mil hacia las 155 celdas, el tamaño de los movimientos más pequeños entre los mejores tableros conocidos. La dificultad no está en encajar los colores (esa gramática sigue siendo rica); está en la discreta regla de usar cada pieza una vez, cuyo coste se acumula sobre el área.",
+    n3note: "En 4×4 el recuento de piezas distintas queda más allá de la enumeración exacta en un tiempo razonable (el recuento reutilizable A(4) ya ronda 6,3×10¹⁶); un muestreo aleatorio sitúa la parte que sobrevive en torno al 33 %. El recuento reutilizable se sigue calculando de forma exacta en el repositorio, igual que cada recuento 1×1, 2×2 y 3×3.",
+    note: "La parte de los parches válidos en color que usan piezas distintas cae deprisa a medida que el parche crece. Más allá de 3×3 se estima por muestreo, no se cuenta: para parches de cuatro celdas de ancho, cerca del 33 % a 16 celdas, el 11 % a 24, el 2,4 % a 32 y el 0,04 % a 48, por debajo de uno entre mil hacia las 44 celdas. En ese rango cae más deprisa que cualquier ley de área con exponente fijo. Encajar los colores deja por sí solo muchísimos parches válidos; es la regla de usar cada pieza una vez la que elimina la mayoría.",
   },
 };
 

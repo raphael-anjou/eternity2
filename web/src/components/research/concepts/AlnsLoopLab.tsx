@@ -48,14 +48,14 @@ const T = {
     uses: (n: number) => `${n}×`,
     trace: "Score trace",
     phase: {
-      idle: "paused — press Play or pick an operator",
+      idle: "paused: press Play or pick an operator",
       destroy: "destroy: lifting cells",
       repair: "repair: greedy refill, most-constrained cell first",
       decide: "accept or reject…",
     },
     accepted: (d: number) => (d > 0 ? `accepted (+${d})` : "accepted (sideways move)"),
-    rejected: (d: number) => `rejected (${d}) — board reverted`,
-    newBest: " — new best!",
+    rejected: (d: number) => `rejected (${d}), board reverted`,
+    newBest: ", new best!",
     loading: "Loading the engine…",
     note: "Everything here is the real mechanism at toy scale: the greedy repair maximizes matched seams among the lifted pieces, acceptance is the simulated-annealing rule, and each operator's weight is an exponentially decayed average of its recent rewards. The full-size engine runs the same loop with a curated portfolio of five operators on a 16×16 board.",
   },
@@ -76,14 +76,14 @@ const T = {
     uses: (n: number) => `${n}×`,
     trace: "Trace du score",
     phase: {
-      idle: "en pause — Lecture, ou choisissez un opérateur",
+      idle: "en pause : Lecture, ou choisissez un opérateur",
       destroy: "destruction : levée des cases",
       repair: "réparation : remplissage glouton, case la plus contrainte d'abord",
       decide: "accepter ou rejeter…",
     },
     accepted: (d: number) => (d > 0 ? `accepté (+${d})` : "accepté (mouvement latéral)"),
-    rejected: (d: number) => `rejeté (${d}) — plateau restauré`,
-    newBest: " — nouveau record !",
+    rejected: (d: number) => `rejeté (${d}), plateau restauré`,
+    newBest: ", nouveau record !",
     loading: "Chargement du moteur…",
     note: "Tout ici est le vrai mécanisme, à échelle jouet : la réparation gloutonne maximise les coutures accordées parmi les pièces levées, l'acceptation suit la règle du recuit simulé, et le poids de chaque opérateur est une moyenne à décroissance exponentielle de ses récompenses récentes. Le moteur grandeur nature fait tourner la même boucle avec un portefeuille trié de cinq opérateurs sur un 16×16.",
   },
@@ -104,14 +104,14 @@ const T = {
     uses: (n: number) => `${n}×`,
     trace: "Traza de la puntuación",
     phase: {
-      idle: "en pausa — pulsa Reproducir o elige un operador",
+      idle: "en pausa: pulsa Reproducir o elige un operador",
       destroy: "destrucción: levantando celdas",
       repair: "reparación: relleno voraz, primero la celda más restringida",
       decide: "aceptar o rechazar…",
     },
     accepted: (d: number) => (d > 0 ? `aceptado (+${d})` : "aceptado (movimiento lateral)"),
-    rejected: (d: number) => `rechazado (${d}) — tablero restaurado`,
-    newBest: " — ¡nuevo récord!",
+    rejected: (d: number) => `rechazado (${d}), tablero restaurado`,
+    newBest: ", ¡nuevo récord!",
     loading: "Cargando el motor…",
     note: "Todo lo que ves es el mecanismo real, a escala de juguete: la reparación voraz maximiza las aristas coincidentes entre las piezas levantadas, la aceptación sigue la regla del recocido simulado, y el peso de cada operador es una media con decaimiento exponencial de sus recompensas recientes. El motor a tamaño real ejecuta el mismo ciclo con una cartera seleccionada de cinco operadores sobre un tablero 16×16.",
   },
@@ -286,7 +286,7 @@ function freshMachine(puzzle: Puzzle): Machine {
 /** Greedy refill of one hole: most-constrained cell, best-fitting placement. */
 function repairOne(puzzle: Puzzle, m: Machine): void {
   if (m.holes.length === 0) return;
-  // Most placed neighbours first — the classic most-constrained ordering.
+  // Most placed neighbours first: the classic most-constrained ordering.
   let bestHole = 0;
   let bestNeigh = -1;
   for (let h = 0; h < m.holes.length; h++) {
@@ -394,7 +394,7 @@ export function AlnsLoopLab() {
 
   // The animation loop: one small state-machine step per tick, gated on
   // visibility so a hidden tab or scrolled-away section costs nothing. Each
-  // step touches at most 10 cells × ~40 candidates — far under the 8ms budget.
+  // step touches at most 10 cells × ~40 candidates, far under the 8ms budget.
   useEffect(() => {
     if (!visible || !puzzle) return;
     const pz = puzzle;

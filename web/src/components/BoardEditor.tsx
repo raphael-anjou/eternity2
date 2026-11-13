@@ -79,9 +79,9 @@ export function BoardEditor({
 
   // The faults over the whole board, and per-cell, computed from the committed
   // cells (already-parsed Edges). An edge that fails to parse never reaches
-  // `cells` — the field-level editor below keeps the raw text and blocks the
-  // commit — so a fault here means an out-of-range value that slipped in via a
-  // pasted board (which decodeBucas would have dropped) — defensively surfaced.
+  // `cells` (the field-level editor below keeps the raw text and blocks the
+  // commit), so a fault here means an out-of-range value that slipped in via a
+  // pasted board (which decodeBucas would have dropped), defensively surfaced.
   const faults = useMemo<CellFault[]>(() => {
     const out: CellFault[] = [];
     cells.forEach((cell, pos) => {

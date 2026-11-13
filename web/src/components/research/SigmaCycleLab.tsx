@@ -17,7 +17,7 @@ import { driveSolver, yieldToBrowser } from "@/lib/useRunWhileVisible";
 // and slide it from "not applied" to "fully applied"; every intermediate board is
 // scored by the real engine. The finding the research reports shows up live: a
 // fully-applied cycle lands on the other perfect board, but every partial step
-// scores worse — there is no improving way to walk from one solution to the other.
+// scores worse: there is no improving way to walk from one solution to the other.
 
 interface Solved {
   puzzle: Puzzle;
@@ -83,9 +83,9 @@ async function findTwoSolutions(
 
 const T = {
   en: {
-    title: "Hop between two real solutions — and watch the score collapse",
+    title: "Hop between two real solutions, and watch the score collapse",
     intro:
-      "This puzzle has two genuine perfect solutions, both found by the engine. The pieces that differ form loops (cycles). Apply one loop on its own and the score drops — it breaks where it meets the rest of the board. Only applying every loop together (the full hop) reaches the other perfect solution. There is no improving path between them; that is the wall.",
+      "This puzzle has two genuine perfect solutions, both found by the engine. The pieces that differ form loops (cycles). Apply one loop on its own and the score drops: it breaks where it meets the rest of the board. Only applying every loop together (the full hop) reaches the other perfect solution. There is no improving path between them; that is the wall.",
     newPuzzle: "New puzzle",
     loading: "Finding two solutions with the engine…",
     cycleLabel: "Loop to apply",
@@ -98,16 +98,16 @@ const T = {
     boardA: "Solution A",
     working: "Working board",
     drop: "score vs. a perfect board",
-    note: "Two solutions, the permutation between them, its cycles, and every score here are computed live by the WebAssembly engine on a freshly generated puzzle — nothing precomputed. On the full 16×16 the analogous cycle spans up to 195 cells, and the same all-or-nothing property holds across all 246 bundled board pairs (54,238 partial applications, zero exceptions), though it is not proven for every board that could exist; here it is small enough to watch.",
-    verdictPartial: "One loop, applied alone — it breaks the edges where it meets the rest of the board, so the score is worse than either solution. No single loop is a step toward the other board.",
-    verdictPartialAll: "Every loop, but only partway — the half-moved pieces don't line up yet, so the score is down. Push to 100%.",
-    verdictFull: "Every loop, fully applied — the board is now the other perfect solution. The hop only works all at once.",
+    note: "Two solutions, the permutation between them, its cycles, and every score here are computed live by the WebAssembly engine on a freshly generated puzzle, nothing precomputed. On the full 16×16 the analogous cycle spans up to 195 cells, and the same all-or-nothing property holds across all 246 bundled board pairs (54,238 partial applications, zero exceptions), though it is not proven for every board that could exist; here it is small enough to watch.",
+    verdictPartial: "One loop, applied alone: it breaks the edges where it meets the rest of the board, so the score is worse than either solution. No single loop is a step toward the other board.",
+    verdictPartialAll: "Every loop, but only partway: the half-moved pieces don't line up yet, so the score is down. Push to 100%.",
+    verdictFull: "Every loop, fully applied: the board is now the other perfect solution. The hop only works all at once.",
     verdictNone: "Slide to start moving pieces along the selected loop(s).",
   },
   fr: {
-    title: "Sauter entre deux vraies solutions — et voir le score s'effondrer",
+    title: "Sauter entre deux vraies solutions, et voir le score s'effondrer",
     intro:
-      "Ce puzzle a deux vraies solutions parfaites, toutes deux trouvées par le moteur. Les pièces qui diffèrent forment des boucles (cycles). Appliquez une boucle seule et le score chute — elle casse là où elle rencontre le reste du plateau. Seule l'application de toutes les boucles ensemble (le saut complet) atteint l'autre solution parfaite. Il n'y a aucun chemin améliorant entre elles ; c'est le mur.",
+      "Ce puzzle a deux vraies solutions parfaites, toutes deux trouvées par le moteur. Les pièces qui diffèrent forment des boucles (cycles). Appliquez une boucle seule et le score chute : elle casse là où elle rencontre le reste du plateau. Seule l'application de toutes les boucles ensemble (le saut complet) atteint l'autre solution parfaite. Il n'y a aucun chemin améliorant entre elles ; c'est le mur.",
     newPuzzle: "Nouveau tirage",
     loading: "Recherche de deux solutions avec le moteur…",
     cycleLabel: "Boucle à appliquer",
@@ -120,16 +120,16 @@ const T = {
     boardA: "Solution A",
     working: "Plateau de travail",
     drop: "score vs un plateau parfait",
-    note: "Les deux solutions, la permutation entre elles, ses cycles et chaque score ici sont calculés en direct par le moteur WebAssembly sur un puzzle fraîchement généré — rien de précalculé. Sur le 16×16 complet, le cycle analogue couvre jusqu'à 195 cellules, et la même propriété tout-ou-rien tient sur les 246 paires de plateaux fournis (54 238 applications partielles, zéro exception), sans qu'il soit prouvé qu'elle vaille pour tout plateau concevable ; ici il est assez petit pour être observé.",
-    verdictPartial: "Une seule boucle, appliquée seule — elle casse les bords là où elle rencontre le reste du plateau, donc le score est pire que l'une ou l'autre solution. Aucune boucle seule n'est un pas vers l'autre plateau.",
-    verdictPartialAll: "Toutes les boucles, mais à mi-chemin — les pièces à demi déplacées ne s'alignent pas encore, le score baisse. Poussez à 100 %.",
-    verdictFull: "Toutes les boucles, entièrement appliquées — le plateau est maintenant l'autre solution parfaite. Le saut ne marche que d'un seul coup.",
+    note: "Les deux solutions, la permutation entre elles, ses cycles et chaque score ici sont calculés en direct par le moteur WebAssembly sur un puzzle fraîchement généré, sans rien de précalculé. Sur le 16×16 complet, le cycle analogue couvre jusqu'à 195 cellules, et la même propriété tout-ou-rien tient sur les 246 paires de plateaux fournis (54 238 applications partielles, zéro exception), sans qu'il soit prouvé qu'elle vaille pour tout plateau concevable ; ici il est assez petit pour être observé.",
+    verdictPartial: "Une seule boucle, appliquée seule : elle casse les bords là où elle rencontre le reste du plateau, donc le score est pire que l'une ou l'autre solution. Aucune boucle seule n'est un pas vers l'autre plateau.",
+    verdictPartialAll: "Toutes les boucles, mais à mi-chemin : les pièces à demi déplacées ne s'alignent pas encore, le score baisse. Poussez à 100 %.",
+    verdictFull: "Toutes les boucles, entièrement appliquées : le plateau est maintenant l'autre solution parfaite. Le saut ne marche que d'un seul coup.",
     verdictNone: "Faites glisser pour déplacer les pièces le long de la/des boucle(s) sélectionnée(s).",
   },
   es: {
-    title: "Salta entre dos soluciones reales — y observa cómo se hunde la puntuación",
+    title: "Salta entre dos soluciones reales, y observa cómo se hunde la puntuación",
     intro:
-      "Este puzzle tiene dos soluciones perfectas genuinas, ambas halladas por el motor. Las piezas que difieren forman bucles (ciclos). Aplica un bucle por sí solo y la puntuación cae — se rompe allí donde se encuentra con el resto del tablero. Solo al aplicar todos los bucles a la vez (el salto completo) se alcanza la otra solución perfecta. No hay ningún camino de mejora entre ellas; ese es el muro.",
+      "Este puzzle tiene dos soluciones perfectas genuinas, ambas halladas por el motor. Las piezas que difieren forman bucles (ciclos). Aplica un bucle por sí solo y la puntuación cae: se rompe allí donde se encuentra con el resto del tablero. Solo al aplicar todos los bucles a la vez (el salto completo) se alcanza la otra solución perfecta. No hay ningún camino de mejora entre ellas; ese es el muro.",
     newPuzzle: "Nuevo puzzle",
     loading: "Buscando dos soluciones con el motor…",
     cycleLabel: "Bucle a aplicar",
@@ -142,10 +142,10 @@ const T = {
     boardA: "Solución A",
     working: "Tablero de trabajo",
     drop: "puntuación frente a un tablero perfecto",
-    note: "Las dos soluciones, la permutación entre ellas, sus ciclos y cada puntuación aquí se calculan en vivo mediante el motor WebAssembly sobre un puzzle recién generado — nada precalculado. En el 16×16 completo el ciclo análogo abarca hasta 195 celdas, y se cumple la misma propiedad de todo o nada en los 246 pares de tableros publicados (54 238 aplicaciones parciales, cero excepciones), aunque no está demostrado para todo tablero concebible; aquí es lo bastante pequeño para poder observarlo.",
-    verdictPartial: "Un solo bucle, aplicado por sí solo — rompe las aristas allí donde se encuentra con el resto del tablero, así que la puntuación es peor que la de cualquiera de las dos soluciones. Ningún bucle por separado es un paso hacia el otro tablero.",
-    verdictPartialAll: "Todos los bucles, pero solo a medias — las piezas movidas a medio camino aún no encajan, así que la puntuación baja. Llévalo al 100 %.",
-    verdictFull: "Todos los bucles, aplicados por completo — el tablero es ahora la otra solución perfecta. El salto solo funciona de una sola vez.",
+    note: "Las dos soluciones, la permutación entre ellas, sus ciclos y cada puntuación aquí se calculan en vivo mediante el motor WebAssembly sobre un puzzle recién generado, sin nada precalculado. En el 16×16 completo el ciclo análogo abarca hasta 195 celdas, y se cumple la misma propiedad de todo o nada en los 246 pares de tableros publicados (54 238 aplicaciones parciales, cero excepciones), aunque no está demostrado para todo tablero concebible; aquí es lo bastante pequeño para poder observarlo.",
+    verdictPartial: "Un solo bucle, aplicado por sí solo: rompe las aristas allí donde se encuentra con el resto del tablero, así que la puntuación es peor que la de cualquiera de las dos soluciones. Ningún bucle por separado es un paso hacia el otro tablero.",
+    verdictPartialAll: "Todos los bucles, pero solo a medias: las piezas movidas a medio camino aún no encajan, así que la puntuación baja. Llévalo al 100 %.",
+    verdictFull: "Todos los bucles, aplicados por completo: el tablero es ahora la otra solución perfecta. El salto solo funciona de una sola vez.",
     verdictNone: "Desliza para empezar a mover las piezas a lo largo del bucle o bucles seleccionados.",
   },
 };

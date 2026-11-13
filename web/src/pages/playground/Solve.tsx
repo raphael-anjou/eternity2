@@ -35,7 +35,7 @@ const T = {
     ],
     lockedLevel: {
       name: "The real one",
-      note: "16×16 — never solved",
+      note: "16×16, never solved",
     },
     lockedTitle: "Nobody has ever finished this level",
     lockedBody: (
@@ -106,7 +106,7 @@ const T = {
     ],
     lockedLevel: {
       name: "Le vrai",
-      note: "16×16 — jamais résolu",
+      note: "16×16, jamais résolu",
     },
     lockedTitle: "Personne n'a jamais bouclé ce niveau",
     lockedBody: (
@@ -158,7 +158,7 @@ const T = {
     ),
     exponential: (
       <>
-        Et pourtant, personne — ni humain ni machine — n'a jamais résolu la version 16×16. Toute la
+        Et pourtant, personne (ni humain ni machine) n'a jamais résolu la version 16×16. Toute la
         magie de la croissance exponentielle est là. Voir{" "}
         <Link className="underline" to="/algorithms">
           Algorithmes
@@ -178,7 +178,7 @@ const T = {
     ],
     lockedLevel: {
       name: "El de verdad",
-      note: "16×16 — nunca resuelto",
+      note: "16×16, nunca resuelto",
     },
     lockedTitle: "Nadie ha terminado nunca este nivel",
     lockedBody: (
@@ -459,7 +459,7 @@ export default function Solve() {
       // Step in small node-budget chunks so the wall-clock check below is
       // actually enforced: step(budget) runs up to `budget` nodes SYNCHRONOUSLY
       // before returning, so a huge budget (e.g. 10_000_000) can pin the main
-      // thread for hundreds of ms in a single call — past the 12ms slice — which
+      // thread for hundreds of ms in a single call (past the 12ms slice), which
       // freezes the tab and blocks route changes. A modest chunk keeps each call
       // short enough that we re-check the clock often and yield after ~12ms.
       while (r.status === "running" && performance.now() - frameStart < 12) {
@@ -481,7 +481,7 @@ export default function Solve() {
   }, [finishedIn, machine, puzzle]);
 
   // Start the human clock on first interaction. Wrapped so the linter sees it
-  // as an event handler (not render code) — Date.now() is fine to call here.
+  // as an event handler (not render code); Date.now() is fine to call here.
   const touch = useCallback(() => {
     setStartedAt((prev) => (prev === null ? Date.now() : prev));
   }, []);

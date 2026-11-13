@@ -6,10 +6,10 @@ import { MotifSwatch } from "@/components/board/MotifSwatch";
 import { colorToLetter } from "@/lib/motifs";
 
 // Pick a colour; we scan the real official 256 pieces in the browser and split
-// its edges by the kind of piece they sit on — corner, border, or interior.
+// its edges by the kind of piece they sit on: corner, border, or interior.
 // Choose one of the five rare colours and the interior bar is empty: those
 // colours never appear inside the board, only on the frame. Choose a common
-// colour and it is almost all interior. Live, from the official set — the same
+// colour and it is almost all interior. Live, from the official set: the same
 // numbers the page's chart reports, here you can poke at them colour by colour.
 
 interface Split {
@@ -20,7 +20,7 @@ interface Split {
 }
 
 // Classify a piece by its grey (border) edge count: 2 = corner, 1 = border,
-// 0 = interior — the standard Eternity II split.
+// 0 = interior, the standard Eternity II split.
 function pieceKind(edges: readonly number[]): "corner" | "border" | "interior" {
   const greys = edges.filter((c) => c === 0).length;
   if (greys >= 2) return "corner";
@@ -59,7 +59,7 @@ const T = {
   en: {
     title: "Where does each colour live?",
     intro:
-      "Pick a colour. We scan the real official pieces and count its edges by the kind of piece they sit on. The five rare colours light up only the frame — zero in the interior.",
+      "Pick a colour. We scan the real official pieces and count its edges by the kind of piece they sit on. The five rare colours light up only the frame, zero in the interior.",
     pick: "Colour",
     corner: "corner pieces",
     border: "border pieces",
@@ -67,14 +67,14 @@ const T = {
     edges: (n: number) => `${n} edge${n === 1 ? "" : "s"}`,
     rare: "rare · frame-only",
     common: "common",
-    interiorZero: "Not once in the interior — a rare colour, fenced to the frame.",
-    interiorMost: "Overwhelmingly interior — a common colour doing the board's work.",
+    interiorZero: "Not once in the interior: a rare colour, fenced to the frame.",
+    interiorMost: "Overwhelmingly interior: a common colour doing the board's work.",
     loading: "Loading the piece set…",
   },
   fr: {
     title: "Où vit chaque couleur ?",
     intro:
-      "Choisissez une couleur. On parcourt les vraies pièces officielles et on compte ses bords selon le type de pièce. Les cinq couleurs rares n'éclairent que le cadre — zéro à l'intérieur.",
+      "Choisissez une couleur. On parcourt les vraies pièces officielles et on compte ses bords selon le type de pièce. Les cinq couleurs rares n'éclairent que le cadre, zéro à l'intérieur.",
     pick: "Couleur",
     corner: "pièces de coin",
     border: "pièces de bord",
@@ -82,8 +82,8 @@ const T = {
     edges: (n: number) => `${n} bord${n === 1 ? "" : "s"}`,
     rare: "rare · cadre uniquement",
     common: "commune",
-    interiorZero: "Pas une seule fois à l'intérieur — une couleur rare, confinée au cadre.",
-    interiorMost: "Très majoritairement intérieure — une couleur commune qui fait le travail du plateau.",
+    interiorZero: "Pas une seule fois à l'intérieur : une couleur rare, confinée au cadre.",
+    interiorMost: "Très majoritairement intérieure : une couleur commune qui fait le travail du plateau.",
     loading: "Chargement du jeu de pièces…",
   },
   es: {

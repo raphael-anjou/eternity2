@@ -11,7 +11,7 @@ import { Lab } from "@/components/research/Lab";
 // Parallel tempering on a synthetic rugged 1-D landscape. Four replicas run
 // Metropolis at geometrically spaced temperatures; every few sweeps an adjacent
 // pair proposes a state swap, accepted with min(1, e^{Δβ·ΔE}). A grey "ghost"
-// chain runs at the coldest temperature alone — the honest control. Watch the
+// chain runs at the coldest temperature alone: the control. Watch the
 // cold replica reach the global minimum through the ladder while the ghost
 // stays trapped in the starting basin. Deterministic seed: every reload
 // replays the same run.
@@ -29,9 +29,9 @@ const RUNG_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"]; // cold → ho
 
 const T = {
   en: {
-    title: "Four temperatures, one ladder — versus one cold chain",
+    title: "Four temperatures, one ladder, versus one cold chain",
     intro:
-      "A rugged energy landscape with a shallow basin on the left (where everything starts) and the global minimum on the right, behind barriers. Four replicas run Metropolis at geometrically spaced temperatures; adjacent pairs periodically propose to swap states. The grey ghost is the control: the same cold chain, alone. The cold replica escapes through the ladder — hot rungs cross the barriers, swaps hand the good states down. The ghost never leaves.",
+      "A rugged energy landscape with a shallow basin on the left (where everything starts) and the global minimum on the right, behind barriers. Four replicas run Metropolis at geometrically spaced temperatures; adjacent pairs periodically propose to swap states. The grey ghost is the control: the same cold chain, alone. The cold replica escapes through the ladder: hot rungs cross the barriers, swaps hand the good states down. The ghost never leaves.",
     ratio: "Ladder spacing (geometric ratio)",
     play: "Play",
     pause: "Pause",
@@ -45,17 +45,17 @@ const T = {
     coldBest: "cold replica, best E",
     ghostBest: "single cold chain, best E",
     globalMin: "global minimum",
-    found: "reached the global minimum — via the ladder",
+    found: "reached the global minimum, via the ladder",
     ghost: "single cold chain (control)",
-    tooTight: "≈100% acceptance: rungs see the same landscape — the ladder adds nothing",
-    tooWide: "≈0% acceptance: rungs never talk — the ladder decouples",
-    healthy: "swaps frequent but not free — a working ladder",
-    note: "The landscape is synthetic, the mechanism is exact: Metropolis proposals within each rung, and the true replica-exchange rule between rungs. Drag the spacing to its extremes to reproduce the failure modes the page describes: too tight and every swap is accepted (adjacent rungs are redundant), too wide and none are (the ladder falls apart). Deterministic seed — Replay reruns the identical trajectory.",
+    tooTight: "≈100% acceptance: rungs see the same landscape: the ladder adds nothing",
+    tooWide: "≈0% acceptance: rungs never talk: the ladder decouples",
+    healthy: "swaps frequent but not free: a working ladder",
+    note: "The landscape is synthetic, the mechanism is exact: Metropolis proposals within each rung, and the true replica-exchange rule between rungs. Drag the spacing to its extremes to reproduce the failure modes the page describes: too tight and every swap is accepted (adjacent rungs are redundant), too wide and none are (the ladder falls apart). Deterministic seed: Replay reruns the identical trajectory.",
   },
   fr: {
-    title: "Quatre températures, une échelle — contre une seule chaîne froide",
+    title: "Quatre températures, une échelle, contre une seule chaîne froide",
     intro:
-      "Un paysage d'énergie accidenté : un bassin peu profond à gauche (où tout démarre) et le minimum global à droite, derrière des barrières. Quatre répliques font du Metropolis à des températures espacées géométriquement ; les paires adjacentes proposent périodiquement d'échanger leurs états. Le fantôme gris est le témoin : la même chaîne froide, seule. La réplique froide s'échappe par l'échelle — les barreaux chauds franchissent les barrières, les échanges font descendre les bons états. Le fantôme, lui, ne sort jamais.",
+      "Un paysage d'énergie accidenté : un bassin peu profond à gauche (où tout démarre) et le minimum global à droite, derrière des barrières. Quatre répliques font du Metropolis à des températures espacées géométriquement ; les paires adjacentes proposent périodiquement d'échanger leurs états. Le fantôme gris est le témoin : la même chaîne froide, seule. La réplique froide s'échappe par l'échelle : les barreaux chauds franchissent les barrières, les échanges font descendre les bons états. Le fantôme, lui, ne sort jamais.",
     ratio: "Espacement de l'échelle (raison géométrique)",
     play: "Lecture",
     pause: "Pause",
@@ -69,17 +69,17 @@ const T = {
     coldBest: "réplique froide, meilleur E",
     ghostBest: "chaîne froide seule, meilleur E",
     globalMin: "minimum global",
-    found: "minimum global atteint — grâce à l'échelle",
+    found: "minimum global atteint, grâce à l'échelle",
     ghost: "chaîne froide seule (témoin)",
-    tooTight: "≈100 % d'acceptation : les barreaux voient le même paysage — l'échelle n'apporte rien",
-    tooWide: "≈0 % d'acceptation : les barreaux ne se parlent plus — l'échelle se découple",
-    healthy: "échanges fréquents mais pas gratuits — une échelle qui travaille",
-    note: "Le paysage est synthétique, le mécanisme est exact : propositions de Metropolis dans chaque barreau, et la vraie règle d'échange de répliques entre barreaux. Poussez l'espacement aux extrêmes pour reproduire les pannes décrites par la page : trop serré, tout échange est accepté (les barreaux adjacents sont redondants) ; trop large, plus aucun ne l'est (l'échelle se disloque). Graine déterministe — Rejouer reproduit la trajectoire à l'identique.",
+    tooTight: "≈100 % d'acceptation : les barreaux voient le même paysage : l'échelle n'apporte rien",
+    tooWide: "≈0 % d'acceptation : les barreaux ne se parlent plus : l'échelle se découple",
+    healthy: "échanges fréquents mais pas gratuits : une échelle qui travaille",
+    note: "Le paysage est synthétique, le mécanisme est exact : propositions de Metropolis dans chaque barreau, et la vraie règle d'échange de répliques entre barreaux. Poussez l'espacement aux extrêmes pour reproduire les pannes décrites par la page : trop serré, tout échange est accepté (les barreaux adjacents sont redondants) ; trop large, plus aucun ne l'est (l'échelle se disloque). Graine déterministe : Rejouer reproduit la trajectoire à l'identique.",
   },
   es: {
-    title: "Cuatro temperaturas, una escalera — frente a una sola cadena fría",
+    title: "Cuatro temperaturas, una escalera, frente a una sola cadena fría",
     intro:
-      "Un paisaje de energía accidentado con una cuenca poco profunda a la izquierda (donde todo comienza) y el mínimo global a la derecha, tras las barreras. Cuatro réplicas ejecutan Metropolis a temperaturas espaciadas geométricamente; los pares adyacentes proponen intercambiar sus estados de forma periódica. El fantasma gris es el control: la misma cadena fría, sola. La réplica fría escapa por la escalera — los peldaños calientes cruzan las barreras y los intercambios van cediendo los buenos estados hacia abajo. El fantasma no sale nunca.",
+      "Un paisaje de energía accidentado con una cuenca poco profunda a la izquierda (donde todo comienza) y el mínimo global a la derecha, tras las barreras. Cuatro réplicas ejecutan Metropolis a temperaturas espaciadas geométricamente; los pares adyacentes proponen intercambiar sus estados de forma periódica. El fantasma gris es el control: la misma cadena fría, sola. La réplica fría escapa por la escalera: los peldaños calientes cruzan las barreras y los intercambios van cediendo los buenos estados hacia abajo. El fantasma no sale nunca.",
     ratio: "Espaciado de la escalera (razón geométrica)",
     play: "Reproducir",
     pause: "Pausa",
@@ -93,12 +93,12 @@ const T = {
     coldBest: "réplica fría, mejor E",
     ghostBest: "cadena fría sola, mejor E",
     globalMin: "mínimo global",
-    found: "alcanzó el mínimo global — a través de la escalera",
+    found: "alcanzó el mínimo global, a través de la escalera",
     ghost: "cadena fría sola (control)",
-    tooTight: "≈100 % de aceptación: los peldaños ven el mismo paisaje — la escalera no aporta nada",
-    tooWide: "≈0 % de aceptación: los peldaños nunca se comunican — la escalera se desacopla",
-    healthy: "intercambios frecuentes pero no gratuitos — una escalera que funciona",
-    note: "El paisaje es sintético, el mecanismo es exacto: propuestas de Metropolis dentro de cada peldaño y la verdadera regla de intercambio de réplicas entre peldaños. Lleva el espaciado a sus extremos para reproducir los fallos que describe la página: demasiado estrecho y todo intercambio se acepta (los peldaños adyacentes son redundantes), demasiado amplio y ninguno lo hace (la escalera se deshace). Semilla determinista — Repetir reproduce la misma trayectoria.",
+    tooTight: "≈100 % de aceptación: los peldaños ven el mismo paisaje: la escalera no aporta nada",
+    tooWide: "≈0 % de aceptación: los peldaños nunca se comunican: la escalera se desacopla",
+    healthy: "intercambios frecuentes pero no gratuitos: una escalera que funciona",
+    note: "El paisaje es sintético, el mecanismo es exacto: propuestas de Metropolis dentro de cada peldaño y la verdadera regla de intercambio de réplicas entre peldaños. Lleva el espaciado a sus extremos para reproducir los fallos que describe la página: demasiado estrecho y todo intercambio se acepta (los peldaños adyacentes son redundantes), demasiado amplio y ninguno lo hace (la escalera se deshace). Semilla determinista: Repetir reproduce la misma trayectoria.",
   },
 };
 
@@ -256,7 +256,7 @@ export function TemperingLadderLab() {
   }, [ratio, publish]);
 
   // Animation loop, gated on visibility. Each tick runs a handful of O(1)
-  // Metropolis moves — microseconds of work, far inside the frame budget.
+  // Metropolis moves: microseconds of work, far inside the frame budget.
   useEffect(() => {
     if (!visible || !playing) return;
     const id = setInterval(() => {
@@ -420,7 +420,7 @@ export function TemperingLadderLab() {
                 ladderVerdict === t.healthy ? "text-emerald-600" : "text-amber-600",
               )}
             >
-              {ladderVerdict} ({Math.round(100 * overallRate)}% — {t.swapRate})
+              {ladderVerdict} ({Math.round(100 * overallRate)}% {t.swapRate})
             </p>
           )}
         </div>
@@ -437,7 +437,7 @@ export function TemperingLadderLab() {
           <div className="mt-2 space-y-0.5 tabular-nums text-muted-foreground">
             <div>
               {t.coldBest}: <span className={cn("font-semibold", coldFound && "text-emerald-600")}>{s.bestCold.toFixed(2)}</span>
-              {coldFound && <span className="text-emerald-600"> — {t.found}</span>}
+              {coldFound && <span className="text-emerald-600">, {t.found}</span>}
             </div>
             <div>
               {t.ghostBest}: <span className="font-semibold">{s.bestGhost.toFixed(2)}</span>

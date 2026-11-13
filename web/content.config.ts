@@ -2,7 +2,7 @@
 // Single source of truth for what MDX pages exist: the Vite plugin builds the
 // client manifest from it, and sitemap.config.ts derives the prerender +
 // sitemap paths from it. Frontmatter is zod-validated and fails the build
-// loudly — a page with broken metadata never ships silently.
+// loudly, a page with broken metadata never ships silently.
 //
 // File conventions:
 //   content/research/<slug>.mdx      → English page at /research/<slug>
@@ -33,7 +33,7 @@ export type Lang = "en" | "fr" | "es";
  *  /<prefix>). This is the pure-data half of the language registry; the client
  *  registry in src/i18n/index.tsx carries the same codes plus display metadata
  *  and MUST stay in sync. Kept here (not imported from src/i18n) so Node-side
- *  config — the sitemap + prerender list — need not pull the React client tree.
+ *  config, the sitemap + prerender list, need not pull the React client tree.
  *  English MUST stay first (canonical tree + fallback). */
 export const LANG_PREFIXES: readonly { code: Lang; prefix: string }[] = [
   { code: "en", prefix: "" },
@@ -41,7 +41,7 @@ export const LANG_PREFIXES: readonly { code: Lang; prefix: string }[] = [
   { code: "es", prefix: "es" },
 ];
 export const LANG_CODES: readonly Lang[] = LANG_PREFIXES.map((l) => l.code);
-/** The non-English languages, in registry order — each carries a `.<lang>.mdx`
+/** The non-English languages, in registry order, each carries a `.<lang>.mdx`
  *  sidecar convention and a `/<lang>` URL tree. */
 export const TRANSLATION_LANGS: readonly Lang[] = LANG_CODES.filter((l) => l !== "en");
 
@@ -199,7 +199,7 @@ const frontmatterSchema = z.object({
   // in the manifest).
   //
   // Length: the meta description is NOT a ranking factor, so a longer value
-  // carries no SEO penalty — Google simply renders ~920px (~155–160 chars on
+  // carries no SEO penalty, Google simply renders ~920px (~155–160 chars on
   // desktop, ~120 on mobile) in the SERP snippet and drops the rest. We front-load
   // the essential message in the first ~160 chars (what a searcher sees) and let
   // the description run fuller (up to 300) so AI answer engines and full-text
@@ -229,10 +229,10 @@ const frontmatterSchema = z.object({
     .optional(),
   // The *status* axis: how far through the publish pipeline a page is. Work is
   // published by pull request; the PR review sets the tier.
-  //   draft  — unpublished; not normally present in the repo at all. Kept as a
+  //   draft:  unpublished; not normally present in the repo at all. Kept as a
   //            valid state only for pulling a page back out of publication.
-  //   report — a technical report: public but not yet reviewed (badged as such).
-  //   live   — a reviewed finding: public, cited, treated as ~immutable.
+  //   report: a technical report: public but not yet reviewed (badged as such).
+  //   live:   a reviewed finding: public, cited, treated as ~immutable.
   status: z.enum(["draft", "report", "live"]).default("live"),
   // Optional provenance note: what this page was distilled from, so the public
   // record is traceable. Free text; never a link to anyone's private material.
@@ -252,9 +252,9 @@ const frontmatterSchema = z.object({
   rigor: z.enum(["proven", "measured", "conjectured"]).optional(),
   // The *research-status* axis: how an experiment or finding ended, distinct
   // from `status` (the publish pipeline) and `rigor` (how firmly a claim is
-  // established). plateaued — hit a measured ceiling; refuted — a rigorously-run
-  // dead end; parked — set aside, not exhausted; new-basin — opened a new
-  // family/region; superseded — beaten by a later result. Optional; threaded
+  // established). plateaued, hit a measured ceiling; refuted, a rigorously-run
+  // dead end; parked, set aside, not exhausted; new-basin, opened a new
+  // family/region; superseded, beaten by a later result. Optional; threaded
   // through the manifest like `rigor`.
   outcome: z
     .enum(["plateaued", "refuted", "parked", "new-basin", "superseded"])
@@ -306,7 +306,7 @@ interface RawEntry {
   file: string; // content-dir-relative
   fm: z.infer<typeof frontmatterSchema>;
   toc: TocItem[];
-  body: string; // markdown body (frontmatter stripped) — used by the search index
+  body: string; // markdown body (frontmatter stripped), used by the search index
 }
 
 /** Extract h2/h3 headings from markdown source, skipping fenced code blocks. */
@@ -393,14 +393,14 @@ export function scanResearchContent(fresh = false): RawEntry[] {
   for (const e of entries) {
     if (e.slug === "topics" || e.slug.startsWith("topics/")) {
       throw new Error(
-        `research content: ${e.file} — the "topics/" slug prefix is reserved for topic hubs`,
+        `research content: ${e.file}, the "topics/" slug prefix is reserved for topic hubs`,
       );
     }
     // "/research/people" itself is a real content page (the community gallery);
     // only the sub-paths are reserved for auto-generated per-researcher hubs.
     if (e.slug.startsWith("people/")) {
       throw new Error(
-        `research content: ${e.file} — the "people/<slug>" prefix is reserved for researcher hubs`,
+        `research content: ${e.file}, the "people/<slug>" prefix is reserved for researcher hubs`,
       );
     }
   }
@@ -554,7 +554,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
 
 /** Reduce MDX source to plain searchable text: drop frontmatter (already
  *  stripped), ESM imports/exports, JSX tags, MDX expressions, code-fence
- *  markers, markdown syntax and math delimiters — keep the words. */
+ *  markers, markdown syntax and math delimiters, keep the words. */
 function plainText(body: string): string {
   return (
     body
@@ -614,7 +614,7 @@ const GENERATED_ROUTE_PATHS: readonly string[] = [
 ];
 
 /** Site paths (EN, prefix-free) of all publishable MDX pages plus the
- *  auto-generated topic hub pages — feeds the prerender list and sitemap.
+ *  auto-generated topic hub pages, feeds the prerender list and sitemap.
  *  Drafts are excluded (they would 404 in prod). */
 export function researchPagePaths(): string[] {
   const pages = buildManifest("en").map((d) => d.url.slice(1));
@@ -644,7 +644,7 @@ export function researchPagePaths(): string[] {
  *  language, so the build prerenders a real /<lang>/research/* HTML file and the
  *  sitemap lists it. Two kinds qualify:
  *   - MDX doc pages that ship a `<slug>.<lang>.mdx` sidecar (translated:true in
- *     that language's manifest). Untranslated pages are deliberately excluded —
+ *     that language's manifest). Untranslated pages are deliberately excluded:
  *     they fall back to English client-side, and prerendering them under
  *     /<lang> would put duplicate English content on a translated URL (bad for
  *     crawlers).

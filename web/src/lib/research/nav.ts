@@ -1,5 +1,5 @@
 // The research wiki navigation model: the sidebar tree, breadcrumbs, prev/next
-// and topic membership all derive from the content manifest — the MDX files
+// and topic membership all derive from the content manifest; the MDX files
 // under web/content/research are the single source of truth.
 
 import { pick, type Dict, type Lang } from "@/i18n";
@@ -25,10 +25,10 @@ export interface NavItem {
    *  manifest. */
   score?: number;
   /** Id of a bundled record board (src/data/record-boards.ts), when the page has
-   *  one — lets a hub card render a lazy in-viewer thumbnail. */
+   *  one; lets a hub card render a lazy in-viewer thumbnail. */
   board?: string;
   /** Registry slug of the page's author (a per-author hub carries one and its
-   *  children are that author's experiments — the sidebar renders it as a
+   *  children are that author's experiments; the sidebar renders it as a
    *  first-class heading rather than a plain row). */
   author?: string;
   children: NavItem[];
@@ -47,18 +47,18 @@ const SECTION_LABELS: Record<string, Dict<string>> = {
   // The open notebook: structural findings and named search experiments, each
   // credited to its author by a byline (see the `author` frontmatter field and
   // the per-researcher hubs at /research/people/<slug>). Deliberately named for
-  // the work, not one person — it scales to any contributor.
+  // the work, not one person; it scales to any contributor.
   lab: { en: "The lab", fr: "Le laboratoire", es: "El laboratorio" },
   // The record & the people behind it: the history, the record boards, the
   // record-holders, the papers, and how to contribute. Community memory, not
-  // solver-building — kept out of Build so that section stays a curriculum.
+  // solver-building, kept out of Build so that section stays a curriculum.
   community: { en: "History & community", fr: "Histoire & communauté", es: "Historia y comunidad" },
 };
 
 /** Order of the sidebar sections. */
 const SECTION_ORDER = ["why", "build", "lab", "community"] as const;
 
-/** The named sub-groups inside the Build section, in display order — the
+/** The named sub-groups inside the Build section, in display order: the
  *  approaches-map spine. Items whose `group` is not listed fall to the end
  *  under their own header; items with no `group` collect under UNGROUPED. */
 export const BUILD_GROUP_ORDER = [
@@ -185,7 +185,7 @@ export function researchNav(lang: Lang): NavSection[] {
     // Lift per-author hubs one level so they sit BESIDE their parent hub rather
     // than under it: in the lab this makes each author (Raphaël Anjou, …) a
     // sibling of the Experiments landing, a first-class row, while their own
-    // experiments stay nested beneath the author. URLs are untouched — this is
+    // experiments stay nested beneath the author. URLs are untouched; this is
     // presentation only. An author hub whose parent is itself an author hub is
     // left in place (already at the right depth).
     const parentOf = new Map<string, Flat | undefined>();
@@ -233,7 +233,7 @@ export function allNavItems(lang: Lang): NavItem[] {
   return researchNav(lang).flatMap((s) => s.items.flatMap(flattenDeep));
 }
 
-/** Reading order within one section — drives prev/next (the sidebar is scoped
+/** Reading order within one section; drives prev/next (the sidebar is scoped
  *  per section, so page-to-page flow stays inside it too). */
 export function sectionReadingOrder(section: NavSection): NavItem[] {
   return section.items.flatMap(flattenDeep);
@@ -286,7 +286,7 @@ export function kindLabel(kind: ResearchKind, lang: Lang): string {
   return pick(L[kind], lang);
 }
 
-/** Dot color per kind — matches the related-rail convention. */
+/** Dot color per kind; matches the related-rail convention. */
 export const KIND_DOT: Record<ResearchKind, string> = {
   finding: "bg-violet-400",
   experiment: "bg-emerald-400",

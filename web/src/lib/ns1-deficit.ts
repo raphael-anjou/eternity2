@@ -1,7 +1,7 @@
 // NS-1 deficit: the border↔interior colour-balance invariant (Hopfer 2022,
 // vault concept `ns1-deficit`). Across the interface between the outer border
 // ring and the first interior ring, the multiset of colours seen from the
-// border side (A) must equal the multiset seen from the interior side (B) — for
+// border side (A) must equal the multiset seen from the interior side (B) for
 // any full solution. The deficit
 //
 //     Δ = ½ ∑_c |A[c] − B[c]|

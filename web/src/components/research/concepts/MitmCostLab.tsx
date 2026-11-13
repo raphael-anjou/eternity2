@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 
 // The time-memory trade of meet in the middle, made tangible. Two views:
 //
-//  "The trade": a problem-size slider n drives three log-scale bars — one-sided
-//  time 2^n, MITM time 2·2^(n/2), MITM memory 2^(n/2) entries — plus the tiny
+//  "The trade": a problem-size slider n drives three log-scale bars (one-sided
+//  time 2^n, MITM time 2·2^(n/2), MITM memory 2^(n/2) entries) plus the tiny
 //  O(n) memory of the one-sided walk. The point is to FEEL the square root
 //  (every +2 on n quadruples one bar and merely doubles the others) and to
 //  watch the memory bill arrive as n grows.
@@ -60,7 +60,7 @@ const T = {
   en: {
     title: "Feel the square root",
     intro:
-      "One knob: the number of binary choices n. Meet in the middle never removes the exponential — it splits it into two square roots, one paid in time, one paid in memory.",
+      "One knob: the number of binary choices n. Meet in the middle never removes the exponential: it splits it into two square roots, one paid in time, one paid in memory.",
     tabTrade: "The trade",
     tabJoin: "The join",
     n: "problem size n",
@@ -76,14 +76,14 @@ const T = {
     tableCosts: "the table costs",
     ramWall: "→ bigger than a 16 GiB machine",
     ramOk: "(fits in RAM)",
-    logNote: "Bars are on a log scale — each grid line is ×256. Linear bars would be useless: at n = 64 the red bar would be 2³² times longer than the blue ones.",
+    logNote: "Bars are on a log scale: each grid line is ×256. Linear bars would be useless: at n = 64 the red bar would be 2³² times longer than the blue ones.",
     joinCaption: (
       <>
-        A full run of the micro-instance n = {JOIN_N}: two enumerations of 2<sup>5</sup> = {HALF} half-candidates instead of one walk of 2<sup>{JOIN_N}</sup> = 1,024 — but only if one side's table is held in memory.
+        A full run of the micro-instance n = {JOIN_N}: two enumerations of 2<sup>5</sup> = {HALF} half-candidates instead of one walk of 2<sup>{JOIN_N}</sup> = 1,024, but only if one side's table is held in memory.
       </>
     ),
-    phaseStore: (i: number) => `Storing top halves: ${i} / ${HALF} — each keyed by its seam signature`,
-    phaseProbe: (j: number) => `Probing with bottom halves: ${j} / ${HALF} — one hash lookup each`,
+    phaseStore: (i: number) => `Storing top halves: ${i} / ${HALF}, each keyed by its seam signature`,
+    phaseProbe: (j: number) => `Probing with bottom halves: ${j} / ${HALF}, one hash lookup each`,
     phaseDone: `Done: ${2 * HALF} enumeration steps + ${HALF} stored entries, instead of 1,024 full walks.`,
     stored: "tops stored",
     memory: "table memory",
@@ -97,7 +97,7 @@ const T = {
   fr: {
     title: "Sentir la racine carrée",
     intro:
-      "Un seul bouton : le nombre de choix binaires n. Le meet in the middle ne supprime jamais l'exponentielle — il la scinde en deux racines carrées, l'une payée en temps, l'autre en mémoire.",
+      "Un seul bouton : le nombre de choix binaires n. Le meet in the middle ne supprime jamais l'exponentielle : il la scinde en deux racines carrées, l'une payée en temps, l'autre en mémoire.",
     tabTrade: "L'échange",
     tabJoin: "La jonction",
     n: "taille du problème n",
@@ -113,14 +113,14 @@ const T = {
     tableCosts: "la table coûte",
     ramWall: "→ plus gros qu'une machine à 16 Gio",
     ramOk: "(tient en RAM)",
-    logNote: "Les barres sont en échelle logarithmique — chaque graduation vaut ×256. En échelle linéaire, à n = 64 la barre rouge serait 2³² fois plus longue que les bleues.",
+    logNote: "Les barres sont en échelle logarithmique : chaque graduation vaut ×256. En échelle linéaire, à n = 64 la barre rouge serait 2³² fois plus longue que les bleues.",
     joinCaption: (
       <>
-        Un tour complet de la micro-instance n = {JOIN_N} : deux énumérations de 2<sup>5</sup> = {HALF} demi-candidats au lieu d'un parcours de 2<sup>{JOIN_N}</sup> = 1 024 — mais seulement si la table d'un des côtés tient en mémoire.
+        Un tour complet de la micro-instance n = {JOIN_N} : deux énumérations de 2<sup>5</sup> = {HALF} demi-candidats au lieu d'un parcours de 2<sup>{JOIN_N}</sup> = 1 024, mais seulement si la table d'un des côtés tient en mémoire.
       </>
     ),
-    phaseStore: (i: number) => `Stockage des moitiés hautes : ${i} / ${HALF} — chacune indexée par sa signature de couture`,
-    phaseProbe: (j: number) => `Sondage avec les moitiés basses : ${j} / ${HALF} — une consultation de table chacune`,
+    phaseStore: (i: number) => `Stockage des moitiés hautes : ${i} / ${HALF}, chacune indexée par sa signature de couture`,
+    phaseProbe: (j: number) => `Sondage avec les moitiés basses : ${j} / ${HALF}, une consultation de table chacune`,
     phaseDone: `Terminé : ${2 * HALF} pas d'énumération + ${HALF} entrées stockées, au lieu de 1 024 parcours complets.`,
     stored: "hauts stockés",
     memory: "mémoire de table",
@@ -134,7 +134,7 @@ const T = {
   es: {
     title: "Sentir la raíz cuadrada",
     intro:
-      "Un único mando: el número de decisiones binarias n. El meet in the middle nunca elimina la exponencial — la parte en dos raíces cuadradas, una pagada en tiempo y otra en memoria.",
+      "Un único mando: el número de decisiones binarias n. El meet in the middle nunca elimina la exponencial: la parte en dos raíces cuadradas, una pagada en tiempo y otra en memoria.",
     tabTrade: "El intercambio",
     tabJoin: "La unión",
     n: "tamaño del problema n",
@@ -150,14 +150,14 @@ const T = {
     tableCosts: "la tabla cuesta",
     ramWall: "→ más grande que una máquina de 16 GiB",
     ramOk: "(cabe en RAM)",
-    logNote: "Las barras están en escala logarítmica — cada línea de la cuadrícula vale ×256. En escala lineal serían inservibles: con n = 64 la barra roja sería 2³² veces más larga que las azules.",
+    logNote: "Las barras están en escala logarítmica: cada línea de la cuadrícula vale ×256. En escala lineal serían inservibles: con n = 64 la barra roja sería 2³² veces más larga que las azules.",
     joinCaption: (
       <>
-        Una ejecución completa de la micro-instancia n = {JOIN_N}: dos enumeraciones de 2<sup>5</sup> = {HALF} medios candidatos en lugar de un único recorrido de 2<sup>{JOIN_N}</sup> = 1024 — pero solo si la tabla de uno de los lados se mantiene en memoria.
+        Una ejecución completa de la micro-instancia n = {JOIN_N}: dos enumeraciones de 2<sup>5</sup> = {HALF} medios candidatos en lugar de un único recorrido de 2<sup>{JOIN_N}</sup> = 1024, pero solo si la tabla de uno de los lados se mantiene en memoria.
       </>
     ),
-    phaseStore: (i: number) => `Almacenando las mitades superiores: ${i} / ${HALF} — cada una indexada por su firma de costura`,
-    phaseProbe: (j: number) => `Sondeando con las mitades inferiores: ${j} / ${HALF} — una consulta a la tabla cada una`,
+    phaseStore: (i: number) => `Almacenando las mitades superiores: ${i} / ${HALF}, cada una indexada por su firma de costura`,
+    phaseProbe: (j: number) => `Sondeando con las mitades inferiores: ${j} / ${HALF}, una consulta a la tabla cada una`,
     phaseDone: `Listo: ${2 * HALF} pasos de enumeración + ${HALF} entradas almacenadas, en lugar de 1024 recorridos completos.`,
     stored: "superiores almacenadas",
     memory: "memoria de tabla",
@@ -230,7 +230,7 @@ function CostBar({
         <span className="font-medium">{label}</span>
         <span className="tabular-nums text-muted-foreground">
           <Approx x={value} /> {unit}
-          {detail ? <> — {detail}</> : null}
+          {detail ? <>, {detail}</> : null}
         </span>
       </div>
       <div className="relative h-3.5 overflow-hidden rounded-sm bg-muted">
@@ -278,19 +278,19 @@ function TradeView({ t }: { t: (typeof T)["en"] }) {
 
       <div className="space-y-2.5">
         <CostBar
-          label={`${t.oneTime} — 2^${n}`}
+          label={`${t.oneTime} (2^${n})`}
           value={oneTime}
           unit={t.steps}
           colorClass="bg-rose-500"
         />
         <CostBar
-          label={`${t.mitmTime} — 2·2^${half}`}
+          label={`${t.mitmTime} (2·2^${half})`}
           value={mitmTime}
           unit={t.steps}
           colorClass="bg-sky-500"
         />
         <CostBar
-          label={`${t.mitmMem} — 2^${half}`}
+          label={`${t.mitmMem} (2^${half})`}
           value={mitmEntries}
           unit={t.entries}
           colorClass={overRam ? "bg-rose-500" : "bg-amber-500"}
@@ -300,7 +300,7 @@ function TradeView({ t }: { t: (typeof T)["en"] }) {
             </span>
           }
         />
-        <CostBar label={`${t.oneMem} — n`} value={n} unit={t.entries} colorClass="bg-stone-400" />
+        <CostBar label={`${t.oneMem} (n)`} value={n} unit={t.entries} colorClass="bg-stone-400" />
       </div>
 
       <p className="text-sm tabular-nums text-muted-foreground">

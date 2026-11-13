@@ -7,9 +7,9 @@
 // #208/#255/#181/#249). Source: "Record of Eternity2 with 5 hints ?" thread,
 // eternity2@groups.io, June-July 2026 (topic 120056886). Benjamin Riotte's
 // 464 broke Bruno Gauthier's 460, which had stood since 2023; the line has
-// since moved to 465 (the distributed fleet, August 2026, topic 120997660),
-// whose boards are not bundled here — they live in the project's own board
-// library. This file remains the decoded July census.
+// moved since (the distributed fleet's 465 of August 2026, topic 120997660,
+// then the later rows of records-timeline.ts), and none of those later boards
+// are bundled here. This file remains the decoded July census.
 //
 // LinearPartial: partial boards (not full solutions) built as linear runs or
 // spiral-in constructions; the number is the placed-piece / continuous-run
@@ -37,7 +37,7 @@ export interface LinearPartial {
   placed: number;
   /** How many of the five official clue pieces sit at their official positions,
    *  verified from `board_edges` (pieces are distinct up to rotation, so the
-   *  edges name each clue piece — no board_pieces needed): 5 = full record,
+   *  edges name each clue piece, no board_pieces needed): 5 = full record,
    *  <5 = partial, null = clue compliance not verified / not applicable. */
   hints: number | null;
   /** Construction metric, so unlike lineages don't get ranked against each

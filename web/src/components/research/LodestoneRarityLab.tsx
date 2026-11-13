@@ -24,7 +24,7 @@ import { FRAME_BUDGET_MS, useRunWhileVisible } from "@/lib/useRunWhileVisible";
 // LODESTONE made visible: the supply of scarce pieces drains as a board fills.
 // We watch a real solver fill a small board, and after every placement we ask,
 // for each still-empty cell, how many unused pieces can legally serve the
-// (north,west) colours it now demands — the exact "demand server" count the
+// (north,west) colours it now demands: the exact "demand server" count the
 // method is built on. Cells served by only one or two remaining pieces are the
 // scarce demands; their number climbs sharply toward the endgame, which is why a
 // from-scratch search wants to commit the rare pieces early, before they're
@@ -45,7 +45,7 @@ const T = {
   en: {
     title: "Watch the rare pieces drain away",
     intro:
-      "A real solver fills this 6×6 board. After each piece, we count the still-empty cells whose colours can be met by only one or two of the pieces left in the box — the scarce demands. Watch them pile up as the board fills: the rare pieces a cell needs get spent elsewhere, and by the endgame almost every open cell is down to its last server or two. That scarcity, learned from strong boards, is the signal LODESTONE feeds the search.",
+      "A real solver fills this 6×6 board. After each piece, we count the still-empty cells whose colours can be met by only one or two of the pieces left in the box: the scarce demands. Watch them pile up as the board fills: the rare pieces a cell needs get spent elsewhere, and by the endgame almost every open cell is down to its last server or two. That scarcity, learned from strong boards, is the signal LODESTONE feeds the search.",
     speed: (n: string) => `Speed: ${n} steps/s`,
     run: "Run",
     pause: "Pause",
@@ -65,7 +65,7 @@ const T = {
   fr: {
     title: "Regardez les pièces rares se raréfier",
     intro:
-      "Un vrai solveur remplit ce plateau 6×6. Après chaque pièce, on compte les cases encore vides dont les couleurs ne peuvent être satisfaites que par une ou deux des pièces restantes — les demandes rares. Regardez-les s'accumuler à mesure que le plateau se remplit : les pièces rares dont une case a besoin sont dépensées ailleurs, et à la fin de partie presque chaque case ouverte n'a plus qu'un ou deux serveurs. Cette rareté, apprise des bons plateaux, est le signal que LODESTONE fournit à la recherche.",
+      "Un vrai solveur remplit ce plateau 6×6. Après chaque pièce, on compte les cases encore vides dont les couleurs ne peuvent être satisfaites que par une ou deux des pièces restantes : les demandes rares. Regardez-les s'accumuler à mesure que le plateau se remplit : les pièces rares dont une case a besoin sont dépensées ailleurs, et à la fin de partie presque chaque case ouverte n'a plus qu'un ou deux serveurs. Cette rareté, apprise des bons plateaux, est le signal que LODESTONE fournit à la recherche.",
     speed: (n: string) => `Vitesse : ${n} étapes/s`,
     run: "Lancer",
     pause: "Pause",

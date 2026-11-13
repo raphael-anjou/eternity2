@@ -30,11 +30,11 @@ const T = {
     ),
     note: (
       <>
-        (This is the <em>brute-force</em> ceiling — the worst case. Real solvers do far better:
+        (This is the <em>brute-force</em> ceiling: the worst case. Real solvers do far better:
         backtracking abandons doomed branches early, and the best Eternity II searches add
         smart pruning and constraint propagation that cut the work by many orders of magnitude.
         Faster hardware helps too. Even so, the gap is so vast that all of it together still
-        falls short of 16×16 — which is exactly why the puzzle remains unsolved.)
+        falls short of 16×16, which is exactly why the puzzle remains unsolved.)
       </>
     ),
     units: {
@@ -71,7 +71,7 @@ const T = {
         issue, et les meilleures recherches sur Eternity II y ajoutent un élagage malin et de la
         propagation de contraintes qui divisent le travail par plusieurs ordres de grandeur. Le
         matériel plus rapide aide aussi. Et pourtant l'écart est si vertigineux que tout cela
-        réuni reste insuffisant pour le 16×16 — c'est précisément pour ça que le puzzle n'est
+        réuni reste insuffisant pour le 16×16 ; c'est précisément pour ça que le puzzle n'est
         toujours pas résolu.)
       </>
     ),
@@ -172,7 +172,7 @@ export function TimeToSolve() {
     while (performance.now() - t0 < 150) r = solver.step(20_000);
     const elapsed = (performance.now() - t0) / 1000;
     solver.free();
-    // Terminal result of a one-shot WASM benchmark — the whole point of the
+    // Terminal result of a one-shot WASM benchmark, the whole point of the
     // effect, not a cascading render.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setRate(r.nodes / elapsed);

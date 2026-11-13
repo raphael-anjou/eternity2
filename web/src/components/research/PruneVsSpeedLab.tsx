@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 
 // An interactive feel for why pruning beats speed. The search tree has ~b^d
 // leaves. A speedup divides the work by a constant; a cut to the branching
-// factor divides it by (b'/b)^d — exponential in depth. The two sliders let you
+// factor divides it by (b'/b)^d, exponential in depth. The two sliders let you
 // trade a raw speedup against a small per-level prune and watch the prune win by
 // orders of magnitude on this tree. Numbers are illustrative, not a claim
 // about a specific solver; the page compares them with a measured tree.
@@ -30,7 +30,7 @@ const T = {
     verdict: (ratio: string) =>
       `At this setting the prune does the work of a ${ratio}× speedup.`,
     caption:
-      "A speedup is a constant divisor — it buys you a fixed multiple, no matter how deep the search. A prune lowers the branching factor at every one of the ~64 levels here, so its effect compounds: (reduced ⁄ original) to the 64th power. On this deep, bushy tree even a few percent off the branching factor dwarfs a large raw speedup. On shallow, narrow trees the balance can flip: on the measured 6×6 instances a 1000× speedup beats a 5% cut.",
+      "A speedup is a constant divisor: it buys you a fixed multiple, no matter how deep the search. A prune lowers the branching factor at every one of the ~64 levels here, so its effect compounds: (reduced ⁄ original) to the 64th power. On this deep, bushy tree even a few percent off the branching factor dwarfs a large raw speedup. On shallow, narrow trees the balance can flip: on the measured 6×6 instances a 1000× speedup beats a 5% cut.",
     depthNote: `Illustrative tree: branching factor ${B}, depth ${D}. Real search trees are often much narrower, which shrinks the gap.`,
   },
   fr: {
@@ -43,7 +43,7 @@ const T = {
     verdict: (ratio: string) =>
       `À ce réglage, l'élagage fait le travail d'une accélération de ${ratio}×.`,
     caption:
-      "Une accélération est un diviseur constant — elle offre un multiple fixe, quelle que soit la profondeur. Un élagage abaisse le facteur de branchement à chacun des ~64 niveaux ici, donc son effet se compose : (réduit ⁄ original) à la puissance 64. Sur cet arbre profond et touffu, même quelques pour cent retirés au facteur de branchement écrasent une grosse accélération brute. Sur des arbres peu profonds et étroits, la balance peut s'inverser : sur les instances 6×6 mesurées, une accélération de 1000× bat une coupe de 5 %.",
+      "Une accélération est un diviseur constant : elle offre un multiple fixe, quelle que soit la profondeur. Un élagage abaisse le facteur de branchement à chacun des ~64 niveaux ici, donc son effet se compose : (réduit ⁄ original) à la puissance 64. Sur cet arbre profond et touffu, même quelques pour cent retirés au facteur de branchement écrasent une grosse accélération brute. Sur des arbres peu profonds et étroits, la balance peut s'inverser : sur les instances 6×6 mesurées, une accélération de 1000× bat une coupe de 5 %.",
     depthNote: `Arbre illustratif : facteur de branchement ${B}, profondeur ${D}. Les vrais arbres de recherche sont souvent bien plus étroits, ce qui réduit l'écart.`,
   },
   es: {

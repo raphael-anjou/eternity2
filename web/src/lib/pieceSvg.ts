@@ -1,5 +1,5 @@
 // Build a self-contained SVG string for a single piece, suitable for download
-// (no external <defs>/<use> references — every motif used by the piece is
+// (no external <defs>/<use> references; every motif used by the piece is
 // inlined). Mirrors MotifDefs (triangle + clip) and PieceSvg (four rotated
 // edges + border), so the output looks identical to what's shown on the page.
 

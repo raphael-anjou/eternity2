@@ -61,13 +61,13 @@ const T = {
       <>
         The solver fills the board in whatever order you choose. Click (or drag) cells in the
         order you want them filled, then race your path against the classics on the same
-        puzzle. Spoiler: the order matters <em>a lot</em>. You can also <em>reveal</em> a few
+        puzzle. The punchline: the order matters <em>a lot</em>. You can also <em>reveal</em> a few
         pieces as hints and watch the search collapse, just like the puzzle's real clues.{" "}
         Want to predict which order wins before racing? That's exactly what{" "}
         <LocalizedLink className="underline" to="/research/why/complex-theory">
           complex theory
         </LocalizedLink>{" "}
-        estimates — the expected node count of a path, depth by depth.
+        estimates: the expected node count of a path, depth by depth.
       </>
     ),
     clear: "Clear",
@@ -85,7 +85,7 @@ const T = {
     blocksBadge: (k: number) => `${k} block${k === 1 ? "" : "s"}`,
     blockMode: "Block mode",
     blockModeHelp:
-      "Your path is built from blocks. Race it and the solver commits each block as one atomic move — a whole valid sub-assembly at a time — instead of one piece.",
+      "Your path is built from blocks. Race it and the solver commits each block as one atomic move (a whole valid sub-assembly at a time) instead of one piece.",
     raceSetup: "Race setup",
     colorsLabel: (n: number) => `Colors: ${n}`,
     newPuzzle: (seed: number) => `New puzzle (seed ${seed})`,
@@ -121,7 +121,7 @@ const T = {
         <LocalizedLink className="underline" to="/research/why/complex-theory">
           théorie complexe
         </LocalizedLink>{" "}
-        — le nombre de nœuds attendu d'un parcours, profondeur par profondeur.
+        : le nombre de nœuds attendu d'un parcours, profondeur par profondeur.
       </>
     ),
     clear: "Effacer",
@@ -139,7 +139,7 @@ const T = {
     blocksBadge: (k: number) => `${k} bloc${k === 1 ? "" : "s"}`,
     blockMode: "Mode bloc",
     blockModeHelp:
-      "Votre parcours est constitué de blocs. Lancez la course et le solveur valide chaque bloc comme un coup atomique — un sous-assemblage valide complet à la fois — au lieu d'une seule pièce.",
+      "Votre parcours est constitué de blocs. Lancez la course et le solveur valide chaque bloc comme un coup atomique (un sous-assemblage valide complet à la fois) au lieu d'une seule pièce.",
     raceSetup: "Réglages de la course",
     colorsLabel: (n: number) => `Couleurs : ${n}`,
     newPuzzle: (seed: number) => `Nouveau puzzle (graine ${seed})`,
@@ -172,8 +172,8 @@ const T = {
         ¿Quieres predecir qué orden gana antes de la carrera? Eso es exactamente lo que estima la{" "}
         <LocalizedLink className="underline" to="/research/why/complex-theory">
           teoría compleja
-        </LocalizedLink>{" "}
-        — el número de nodos esperado de un camino, nivel de profundidad a nivel de profundidad.
+        </LocalizedLink>
+        : el número de nodos esperado de un camino, nivel de profundidad a nivel de profundidad.
       </>
     ),
     clear: "Limpiar",
@@ -191,7 +191,7 @@ const T = {
     blocksBadge: (k: number) => `${k} bloque${k === 1 ? "" : "s"}`,
     blockMode: "Modo bloque",
     blockModeHelp:
-      "Tu camino se construye a partir de bloques. Lanza la carrera y el solucionador confirma cada bloque como un movimiento atómico — un subensamblaje válido completo a la vez — en lugar de una sola pieza.",
+      "Tu camino se construye a partir de bloques. Lanza la carrera y el solucionador confirma cada bloque como un movimiento atómico (un subensamblaje válido completo a la vez) en lugar de una sola pieza.",
     raceSetup: "Configuración de la carrera",
     colorsLabel: (n: number) => `Colores: ${n}`,
     newPuzzle: (seed: number) => `Nuevo puzzle (semilla ${seed})`,
@@ -330,7 +330,7 @@ export default function Paths() {
   );
 
   // Continue a 1×1 drag stroke by one cell. Each dragged cell is appended as its
-  // OWN single-cell (1×1) block — NOT merged into one big group. A 1×1 stroke is
+  // OWN single-cell (1×1) block, NOT merged into one big group. A 1×1 stroke is
   // a plain search path, so it must stay a run of singleton blocks: that keeps
   // `blockMode` false (it triggers only on a group bigger than one cell), so the
   // grid labels cells by visit rank (1, 2, 3, …) and colours them by rank rather
@@ -389,7 +389,7 @@ export default function Paths() {
   useEffect(() => {
     // Size changes the cell count, so both path and hints must reset. This is
     // a reset-on-key-change effect that ALSO frees the running race's WASM
-    // solvers (stopRace) — that teardown can't happen during render, so the
+    // solvers (stopRace); that teardown can't happen during render, so the
     // accompanying state resets live here too.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setBlockGroups([]);
@@ -450,7 +450,7 @@ export default function Paths() {
     stopRace();
     const puzzle = getGeneratedPuzzleFramed(size, colors, seed, framed);
     // The single-piece lanes honour the user's hints. A block lane partitions
-    // the whole board and can't pre-pin hint cells, so it runs hint-free — but
+    // the whole board and can't pre-pin hint cells, so it runs hint-free, but
     // that must not strip hints from the OTHER lanes, so give the block solver
     // its own hint-free puzzle clone rather than mutating the shared one.
     puzzle.hints = buildHints(puzzle, hintCells);
@@ -458,8 +458,8 @@ export default function Paths() {
     const useHints = puzzle.hints.length > 0;
     const blockPuzzle = { ...puzzle, hints: [] as typeof puzzle.hints };
     // The engine wants a full-coverage path (it pre-fills hint cells and
-    // skips them). Append any cells the visible path omits — the hints first,
-    // then any stragglers — so every lane's path is a permutation of all n.
+    // skips them). Append any cells the visible path omits (the hints first,
+    // then any stragglers) so every lane's path is a permutation of all n.
     const completePath = (path: Uint16Array): Uint16Array => {
       const seen = new Set(path);
       const full = Array.from(path);
@@ -508,7 +508,7 @@ export default function Paths() {
       // spent per-lane. A per-lane budget meant total synchronous work scaled
       // with lane count (N lanes × 10ms), pinning the main thread every frame
       // and starving the browser of the idle slice it needs to commit a route
-      // change — so clicking a nav link while racing appeared to do nothing.
+      // change, so clicking a nav link while racing appeared to do nothing.
       // One shared budget keeps total work bounded regardless of lane count,
       // leaving the thread responsive enough to navigate away mid-race.
       const FRAME_BUDGET_MS = 8;
@@ -532,7 +532,7 @@ export default function Paths() {
             ...lane,
             report: r,
             // Rank on `attempts` (per-cell fit checks), which is commensurable
-            // across the single-piece and block solvers — unlike `nodes`, which
+            // across the single-piece and block solvers, unlike `nodes`, which
             // counts pieces in one and committed blocks in the other.
             finishedAttempts: r.attempts,
             cells: boardFromEngine(puzzle, solver.board()).cells,

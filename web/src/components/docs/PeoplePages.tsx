@@ -1,7 +1,7 @@
-// Auto-generated researcher pages: /research/people/<slug> — one hub per
+// Auto-generated researcher pages: /research/people/<slug>, one hub per
 // author, listing every page they wrote, grouped by kind. No content file
 // backs these: the profile comes from authors.json, and the list of a
-// person's work is derived entirely from each doc's `author` frontmatter —
+// person's work is derived entirely from each doc's `author` frontmatter,
 // the same mechanic as the topic hubs (TopicPages.tsx), keyed on author
 // instead of topic. The community-gallery index still lives at the real
 // content page /research/people (people.mdx).

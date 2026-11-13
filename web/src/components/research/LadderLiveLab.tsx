@@ -10,8 +10,8 @@ import { FRAME_BUDGET_MS, yieldToBrowser } from "@/lib/useRunWhileVisible";
 // LADDER, run for real. Rung 1: many cheap probes (distinct seeds/scan orders),
 // each given a tiny budget; we keep the ones that reached deepest. Rung 2: those
 // survivors get a bigger budget; keep the best again. Rung 3: the finalists run
-// longest. The deepest start, concentrated on, tends to be the one that finishes
-// — "promote the deepest" beats "restart at random." Every probe is a real engine
+// longest. The deepest start, concentrated on, tends to be the one that finishes:
+// "promote the deepest" beats "restart at random." Every probe is a real engine
 // run; the bars are real depths.
 
 const SIZE = 6;
@@ -36,7 +36,7 @@ const RUNGS = [
 
 const T = {
   en: {
-    title: "Flood, then promote the deepest — live",
+    title: "Flood, then promote the deepest, live",
     intro:
       "Rung 1 fires twelve cheap probes, each a real search with a tiny budget. We keep the six that reached deepest. Rung 2 gives those a bigger budget and keeps three; rung 3 gives the finalists the most. Concentrating effort on the deepest starts, rather than restarting at random, is what lets one of them finish.",
     run: "Run the ladder",
@@ -51,7 +51,7 @@ const T = {
     idle: "Press run to flood the board with probes.",
   },
   fr: {
-    title: "Inonder, puis promouvoir les plus profonds — en direct",
+    title: "Inonder, puis promouvoir les plus profonds, en direct",
     intro:
       "Le palier 1 lance douze sondes bon marché, chacune une vraie recherche à petit budget. On garde les six qui sont allées le plus profond. Le palier 2 leur donne un plus gros budget et en garde trois ; le palier 3 donne le plus aux finalistes. Concentrer l'effort sur les départs les plus profonds, plutôt que de redémarrer au hasard, est ce qui permet à l'un d'eux de finir.",
     run: "Lancer l'échelle",
@@ -66,7 +66,7 @@ const T = {
     idle: "Appuyez pour inonder le plateau de sondes.",
   },
   es: {
-    title: "Inundar, luego promover las más profundas — en vivo",
+    title: "Inundar, luego promover las más profundas, en vivo",
     intro:
       "El peldaño 1 lanza doce sondas económicas, cada una una búsqueda real con un presupuesto mínimo. Nos quedamos con las seis que llegaron más profundo. El peldaño 2 les da un presupuesto mayor y conserva tres; el peldaño 3 les da el máximo a las finalistas. Concentrar el esfuerzo en los arranques más profundos, en lugar de reiniciar al azar, es lo que permite que una de ellas termine.",
     run: "Ejecutar la escalera",

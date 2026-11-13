@@ -2,7 +2,7 @@
 // /research/lab/experiments/by-contribution: an index listing the contribution
 // kinds (with counts) and one hub per kind, each listing the pages that declare
 // that contribution. Route-generated like the topic hubs (TopicPages.tsx): no
-// MDX file backs them — they walk the manifest, filtering on doc.contribution.
+// MDX file backs them; they walk the manifest, filtering on doc.contribution.
 //
 // The `negative` hub is the celebrated dead-end shelf; it is surfaced with its
 // own "What was ruled out" framing so a reader can browse the sound negatives

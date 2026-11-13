@@ -3,7 +3,7 @@
 /**
  * Break-tolerant solver: the same step-able surface, but a mismatch is allowed
  * only at the fixed `break_positions` cells (one each), plus a live `breaks`
- * count. This is the mechanism behind the community record solvers — see
+ * count. This is the mechanism behind the community record solvers; see
  * `break_solver.rs`.
  */
 export class WasmBreakSolver {

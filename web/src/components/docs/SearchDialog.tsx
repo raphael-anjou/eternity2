@@ -1,6 +1,6 @@
 // Research search: a ⌘K dialog over a build-time full-text index. The index
 // (per language) ships as its own chunk and loads the first time the dialog
-// opens — page loads pay nothing. MDX pages are indexed full-text; legacy TSX
+// opens, so page loads pay nothing. MDX pages are indexed full-text; legacy TSX
 // pages contribute title+description until they migrate.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -18,19 +18,19 @@ const T = {
   en: {
     button: "Search",
     placeholder: "Search the research wiki…",
-    empty: "No result — try another word.",
+    empty: "No result. Try another word.",
     hint: "Type to search every research page.",
   },
   fr: {
     button: "Rechercher",
     placeholder: "Chercher dans le wiki…",
-    empty: "Aucun résultat — essayez un autre mot.",
+    empty: "Aucun résultat. Essayez un autre mot.",
     hint: "Tapez pour chercher dans toutes les pages de recherche.",
   },
   es: {
     button: "Buscar",
     placeholder: "Buscar en el wiki…",
-    empty: "Sin resultados — prueba con otra palabra.",
+    empty: "Sin resultados. Prueba con otra palabra.",
     hint: "Escribe para buscar en todas las páginas de investigación.",
   },
 };

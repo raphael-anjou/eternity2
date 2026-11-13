@@ -3,8 +3,8 @@
 //! This is the **canonical** implementation: the website loads it compiled to
 //! WebAssembly, and the from-scratch ports in other languages
 //! (`engine-ports/`) are literal
-//! translations of it. The algorithm — conventions, RNG, generator, the nine
-//! cell-visit orders, the step-able backtracking solver, and the scorer — is
+//! translations of it. The algorithm (conventions, RNG, generator, the nine
+//! cell-visit orders, the step-able backtracking solver, and the scorer) is
 //! described once, language-agnostically, in
 //! `engine-ports/ALGORITHM.md`. If you are new to this code, read that
 //! document alongside these modules; they were written to be read together.
@@ -166,7 +166,7 @@ impl WasmSolver {
 
 /// Break-tolerant solver: the same step-able surface, but a mismatch is allowed
 /// only at the fixed `break_positions` cells (one each), plus a live `breaks`
-/// count. This is the mechanism behind the community record solvers — see
+/// count. This is the mechanism behind the community record solvers; see
 /// `break_solver.rs`.
 #[wasm_bindgen]
 pub struct WasmBreakSolver {

@@ -101,7 +101,7 @@ const POST_EXPORT_OK = new Set([
   // the groups.io API, so these four now validate from the bulk export directly.
   11905, // Jef Bucas wrapper_blackwood permission (from the user's inbox)
   11919, // Benjamin Riotte's 464 announcement, "Record of Eternity2 with 5 hints ?", 2026-07-06
-  11879, // sylvogel's published subgrid-count reference table (the source of published-reference.json), "I built a website that serves as a starter kit...", 2026 — verified firsthand via the groups.io API
+  11879, // sylvogel's published subgrid-count reference table (the source of published-reference.json), "I built a website that serves as a starter kit...", 2026: verified firsthand via the groups.io API
 ]);
 console.log(`== groups.io citations: ${msgCites.size} distinct messages cited`);
 // The archive lives outside the repo (../../research/community-exports), so a clean

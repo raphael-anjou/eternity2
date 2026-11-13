@@ -12,6 +12,7 @@ import {
 import { useLang, useT, type Lang } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import { FamilyLegend, type FamilyMap } from "@/components/research/FamilyLegend";
+import { OPEN_RECORD_SCORE, STRICT_RECORD_SCORE } from "@/data/records-timeline";
 
 // A single glance at the whole gallery: every experiment's best score on one
 // axis, the 470 community ceiling and the 480 target marked. Bars are coloured
@@ -34,8 +35,7 @@ export type ScoreDatum = {
   group?: "explore" | "bench";
 };
 
-const CEILING = 470;
-const STRICT_CEILING = 465; // the strict five-clue community record
+const CEILING = OPEN_RECORD_SCORE;
 const DOMAIN_LO = 420;
 const DOMAIN_HI = 480;
 
@@ -57,45 +57,45 @@ const T = {
   en: {
     title: "Every experiment, by best score",
     intro:
-      "Bars are the best board each method produced; the amber line is the community ceiling (470), the right edge is a full solution (480).",
+      `Bars are the best board each method produced; the amber line is the community ceiling (${OPEN_RECORD_SCORE}), the right edge is a full solution (480).`,
     exploreTitle: "Best boards found",
     exploreNote:
       "Exploratory runs on 8 cores; wall-clock not logged. These are the highest boards each method reached, the numbers the write-ups quote.",
     benchTitle: "On one core, 60 seconds each",
     benchNote:
       "The standardized single-core bench: the DFS and repair studies and the reimplemented engines, every run pinned to one core for sixty seconds. Lower, and directly comparable.",
-    ceiling: "community ceiling 470",
-    strictCeiling: "strict 5-clue record 465",
+    ceiling: `community ceiling ${OPEN_RECORD_SCORE}`,
+    strictCeiling: `strict 5-clue record ${STRICT_RECORD_SCORE}`,
     busy: "Drawing…",
     tip: "/ 480",
   },
   fr: {
     title: "Chaque expérience, par meilleur score",
     intro:
-      "Les barres sont le meilleur plateau produit par chaque méthode ; la ligne ambre est le plafond communautaire (470), le bord droit une solution complète (480).",
+      `Les barres sont le meilleur plateau produit par chaque méthode ; la ligne ambre est le plafond communautaire (${OPEN_RECORD_SCORE}), le bord droit une solution complète (480).`,
     exploreTitle: "Meilleurs plateaux obtenus",
     exploreNote:
       "Exécutions exploratoires sur 8 cœurs ; temps non journalisé. Ce sont les meilleurs plateaux atteints par chaque méthode, les scores cités dans les articles.",
     benchTitle: "Sur un cœur, 60 secondes chacun",
     benchNote:
       "Le banc standardisé mono-cœur : les études DFS et réparation et les moteurs réimplémentés, chaque exécution limitée à un cœur pendant soixante secondes. Plus bas, et directement comparable.",
-    ceiling: "plafond communautaire 470",
-    strictCeiling: "record strict 5 indices 465",
+    ceiling: `plafond communautaire ${OPEN_RECORD_SCORE}`,
+    strictCeiling: `record strict 5 indices ${STRICT_RECORD_SCORE}`,
     busy: "Tracé…",
     tip: "/ 480",
   },
   es: {
     title: "Cada experimento, por mejor puntuación",
     intro:
-      "Las barras son el mejor tablero que produjo cada método; la línea ámbar es el techo de la comunidad (470), el borde derecho una solución completa (480).",
+      `Las barras son el mejor tablero que produjo cada método; la línea ámbar es el techo de la comunidad (${OPEN_RECORD_SCORE}), el borde derecho una solución completa (480).`,
     exploreTitle: "Mejores tableros encontrados",
     exploreNote:
       "Ejecuciones exploratorias en 8 núcleos; tiempo de reloj no registrado. Son los tableros más altos que alcanzó cada método, las cifras que citan los artículos.",
     benchTitle: "En un núcleo, 60 segundos cada uno",
     benchNote:
       "El banco estandarizado de un solo núcleo: los estudios DFS y de reparación y los motores reimplementados, cada ejecución fijada a un núcleo durante sesenta segundos. Más bajo, y directamente comparable.",
-    ceiling: "techo de la comunidad 470",
-    strictCeiling: "récord estricto 5 pistas 465",
+    ceiling: `techo de la comunidad ${OPEN_RECORD_SCORE}`,
+    strictCeiling: `récord estricto 5 pistas ${STRICT_RECORD_SCORE}`,
     busy: "Dibujando…",
     tip: "/ 480",
   },
@@ -172,7 +172,7 @@ function ScorePanel({
                 formatter={(v) => [`${String(v)} ${tip}`, ""]}
               />
               <ReferenceLine
-                x={STRICT_CEILING}
+                x={STRICT_RECORD_SCORE}
                 stroke="#a78bfa"
                 strokeDasharray="4 3"
                 label={{

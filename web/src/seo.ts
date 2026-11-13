@@ -111,12 +111,12 @@ const PAGES: Record<string, Dict<Entry>> = {
     en: {
       title: "Play Eternity II online" + SUFFIX,
       description:
-        "Play the Eternity II puzzle online, free and in your browser — no app, no download. Solve one by hand, watch a real solver run at a million steps a second, or design its search path.",
+        "Play the Eternity II puzzle online, free and in your browser: no app, no download. Solve one by hand, watch a real solver run at a million steps a second, or design its search path.",
     },
     fr: {
       title: "Jouer à Eternity II en ligne" + SUFFIX,
       description:
-        "Jouez au puzzle Eternity II en ligne, gratuitement dans votre navigateur — sans appli ni téléchargement. Résolvez-en un à la main, regardez un vrai solveur à un million d'étapes par seconde, ou dessinez son parcours.",
+        "Jouez au puzzle Eternity II en ligne, gratuitement dans votre navigateur, sans appli ni téléchargement. Résolvez-en un à la main, regardez un vrai solveur à un million d'étapes par seconde, ou dessinez son parcours.",
     },
     es: {
       title: "Jugar a Eternity II en línea" + SUFFIX,
@@ -187,7 +187,7 @@ const PAGES: Record<string, Dict<Entry>> = {
     en: {
       title: "How to solve Eternity II with a computer" + SUFFIX,
       description:
-        "How computers attack Eternity II — depth-first search, backtracking, the exponential wall and the color/size difficulty peak — with live measurements.",
+        "How computers attack Eternity II (depth-first search, backtracking, the exponential wall and the color/size difficulty peak) with live measurements.",
     },
     fr: {
       title: "Comment résoudre Eternity II par ordinateur" + SUFFIX,
@@ -234,7 +234,7 @@ const PAGES: Record<string, Dict<Entry>> = {
         "Los algoritmos con nombre creados para elevar la puntuación de Eternity II: PALIMPSEST (463), KEYRING (460), GAUNTLET (458) y más. Cada idea, su resultado y las preguntas abiertas, con tableros verificados.",
     },
   },
-  // "border-balance" migrated to web/content/research/why/border-balance.mdx —
+  // "border-balance" migrated to web/content/research/why/border-balance.mdx;
   // MDX pages carry their SEO meta in frontmatter.
   viewer: {
     en: {
@@ -288,11 +288,11 @@ const PAGE_FAQ: Partial<Record<keyof typeof PAGES, Dict<QA[]>>> = {
       },
       {
         q: "How many pieces does Eternity II have?",
-        a: "256 square pieces, each with a colored half-motif on all four edges, drawn from 22 different colors/motifs. They fill a 16×16 grid — 480 internal edges that must all match.",
+        a: "256 square pieces, each with a colored half-motif on all four edges, drawn from 22 different colors/motifs. They fill a 16×16 grid: 480 internal edges that must all match.",
       },
       {
         q: "Why is Eternity II so hard?",
-        a: "The number of ways to arrange the pieces is about 1.115 × 10^557 — vastly more than the atoms in the observable universe. No algorithm can check them all, and the puzzle was deliberately designed to resist brute-force computer search.",
+        a: "The number of ways to arrange the pieces is about 1.115 × 10^557, vastly more than the atoms in the observable universe. No algorithm can check them all, and the puzzle was deliberately designed to resist brute-force computer search.",
       },
     ],
     fr: [
@@ -306,7 +306,7 @@ const PAGE_FAQ: Partial<Record<keyof typeof PAGES, Dict<QA[]>>> = {
       },
       {
         q: "Pourquoi Eternity II est-il si difficile ?",
-        a: "Le nombre d'arrangements possibles est d'environ 1,115 × 10^557 — bien plus que le nombre d'atomes dans l'univers observable. Aucun algorithme ne peut tous les vérifier, et le puzzle a été conçu pour résister à la recherche par force brute.",
+        a: "Le nombre d'arrangements possibles est d'environ 1,115 × 10^557, bien plus que le nombre d'atomes dans l'univers observable. Aucun algorithme ne peut tous les vérifier, et le puzzle a été conçu pour résister à la recherche par force brute.",
       },
     ],
     es: [
@@ -372,7 +372,7 @@ const PAGE_FAQ: Partial<Record<keyof typeof PAGES, Dict<QA[]>>> = {
     en: [
       {
         q: "Is Eternity II a scam?",
-        a: "No. It was a genuine contest with a real, escrowed $2,000,000 prize. The prize simply expired unclaimed in 2010 because no one found a complete solution in time — the puzzle is extraordinarily hard, not rigged.",
+        a: "No. It was a genuine contest with a real, escrowed $2,000,000 prize. The prize simply expired unclaimed in 2010 because no one found a complete solution in time. The puzzle is extraordinarily hard, not rigged.",
       },
       {
         q: "Does Eternity II have a solution?",
@@ -435,7 +435,7 @@ function faqLd(pageKey: keyof typeof PAGES, lang: Lang) {
 
 // Pages that are genuine in-browser applications, not articles. A
 // WebApplication node lets them qualify as software/app results and advertise
-// that they run free in the browser — the intent behind "eternity 2 puzzle
+// that they run free in the browser, the intent behind "eternity 2 puzzle
 // online" and the tool queries. Values are schema.org applicationCategory terms.
 const PAGE_APP: Partial<Record<keyof typeof PAGES, string>> = {
   playground: "GameApplication",

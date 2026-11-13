@@ -21,7 +21,7 @@ const file = path.resolve(here, "..", "build", "client", "__spa-fallback.html");
 
 if (!existsSync(file)) {
   // Not fatal: a future React Router version may rename or drop the fallback.
-  console.log("harden-spa-fallback: __spa-fallback.html not found — skipping");
+  console.log("harden-spa-fallback: __spa-fallback.html not found: skipping");
   process.exit(0);
 }
 

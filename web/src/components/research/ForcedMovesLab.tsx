@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 // "No forced moves," made live. We run the real engine a few placements into a
 // small puzzle, then point at the next empty cell and ask the real legality test
-// how many distinct pieces could go there. The answer is essentially never 1 —
+// how many distinct pieces could go there. The answer is essentially never 1:
 // the green set in the supply stays large. A solver would love a forced move (a
 // cell with exactly one candidate, free to place); Eternity II almost never
 // grants one. Step forward and watch the candidate count refuse to collapse.
@@ -26,49 +26,49 @@ interface Built {
 
 const T = {
   en: {
-    title: "Count the choices at the next cell — live",
+    title: "Count the choices at the next cell, live",
     intro:
-      "We place a few pieces with the real engine, then point at the next empty cell (red) and count, with the real legality test, how many unused pieces could legally sit there. A 'forced move' would be a count of exactly 1 — free to place, no branching. Step forward: the count almost never drops to 1.",
+      "We place a few pieces with the real engine, then point at the next empty cell (red) and count, with the real legality test, how many unused pieces could legally sit there. A 'forced move' would be a count of exactly 1: free to place, no branching. Step forward: the count almost never drops to 1.",
     frontierCount: (n: number) => `${n} pieces fit the red cell`,
     forced: "a forced move (count = 1)",
-    notForced: "no forced move here — the search must branch",
+    notForced: "no forced move here; the search must branch",
     step: "Place next",
     reset: "Reset",
     newPuzzle: "New puzzle",
     supply: "Piece supply",
     supplyHint: "Green = legal on the red cell now. Dimmed = already placed.",
     loading: "Loading the engine…",
-    note: "On the real 16×16 the same holds across the whole interior: every piece has between 73 and 137 legal right-hand neighbours and not one cell is ever pinned to a single option. Lots of local freedom, almost no global consistency — which is exactly what makes the search so wide. Counts here are the live engine's legality test on a freshly generated puzzle.",
+    note: "On the real 16×16 the same holds across the whole interior: every piece has between 73 and 137 legal right-hand neighbours and not one cell is ever pinned to a single option. Lots of local freedom, almost no global consistency, which is exactly what makes the search so wide. Counts here are the live engine's legality test on a freshly generated puzzle.",
   },
   fr: {
-    title: "Comptez les choix à la case suivante — en direct",
+    title: "Comptez les choix à la case suivante, en direct",
     intro:
-      "On pose quelques pièces avec le vrai moteur, puis on pointe la prochaine case vide (rouge) et on compte, avec le vrai test de légalité, combien de pièces inutilisées pourraient y aller. Un « coup forcé » serait un compte de 1 exactement — posable sans embranchement. Avancez : le compte ne descend presque jamais à 1.",
+      "On pose quelques pièces avec le vrai moteur, puis on pointe la prochaine case vide (rouge) et on compte, avec le vrai test de légalité, combien de pièces inutilisées pourraient y aller. Un « coup forcé » serait un compte de 1 exactement : posable sans embranchement. Avancez : le compte ne descend presque jamais à 1.",
     frontierCount: (n: number) => `${n} pièces conviennent à la case rouge`,
     forced: "un coup forcé (compte = 1)",
-    notForced: "aucun coup forcé ici — la recherche doit se ramifier",
+    notForced: "aucun coup forcé ici ; la recherche doit se ramifier",
     step: "Poser la suivante",
     reset: "Réinitialiser",
     newPuzzle: "Nouveau tirage",
     supply: "Réserve de pièces",
     supplyHint: "Vert = légal sur la case rouge. Estompé = déjà posée.",
     loading: "Chargement du moteur…",
-    note: "Sur le vrai 16×16, c'est pareil sur tout l'intérieur : chaque pièce a entre 73 et 137 voisines droites légales et aucune case n'est jamais réduite à une seule option. Beaucoup de liberté locale, presque aucune cohérence globale — ce qui rend la recherche si large. Les comptes ici sont le test de légalité du moteur en direct sur un puzzle fraîchement généré.",
+    note: "Sur le vrai 16×16, c'est pareil sur tout l'intérieur : chaque pièce a entre 73 et 137 voisines droites légales et aucune case n'est jamais réduite à une seule option. Beaucoup de liberté locale, presque aucune cohérence globale, ce qui rend la recherche si large. Les comptes ici sont le test de légalité du moteur en direct sur un puzzle fraîchement généré.",
   },
   es: {
-    title: "Cuenta las opciones en la siguiente celda — en directo",
+    title: "Cuenta las opciones en la siguiente celda, en directo",
     intro:
-      "Colocamos unas cuantas piezas con el motor real, luego apuntamos a la siguiente celda vacía (roja) y contamos, con la prueba de legalidad real, cuántas piezas sin usar podrían ubicarse ahí de forma legal. Un «movimiento forzado» sería un recuento de exactamente 1 — colocable sin ramificación. Avanza: el recuento casi nunca baja a 1.",
+      "Colocamos unas cuantas piezas con el motor real, luego apuntamos a la siguiente celda vacía (roja) y contamos, con la prueba de legalidad real, cuántas piezas sin usar podrían ubicarse ahí de forma legal. Un «movimiento forzado» sería un recuento de exactamente 1: colocable sin ramificación. Avanza: el recuento casi nunca baja a 1.",
     frontierCount: (n: number) => `${n} piezas encajan en la celda roja`,
     forced: "un movimiento forzado (recuento = 1)",
-    notForced: "aquí no hay movimiento forzado — la búsqueda debe ramificarse",
+    notForced: "aquí no hay movimiento forzado; la búsqueda debe ramificarse",
     step: "Colocar la siguiente",
     reset: "Reiniciar",
     newPuzzle: "Nuevo puzzle",
     supply: "Reserva de piezas",
     supplyHint: "Verde = legal en la celda roja ahora. Atenuada = ya colocada.",
     loading: "Cargando el motor…",
-    note: "En el 16×16 real ocurre lo mismo en todo el interior: cada pieza tiene entre 73 y 137 vecinas a la derecha legales y ninguna celda queda nunca reducida a una sola opción. Mucha libertad local, casi ninguna coherencia global — que es justo lo que hace la búsqueda tan amplia. Los recuentos aquí son la prueba de legalidad del motor en directo sobre un puzzle recién generado.",
+    note: "En el 16×16 real ocurre lo mismo en todo el interior: cada pieza tiene entre 73 y 137 vecinas a la derecha legales y ninguna celda queda nunca reducida a una sola opción. Mucha libertad local, casi ninguna coherencia global, que es justo lo que hace la búsqueda tan amplia. Los recuentos aquí son la prueba de legalidad del motor en directo sobre un puzzle recién generado.",
   },
 };
 

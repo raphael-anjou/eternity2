@@ -14,7 +14,7 @@ import { HintBoardTile } from "./HintBoard";
 // A gallery of the hint geometries the study measures, all rendered from the one
 // shared HintBoard primitive so the visual language is identical. A toggle shows
 // the "free-score floor" (banked seams) so the reader can see, at a glance, which
-// layouts hand the solver correct edges for nothing — the confound the count
+// layouts hand the solver correct edges for nothing: the confound the count
 // axis has to correct for.
 
 const N = 16;
@@ -37,19 +37,19 @@ const T = {
     showFloor: "Show free-score seams",
     hideFloor: "Hide free-score seams",
     caption:
-      "Ten geometries, one board. Toggle the seams to see the free-score floor: clustered layouts bank a pile of guaranteed-correct edges just by being pinned next to each other, while a spread layout banks none. That floor is why a raw score comparison flatters clustering — and why the study measures reached depth and solved-rate instead.",
+      "Ten geometries, one board. Toggle the seams to see the free-score floor: clustered layouts bank a pile of guaranteed-correct edges just by being pinned next to each other, while a spread layout banks none. That floor is why a raw score comparison flatters clustering, and why the study measures reached depth and solved-rate instead.",
   },
   fr: {
     showFloor: "Afficher les arêtes gratuites",
     hideFloor: "Masquer les arêtes gratuites",
     caption:
-      "Dix géométries, un plateau. Activez les arêtes pour voir le plancher de score gratuit : les dispositions groupées engrangent une pile d'arêtes garanties correctes simplement en étant épinglées côte à côte, alors qu'une disposition dispersée n'en engrange aucune. Ce plancher explique pourquoi une comparaison de score brute flatte le regroupement — et pourquoi l'étude mesure plutôt la profondeur atteinte et le taux de résolution.",
+      "Dix géométries, un plateau. Activez les arêtes pour voir le plancher de score gratuit : les dispositions groupées engrangent une pile d'arêtes garanties correctes simplement en étant épinglées côte à côte, alors qu'une disposition dispersée n'en engrange aucune. Ce plancher explique pourquoi une comparaison de score brute flatte le regroupement, et pourquoi l'étude mesure plutôt la profondeur atteinte et le taux de résolution.",
   },
   es: {
     showFloor: "Mostrar aristas gratis",
     hideFloor: "Ocultar aristas gratis",
     caption:
-      "Diez geometrías, un tablero. Activa las aristas para ver el suelo de puntuación gratis: las disposiciones agrupadas acumulan un montón de aristas garantizadas como correctas solo por estar fijadas una junto a otra, mientras que una disposición dispersa no acumula ninguna. Ese suelo explica por qué una comparación de puntuación bruta favorece al agrupamiento — y por qué el estudio mide en su lugar la profundidad alcanzada y la tasa de resolución.",
+      "Diez geometrías, un tablero. Activa las aristas para ver el suelo de puntuación gratis: las disposiciones agrupadas acumulan un montón de aristas garantizadas como correctas solo por estar fijadas una junto a otra, mientras que una disposición dispersa no acumula ninguna. Ese suelo explica por qué una comparación de puntuación bruta favorece al agrupamiento, y por qué el estudio mide en su lugar la profundidad alcanzada y la tasa de resolución.",
   },
 };
 

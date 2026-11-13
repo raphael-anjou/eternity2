@@ -32,7 +32,7 @@ const T = {
   en: {
     radius: "Region radius",
     cellsChecked: "cells checked",
-    proven: "no rearrangement scores higher — proven",
+    proven: "no rearrangement scores higher, proven",
     caption:
       "The best board, with its remaining mismatches marked. Grow the region and integer programming proves that every way of re-placing the pieces inside it does no better. The good boards are frozen in place.",
     play: "Play",
@@ -42,7 +42,7 @@ const T = {
   fr: {
     radius: "Rayon de la région",
     cellsChecked: "cellules vérifiées",
-    proven: "aucun réarrangement ne fait mieux — prouvé",
+    proven: "aucun réarrangement ne fait mieux, prouvé",
     caption:
       "Le meilleur plateau, avec ses derniers défauts marqués. Agrandissez la région et la programmation en nombres entiers prouve que toute façon de replacer les pièces à l'intérieur ne fait pas mieux. Les bons plateaux sont figés.",
     play: "Lecture",
@@ -52,7 +52,7 @@ const T = {
   es: {
     radius: "Radio de la región",
     cellsChecked: "celdas comprobadas",
-    proven: "ninguna reordenación puntúa más alto — demostrado",
+    proven: "ninguna reordenación puntúa más alto, demostrado",
     caption:
       "El mejor tablero, con sus desajustes restantes marcados. Amplía la región y la programación entera demuestra que ninguna forma de recolocar las piezas de su interior lo mejora. Los buenos tableros están congelados en su sitio.",
     play: "Reproducir",

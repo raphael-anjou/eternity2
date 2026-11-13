@@ -10,9 +10,9 @@ import {
 import refData from "@/data/reference-table.json";
 import publishedData from "@/data/published-reference.json";
 
-const DASH = "—"; // em dash, for genuinely-N/A cells (e.g. the encircle "empty" column)
+const DASH = "–"; // en dash, for genuinely-N/A cells (e.g. the encircle "empty" column)
 
-// GitHub article this table is computed from — the "research/" topic that holds
+// GitHub article this table is computed from: the "research/" topic that holds
 // the article, the reproducible Rust generator, and the committed results JSON.
 const ARTICLE_URL =
   "https://github.com/raphael-anjou/eternity2/tree/main/research/topics/subgrid-placement-counts";
@@ -60,24 +60,24 @@ function NumCell({ computed, published }: { computed: number | null; published?:
 }
 
 const ROW_LABELS: Record<string, Dict<string>> = {
-  "2x2-tl": { en: "2×2 — top-left corner", fr: "2×2 — coin haut-gauche", es: "2×2 — esquina superior izquierda" },
-  "2x2-tr": { en: "2×2 — top-right corner", fr: "2×2 — coin haut-droit", es: "2×2 — esquina superior derecha" },
-  "2x2-br": { en: "2×2 — bottom-right corner", fr: "2×2 — coin bas-droit", es: "2×2 — esquina inferior derecha" },
-  "2x2-bl": { en: "2×2 — bottom-left corner", fr: "2×2 — coin bas-gauche", es: "2×2 — esquina inferior izquierda" },
-  "2x2-side": { en: "2×2 — on a side", fr: "2×2 — sur un bord", es: "2×2 — en un borde" },
-  "2x2-middle": { en: "2×2 — in the middle", fr: "2×2 — au milieu", es: "2×2 — en el centro" },
-  "3x3-tl": { en: "3×3 — top-left corner", fr: "3×3 — coin haut-gauche", es: "3×3 — esquina superior izquierda" },
-  "3x3-tr": { en: "3×3 — top-right corner", fr: "3×3 — coin haut-droit", es: "3×3 — esquina superior derecha" },
-  "3x3-br": { en: "3×3 — bottom-right corner", fr: "3×3 — coin bas-droit", es: "3×3 — esquina inferior derecha" },
-  "3x3-bl": { en: "3×3 — bottom-left corner", fr: "3×3 — coin bas-gauche", es: "3×3 — esquina inferior izquierda" },
-  "3x3-side": { en: "3×3 — on a side", fr: "3×3 — sur un bord", es: "3×3 — en un borde" },
-  "3x3-middle": { en: "3×3 — in the middle", fr: "3×3 — au milieu", es: "3×3 — en el centro" },
-  "3x3-encircle": { en: "3×3 — encircling the centre clue", fr: "3×3 — autour de l'indice central", es: "3×3 — rodeando la pista central" },
-  "4x4-tl": { en: "4×4 — top-left corner", fr: "4×4 — coin haut-gauche", es: "4×4 — esquina superior izquierda" },
-  "4x4-tr": { en: "4×4 — top-right corner", fr: "4×4 — coin haut-droit", es: "4×4 — esquina superior derecha" },
-  "4x4-br": { en: "4×4 — bottom-right corner", fr: "4×4 — coin bas-droit", es: "4×4 — esquina inferior derecha" },
-  "4x4-bl": { en: "4×4 — bottom-left corner", fr: "4×4 — coin bas-gauche", es: "4×4 — esquina inferior izquierda" },
-  "4x4-side": { en: "4×4 — on a side", fr: "4×4 — sur un bord", es: "4×4 — en un borde" },
+  "2x2-tl": { en: "2×2, top-left corner", fr: "2×2, coin haut-gauche", es: "2×2, esquina superior izquierda" },
+  "2x2-tr": { en: "2×2, top-right corner", fr: "2×2, coin haut-droit", es: "2×2, esquina superior derecha" },
+  "2x2-br": { en: "2×2, bottom-right corner", fr: "2×2, coin bas-droit", es: "2×2, esquina inferior derecha" },
+  "2x2-bl": { en: "2×2, bottom-left corner", fr: "2×2, coin bas-gauche", es: "2×2, esquina inferior izquierda" },
+  "2x2-side": { en: "2×2, on a side", fr: "2×2, sur un bord", es: "2×2, en un borde" },
+  "2x2-middle": { en: "2×2, in the middle", fr: "2×2, au milieu", es: "2×2, en el centro" },
+  "3x3-tl": { en: "3×3, top-left corner", fr: "3×3, coin haut-gauche", es: "3×3, esquina superior izquierda" },
+  "3x3-tr": { en: "3×3, top-right corner", fr: "3×3, coin haut-droit", es: "3×3, esquina superior derecha" },
+  "3x3-br": { en: "3×3, bottom-right corner", fr: "3×3, coin bas-droit", es: "3×3, esquina inferior derecha" },
+  "3x3-bl": { en: "3×3, bottom-left corner", fr: "3×3, coin bas-gauche", es: "3×3, esquina inferior izquierda" },
+  "3x3-side": { en: "3×3, on a side", fr: "3×3, sur un bord", es: "3×3, en un borde" },
+  "3x3-middle": { en: "3×3, in the middle", fr: "3×3, au milieu", es: "3×3, en el centro" },
+  "3x3-encircle": { en: "3×3, encircling the centre clue", fr: "3×3, autour de l'indice central", es: "3×3, rodeando la pista central" },
+  "4x4-tl": { en: "4×4, top-left corner", fr: "4×4, coin haut-gauche", es: "4×4, esquina superior izquierda" },
+  "4x4-tr": { en: "4×4, top-right corner", fr: "4×4, coin haut-droit", es: "4×4, esquina superior derecha" },
+  "4x4-br": { en: "4×4, bottom-right corner", fr: "4×4, coin bas-droit", es: "4×4, esquina inferior derecha" },
+  "4x4-bl": { en: "4×4, bottom-left corner", fr: "4×4, coin bas-gauche", es: "4×4, esquina inferior izquierda" },
+  "4x4-side": { en: "4×4, on a side", fr: "4×4, sur un bord", es: "4×4, en un borde" },
 };
 
 const T = {

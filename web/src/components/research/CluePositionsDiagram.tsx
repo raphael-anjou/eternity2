@@ -10,7 +10,7 @@ import { useIsClient } from "@/lib/utils";
 const N = 16;
 const CELL = 20;
 
-// (row, col, label, piece) — 0-indexed from the bucas squares.
+// (row, col, label, piece), 0-indexed from the bucas squares.
 const CLUES: Array<{ r: number; c: number; sq: string; piece: number; center?: boolean }> = [
   { r: 8, c: 7, sq: "I8", piece: 139, center: true },
   { r: 2, c: 2, sq: "C3", piece: 208 },

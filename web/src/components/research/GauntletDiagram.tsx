@@ -5,7 +5,7 @@ import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // GAUNTLET, schematically. One beam search run in a single fill direction always
 // drifts toward the same region of board-space. GAUNTLET runs several fill
-// directions at once — here four, sweeping from different corners — so the
+// directions at once (here four, sweeping from different corners) so the
 // parallel searches settle into *different* regions instead of all colliding on
 // the same one. The four mini-boards fill from their own corner; a coloured dot
 // marks where each lands, and the dots are deliberately spread apart.
@@ -36,7 +36,7 @@ const T = {
     many: "four directions → four regions",
     landings: "where each search lands in board-space",
     caption:
-      "A single scan order keeps converging to one region. GAUNTLET sweeps nine scan orders, so the runs settle in different regions — here four of the nine, fanning from different corners. More of the landscape covered per sweep.",
+      "A single scan order keeps converging to one region. GAUNTLET sweeps nine scan orders, so the runs settle in different regions: here four of the nine, fanning from different corners. More of the landscape covered per sweep.",
     busy: "Loading…",
   },
   fr: {
@@ -45,7 +45,7 @@ const T = {
     many: "quatre directions → quatre régions",
     landings: "où chaque recherche atterrit dans l'espace des plateaux",
     caption:
-      "Un seul ordre de parcours converge toujours vers une région. GAUNTLET balaye neuf ordres, si bien que les exécutions se posent dans des régions différentes — ici quatre des neuf, en éventail depuis différents coins. Davantage du paysage couvert par balayage.",
+      "Un seul ordre de parcours converge toujours vers une région. GAUNTLET balaye neuf ordres, si bien que les exécutions se posent dans des régions différentes : ici quatre des neuf, en éventail depuis différents coins. Davantage du paysage couvert par balayage.",
     busy: "Chargement…",
   },
   es: {
@@ -54,7 +54,7 @@ const T = {
     many: "cuatro direcciones → cuatro regiones",
     landings: "dónde aterriza cada búsqueda en el espacio de tableros",
     caption:
-      "Un único orden de recorrido siempre converge hacia una misma región. GAUNTLET barre nueve órdenes de recorrido, de modo que las ejecuciones se asientan en regiones distintas — aquí cuatro de las nueve, abriéndose en abanico desde distintas esquinas. Se cubre más del paisaje por cada barrido.",
+      "Un único orden de recorrido siempre converge hacia una misma región. GAUNTLET barre nueve órdenes de recorrido, de modo que las ejecuciones se asientan en regiones distintas: aquí cuatro de las nueve, abriéndose en abanico desde distintas esquinas. Se cubre más del paisaje por cada barrido.",
     busy: "Cargando…",
   },
 };

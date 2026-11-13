@@ -5,7 +5,7 @@
 // Pattern, in any component:
 //   const t = useT({ en: { title: "Hello" }, fr: { title: "Bonjour" }, es: { title: "Hola" } });
 //   <h1>{t.title}</h1>
-// Dictionaries may contain strings or JSX fragments. Only `en` is required — a
+// Dictionaries may contain strings or JSX fragments. Only `en` is required: a
 // dictionary that omits a language falls back to English for that language, so a
 // new language can be added incrementally (the UI reads English until each
 // dictionary gains its branch) without a flag-day edit across every component.
@@ -21,7 +21,7 @@ import { track } from "@/lib/analytics";
 // language is ideally a one-line change here plus its content: everything that
 // iterates languages (sitemap, hreflang, the picker, the manifest builder)
 // derives from LANGS, and every dictionary that hasn't been translated yet
-// falls back to English. English MUST stay first — it is the canonical tree
+// falls back to English. English MUST stay first: it is the canonical tree
 // (served at the URL root) and the fallback every other language resolves to.
 
 /** A language definition. `label` is what the picker button shows; `hint` is
@@ -40,7 +40,7 @@ export interface LangDef {
 
 export type Lang = "en" | "fr" | "es";
 
-/** English — the canonical language, at the URL root, and the fallback every
+/** English: the canonical language, at the URL root, and the fallback every
  *  other language resolves to. Named so it can be the default without a
  *  non-null assertion on LANGS[0]. */
 const EN: LangDef = { code: "en", prefix: "", label: "EN", native: "English" };
@@ -54,7 +54,7 @@ export const LANGS: readonly LangDef[] = [
 /** All language codes, English first. */
 export const LANG_CODES: readonly Lang[] = LANGS.map((l) => l.code);
 
-/** The non-English languages, in registry order — the ones that carry a URL
+/** The non-English languages, in registry order: the ones that carry a URL
  *  prefix and a translation tree. */
 export const PREFIXED_LANGS: readonly LangDef[] = LANGS.filter((l) => l.prefix !== "");
 
@@ -129,7 +129,7 @@ export function useLang(): { lang: Lang } {
 }
 
 // A dictionary supplies English (required) and any subset of the other
-// languages. A missing language reads English — so a partially-translated
+// languages. A missing language reads English, so a partially-translated
 // component still renders, in English, for that language.
 export type Dict<T> = { en: T } & Partial<Record<Lang, T>>;
 
@@ -142,7 +142,7 @@ export function useT<T>(dict: Dict<T>): T {
 
 /** The non-hook form of useT: resolve a dictionary to a language with the same
  *  English fallback, when the active language is already known (a route `meta`
- *  function, a lookup-table cell, a `.map` callback — anywhere outside a
+ *  function, a lookup-table cell, a `.map` callback, anywhere outside a
  *  component render where useContext isn't available). English is required on
  *  the dictionary and is the fallback for any untranslated language. */
 export function pick<T>(dict: Dict<T>, lang: Lang): T {

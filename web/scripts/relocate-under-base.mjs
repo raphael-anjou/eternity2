@@ -38,7 +38,7 @@ if (!base) process.exit(0); // root deploy: nothing to relocate
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.resolve(here, "..", "build", "client");
 if (!existsSync(outDir)) {
-  console.error(`relocate-under-base: ${outDir} not found — did the build run?`);
+  console.error(`relocate-under-base: ${outDir} not found: did the build run?`);
   process.exit(1);
 }
 

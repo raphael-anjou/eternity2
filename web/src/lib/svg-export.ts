@@ -7,7 +7,7 @@
 // The board SVG references its motif artwork via <use href="#e2m-N">, but those
 // <defs> live in a separate global <svg> (see MotifDefs). A standalone export
 // must carry that artwork with it, so we resolve every referenced symbol from
-// the document and inline a <defs> into the clone — otherwise only the
+// the document and inline a <defs> into the clone; otherwise only the
 // background rect survives and the board comes out blank.
 
 import { downloadBlob } from "./pieceSvg";
@@ -57,7 +57,7 @@ function serialize(svg: SVGSVGElement): string {
   return new XMLSerializer().serializeToString(clone);
 }
 
-/** Stable 8-char hex hash (FNV-1a) — identical boards collide, edits don't. */
+/** Stable 8-char hex hash (FNV-1a): identical boards collide, edits don't. */
 function shortHash(s: string): string {
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) {

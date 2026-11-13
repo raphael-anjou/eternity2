@@ -67,7 +67,7 @@ console.log(`  ${LANG} dictionary branches:   ${totalLang}`);
 console.log(`  coverage: ${totalFr ? Math.round((totalLang / totalFr) * 100) : 100}%\n`);
 
 if (missing.length === 0) {
-  console.log(`every fr dictionary has a matching ${LANG} sibling — coverage complete.`);
+  console.log(`every fr dictionary has a matching ${LANG} sibling: coverage complete.`);
 } else {
   console.log(`${missing.length} file(s) have fr dictionaries missing a ${LANG} sibling:`);
   for (const m of missing.sort((a, b) => b.fr - b.lang - (a.fr - a.lang))) {

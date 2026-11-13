@@ -9,6 +9,7 @@ import { BoardSvg } from "@/components/board/BoardSvg";
 import { KNOWN_BOARDS } from "@/data/known-boards";
 import { decodeBucas, parseParams, toOurParams } from "@/lib/bucas";
 import { useT } from "@/i18n";
+import { OPEN_RECORD_SCORE, STRICT_RECORD_SCORE } from "@/data/records-timeline";
 
 // The record board we lead with: Blackwood's 470, the standing open record on
 // the official puzzle. Decoded once for a static preview; the viewer link
@@ -17,7 +18,7 @@ const RECORD_ID = "Joshua_Blackwood_470";
 
 const T = {
   en: {
-    dateStamp: "As of July 2026",
+    dateStamp: "As of November 2026",
     title: "Has Eternity II been solved?",
     answer: (
       <>
@@ -28,7 +29,7 @@ const T = {
       </>
     ),
     recordLabel: "Current record",
-    recordScore: "470 / 480",
+    recordScore: `${OPEN_RECORD_SCORE} / 480`,
     recordWho: "Joshua Blackwood, 2021",
     recordNote: (
       <>
@@ -55,7 +56,7 @@ const T = {
       },
       {
         term: "Boards using the five optional clues are tracked apart.",
-        desc: "Tomy sold four clue puzzles that each fixed one more piece. The best board respecting all five clue placements is 465 (Benjamin Riotte's distributed fleet, August 2026), which took the line past his own 464 and Bruno Gauthier's 460.",
+        desc: `Tomy sold four clue puzzles that each fixed one more piece. The best board respecting all five clue placements scores ${STRICT_RECORD_SCORE} of 480, on a line that moved several times in 2026 after Bruno Gauthier's 460 had stood since 2023.`,
       },
     ],
     notCountTitle: "About those “480 solved” boards online",
@@ -86,7 +87,7 @@ const T = {
     ctaAlgorithms: "How solvers attack it",
   },
   fr: {
-    dateStamp: "À jour en juillet 2026",
+    dateStamp: "À jour en novembre 2026",
     title: "Eternity II a-t-il été résolu ?",
     answer: (
       <>
@@ -97,7 +98,7 @@ const T = {
       </>
     ),
     recordLabel: "Record actuel",
-    recordScore: "470 / 480",
+    recordScore: `${OPEN_RECORD_SCORE} / 480`,
     recordWho: "Joshua Blackwood, 2021",
     recordNote: (
       <>
@@ -125,7 +126,7 @@ const T = {
       },
       {
         term: "Les plateaux qui respectent les cinq indices sont suivis à part.",
-        desc: "Tomy a vendu quatre puzzles indices, fixant chacun une pièce de plus. Le meilleur plateau respectant les cinq indices est 465 (la flotte distribuée de Benjamin Riotte, août 2026), qui a porté la ligne au-delà de son propre 464 et du 460 de Bruno Gauthier.",
+        desc: `Tomy a vendu quatre puzzles indices, fixant chacun une pièce de plus. Le meilleur plateau respectant les cinq indices atteint ${STRICT_RECORD_SCORE} sur 480, sur une lignée qui a bougé plusieurs fois en 2026, après un 460 de Bruno Gauthier qui tenait depuis 2023.`,
       },
     ],
     notCountTitle: "À propos de ces plateaux « 480 résolus » que l'on trouve en ligne",
@@ -159,7 +160,7 @@ const T = {
     ctaAlgorithms: "Comment les solveurs s'y attaquent",
   },
   es: {
-    dateStamp: "Actualizado en julio de 2026",
+    dateStamp: "Actualizado en noviembre de 2026",
     title: "¿Se ha resuelto Eternity II?",
     answer: (
       <>
@@ -170,7 +171,7 @@ const T = {
       </>
     ),
     recordLabel: "Récord actual",
-    recordScore: "470 / 480",
+    recordScore: `${OPEN_RECORD_SCORE} / 480`,
     recordWho: "Joshua Blackwood, 2021",
     recordNote: (
       <>
@@ -198,7 +199,7 @@ const T = {
       },
       {
         term: "Los tableros que usan las cinco pistas opcionales se contabilizan aparte.",
-        desc: "Tomy vendió cuatro puzzles de pista que fijaban cada uno una pieza más. El mejor tablero que respeta las cinco colocaciones de pista es 465 (la flota distribuida de Benjamin Riotte, agosto de 2026), que llevó la línea más allá de su propio 464 y del 460 de Bruno Gauthier.",
+        desc: `Tomy vendió cuatro puzzles de pista que fijaban cada uno una pieza más. El mejor tablero que respeta las cinco colocaciones de pista llega a ${STRICT_RECORD_SCORE} sobre 480, en una línea que se movió varias veces en 2026, después de un 460 de Bruno Gauthier que se mantenía desde 2023.`,
       },
     ],
     notCountTitle: "Sobre esos tableros «480 resueltos» que circulan por internet",

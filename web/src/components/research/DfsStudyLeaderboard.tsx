@@ -5,6 +5,7 @@ import { FamilyLegend, FamilyTag } from "@/components/research/FamilyLegend";
 import { VariantScoreSpread, ViewToggle } from "@/components/research/VariantScoreSpread";
 import { formatKM } from "@/lib/format";
 import data from "@/data/dfs-study.json";
+import { STRICT_RECORD_SCORE } from "@/data/records-timeline";
 
 // The DFS-study results, rendered from the committed run data
 // (web/src/data/dfs-study.json, derived from the experiment's results.jsonl by
@@ -12,12 +13,12 @@ import data from "@/data/dfs-study.json";
 // never drift from what was measured.
 //
 // Three pieces:
-//   1. the leaderboard — mean score per variant over ten corner-pinned
+//   1. the leaderboard: mean score per variant over ten corner-pinned
 //      instances, coloured by FAMILY (identity, never rank), family also named
 //      in the label so colour is never the only signal;
-//   2. the raised-stats panel — max depth reached and median node throughput,
+//   2. the raised-stats panel: max depth reached and median node throughput,
 //      the axes this study foregrounds (node rate is never cross-compared);
-//   3. the matrix — every variant as a delta over its parent (the "what stacks
+//   3. the matrix: every variant as a delta over its parent (the "what stacks
 //      on what" story), generated from the engine registry, not hand-kept.
 //
 // Community reference engines (mcgavin-c, blackwood-cs) cannot take the pinned
@@ -99,7 +100,6 @@ const D = data as {
   seed: number;
   n_instances: number;
   max_score: number;
-  community_5clue_record: number;
   variants: Variant[];
   community?: CommunityEngine[];
   unpinned?: {
@@ -130,7 +130,7 @@ const familyFill = (f: string) => FAMILY[f]?.fill ?? "#94a3b8";
 
 const T = {
   en: {
-    boardTitle: "The leaderboard — mean score by variant",
+    boardTitle: "The leaderboard: mean score by variant",
     boardIntro:
       "Mean matched-edge score over ten corner-pinned variants of the official puzzle, single core, 60 s per run. Colour marks the family; the family is named on every bar, so colour is never the only signal. McGavin's C and Blackwood's C# appear here too, at the score their fixed scan path reaches before a corner pin dead-ends it, badged where they stall; the two-grid section below shows them running properly once the pins are gone.",
     viewBars: "mean",
@@ -141,7 +141,7 @@ const T = {
     spreadMean: "mean",
     spreadRange: "range",
     spreadInstances: "instances",
-    ceiling: "5-clue record 465",
+    ceiling: `5-clue record ${STRICT_RECORD_SCORE}`,
     of: "/ 480",
     depthTitle: "How far each search reached, and how fast",
     depthIntro:
@@ -185,7 +185,7 @@ const T = {
     pinnedGrid: "corner-pinned",
   },
   fr: {
-    boardTitle: "Le classement — score moyen par variante",
+    boardTitle: "Le classement : score moyen par variante",
     boardIntro:
       "Score moyen (arêtes appariées) sur dix variantes à coins fixés du puzzle officiel, un cœur, 60 s par run. La couleur marque la famille, nommée sur chaque barre : la couleur n'est jamais le seul signal. Le C de McGavin et le C# de Blackwood y figurent aussi, au score que leur parcours figé atteint avant qu'un coin fixé ne le bloque, étiquetés là où ils calent ; la section à deux grilles plus bas les montre tourner correctement une fois les coins ôtés.",
     viewBars: "moyenne",
@@ -196,7 +196,7 @@ const T = {
     spreadMean: "moyenne",
     spreadRange: "plage",
     spreadInstances: "instances",
-    ceiling: "record 5 indices 465",
+    ceiling: `record 5 indices ${STRICT_RECORD_SCORE}`,
     of: "/ 480",
     depthTitle: "Jusqu'où chaque recherche est allée, et à quelle vitesse",
     depthIntro:
@@ -240,7 +240,7 @@ const T = {
     pinnedGrid: "coins fixés",
   },
   es: {
-    boardTitle: "El ranking — puntuación media por variante",
+    boardTitle: "El ranking: puntuación media por variante",
     boardIntro:
       "Puntuación media (aristas coincidentes) sobre diez variantes con esquinas fijadas del puzzle oficial, un solo núcleo, 60 s por ejecución. El color marca la familia, nombrada en cada barra: el color nunca es la única señal. El C de McGavin y el C# de Blackwood también figuran aquí, en la puntuación que su orden de recorrido fijo alcanza antes de que una esquina fijada lo bloquee, etiquetados donde se atascan; la sección de dos rejillas más abajo los muestra funcionando correctamente una vez retiradas las esquinas.",
     viewBars: "media",
@@ -251,7 +251,7 @@ const T = {
     spreadMean: "media",
     spreadRange: "rango",
     spreadInstances: "instancias",
-    ceiling: "récord de 5 pistas 465",
+    ceiling: `récord de 5 pistas ${STRICT_RECORD_SCORE}`,
     of: "/ 480",
     depthTitle: "Hasta dónde llegó cada búsqueda, y a qué velocidad",
     depthIntro:
@@ -358,7 +358,7 @@ export function DfsStudyLeaderboard() {
               domainMax={480}
               colorOf={(v) => familyFill(v.family)}
               barLabel={(v) => (v.collapsed ? `${v.mean} · ${t.stallsOnPins}` : `${v.mean}`)}
-              referenceLines={[{ x: D.community_5clue_record, label: t.ceiling }]}
+              referenceLines={[{ x: STRICT_RECORD_SCORE, label: t.ceiling }]}
               busyLabel={t.busy}
               tooltip={(v) => (
                 <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
@@ -446,7 +446,7 @@ export function DfsStudyLeaderboard() {
                   <td className="py-1.5 pr-4">
                     <FamilyTag color={familyFill(v.family)} label={familyLabel(v.family)} />
                   </td>
-                  <td className="py-1.5 pr-4 text-right tabular-nums">{v.max_depth ?? "—"}</td>
+                  <td className="py-1.5 pr-4 text-right tabular-nums">{v.max_depth ?? "–"}</td>
                   <td className="py-1.5 text-right tabular-nums text-muted-foreground">
                     {formatKM(v.median_nps)}
                   </td>
@@ -488,7 +488,7 @@ export function DfsStudyLeaderboard() {
                     {v.mean != null ? v.mean : <span className="text-muted-foreground">{t.cited}</span>}
                   </td>
                   <td className="py-2 text-right tabular-nums text-muted-foreground">
-                    {v.max_depth ?? "—"}
+                    {v.max_depth ?? "–"}
                   </td>
                 </tr>
               ))}
@@ -520,7 +520,7 @@ export function DfsStudyLeaderboard() {
                   colorOf={(r) => familyFill(r.family)}
                   busyLabel={t.busy}
                   referenceLines={[
-                    { x: D.community_5clue_record, label: t.ceiling },
+                    { x: STRICT_RECORD_SCORE, label: t.ceiling },
                     ...unpinnedSorted
                       .filter((r) => r.recordScore != null)
                       .map((r, i) => ({
@@ -583,7 +583,7 @@ export function DfsStudyLeaderboard() {
                           </td>
                           <td className="py-2 pr-2 text-right tabular-nums">{r.score}</td>
                           <td className="py-2 pr-4 text-right tabular-nums text-muted-foreground">
-                            {r.max_depth ?? r.placed ?? "—"}
+                            {r.max_depth ?? r.placed ?? "–"}
                           </td>
                           <td className="py-2 text-right tabular-nums text-muted-foreground">
                             {r.throughput}

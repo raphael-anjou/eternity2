@@ -15,7 +15,7 @@ import { yieldToBrowser } from "@/lib/useRunWhileVisible";
 
 // Piece theft, live. We fill a small board up to a frontier cell, read the
 // (north, west) colours that cell now demands, and ask the real legality test
-// which unused pieces can serve it. When exactly one can — a sole server — we let
+// which unused pieces can serve it. When exactly one can (a sole server), we let
 // you "steal" it: place that piece somewhere else instead. The frontier cell's
 // server count drops to zero and the board is dead, even though pieces remain.
 // That is exactly how solvers die: a future cell starves because its only
@@ -37,43 +37,43 @@ function colorAt(cells: (Edges | null)[], pos: number, side: number): number {
 
 const T = {
   en: {
-    title: "Watch a cell starve — live",
+    title: "Watch a cell starve, live",
     intro:
-      "We fill a small board up to the red cell, then read what it now needs: a piece whose top matches the cell above and whose left matches the cell beside it. The engine lists every unused piece that can serve that demand. When only one can, you can 'steal' it — place it elsewhere — and watch the red cell's options drop to zero. The board still has pieces, but it can no longer be finished.",
+      "We fill a small board up to the red cell, then read what it now needs: a piece whose top matches the cell above and whose left matches the cell beside it. The engine lists every unused piece that can serve that demand. When only one can, you can 'steal' it (place it elsewhere) and watch the red cell's options drop to zero. The board still has pieces, but it can no longer be finished.",
     demand: (n: number, w: number) => `The red cell demands: top = colour ${n}, left = colour ${w}`,
     servers: (k: number) => `${k} piece${k === 1 ? "" : "s"} can serve it`,
-    soleServer: "Exactly one server — a single point of failure.",
-    multiServer: "More than one server here — try a new puzzle to find a sole-server cell.",
+    soleServer: "Exactly one server: a single point of failure.",
+    multiServer: "More than one server here; try a new puzzle to find a sole-server cell.",
     steal: "Steal the only server (place it elsewhere)",
-    stolen: "Stolen — the red cell now has 0 servers. The board is dead, but the box still looks full.",
+    stolen: "Stolen: the red cell now has 0 servers. The board is dead, but the box still looks full.",
     reset: "Reset",
     newPuzzle: "New puzzle",
     supply: "Piece supply",
     supplyHint: "Green = can serve the red cell. Red ring = the sole server. Dimmed = already placed.",
     loading: "Setting up a puzzle with the engine…",
-    note: "On the real 16×16, 47 distinct (north, west) demands are served by a single piece, and a cell needs about 3 servers on average. The legality test here is the engine's. Spend a sole server in the wrong place and a future cell dies with the box still full — the trap real solvers fall into deep in the search.",
+    note: "On the real 16×16, 47 distinct (north, west) demands are served by a single piece, and a cell needs about 3 servers on average. The legality test here is the engine's. Spend a sole server in the wrong place and a future cell dies with the box still full: the trap real solvers fall into deep in the search.",
   },
   fr: {
-    title: "Regardez une case mourir de faim — en direct",
+    title: "Regardez une case mourir de faim, en direct",
     intro:
-      "On remplit un petit plateau jusqu'à la case rouge, puis on lit ce qu'elle réclame : une pièce dont le haut s'accorde à la case du dessus et la gauche à la case d'à côté. Le moteur liste chaque pièce inutilisée pouvant servir cette demande. Quand une seule le peut, vous pouvez la « voler » — la poser ailleurs — et voir les options de la case rouge tomber à zéro. Le plateau a encore des pièces, mais ne peut plus être terminé.",
+      "On remplit un petit plateau jusqu'à la case rouge, puis on lit ce qu'elle réclame : une pièce dont le haut s'accorde à la case du dessus et la gauche à la case d'à côté. Le moteur liste chaque pièce inutilisée pouvant servir cette demande. Quand une seule le peut, vous pouvez la « voler » (la poser ailleurs) et voir les options de la case rouge tomber à zéro. Le plateau a encore des pièces, mais ne peut plus être terminé.",
     demand: (n: number, w: number) => `La case rouge réclame : haut = couleur ${n}, gauche = couleur ${w}`,
     servers: (k: number) => `${k} pièce${k === 1 ? "" : "s"} peu${k === 1 ? "t" : "vent"} la servir`,
-    soleServer: "Exactement un fournisseur — un point de défaillance unique.",
-    multiServer: "Plus d'un fournisseur ici — essayez un nouveau tirage pour trouver une case à fournisseur unique.",
+    soleServer: "Exactement un fournisseur : un point de défaillance unique.",
+    multiServer: "Plus d'un fournisseur ici ; essayez un nouveau tirage pour trouver une case à fournisseur unique.",
     steal: "Voler l'unique fournisseur (le poser ailleurs)",
-    stolen: "Volé — la case rouge a maintenant 0 fournisseur. Le plateau est mort, mais la boîte semble pleine.",
+    stolen: "Volé : la case rouge a maintenant 0 fournisseur. Le plateau est mort, mais la boîte semble pleine.",
     reset: "Réinitialiser",
     newPuzzle: "Nouveau tirage",
     supply: "Réserve de pièces",
     supplyHint: "Vert = peut servir la case rouge. Anneau rouge = l'unique fournisseur. Estompé = déjà posée.",
     loading: "Préparation d'un puzzle avec le moteur…",
-    note: "Sur le vrai 16×16, 47 demandes (haut, gauche) distinctes sont servies par une seule pièce, et une case a besoin d'environ 3 fournisseurs en moyenne. Le test de légalité ici est celui du moteur. Dépensez un fournisseur unique au mauvais endroit et une case future meurt alors que la boîte est pleine — le piège où tombent les vrais solveurs au fond de la recherche.",
+    note: "Sur le vrai 16×16, 47 demandes (haut, gauche) distinctes sont servies par une seule pièce, et une case a besoin d'environ 3 fournisseurs en moyenne. Le test de légalité ici est celui du moteur. Dépensez un fournisseur unique au mauvais endroit et une case future meurt alors que la boîte est pleine : le piège où tombent les vrais solveurs au fond de la recherche.",
   },
   es: {
-    title: "Observa cómo una celda se queda sin salida — en vivo",
+    title: "Observa cómo una celda se queda sin salida, en vivo",
     intro:
-      "Rellenamos un tablero pequeño hasta la celda roja y luego leemos lo que ahora necesita: una pieza cuyo lado superior coincida con la celda de arriba y cuyo lado izquierdo coincida con la celda contigua. El motor enumera cada pieza sin usar que puede satisfacer esa demanda. Cuando solo una puede hacerlo, puedes «robarla» —colocarla en otro sitio— y ver cómo las opciones de la celda roja caen a cero. El tablero aún tiene piezas, pero ya no se puede terminar.",
+      "Rellenamos un tablero pequeño hasta la celda roja y luego leemos lo que ahora necesita: una pieza cuyo lado superior coincida con la celda de arriba y cuyo lado izquierdo coincida con la celda contigua. El motor enumera cada pieza sin usar que puede satisfacer esa demanda. Cuando solo una puede hacerlo, puedes «robarla» (colocarla en otro sitio) y ver cómo las opciones de la celda roja caen a cero. El tablero aún tiene piezas, pero ya no se puede terminar.",
     demand: (n: number, w: number) => `La celda roja exige: arriba = color ${n}, izquierda = color ${w}`,
     servers: (k: number) => `${k} pieza${k === 1 ? "" : "s"} puede${k === 1 ? "" : "n"} satisfacerla`,
     soleServer: "Exactamente un proveedor: un único punto de fallo.",
@@ -195,7 +195,7 @@ export function PieceTheftLab() {
     const empty = board.findIndex((v, i) => v < 0 && i !== built.frontier);
     const server = built.servers[0];
     if (empty >= 0 && server !== undefined) {
-      // place with rotation 0 — it's a wrong placement, the point is it's spent
+      // place with rotation 0; it's a wrong placement, the point is it's spent
       board[empty] = server * 4;
     }
     return board;

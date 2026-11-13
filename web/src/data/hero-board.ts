@@ -1,6 +1,6 @@
 // A pre-generated, fully solved 16×16 board for the homepage hero.
 //
-// This is NOT the official Eternity II puzzle and NOT a real record solution —
+// This is NOT the official Eternity II puzzle and NOT a real record solution:
 // it is a randomly generated, self-consistent board (framed like the real
 // puzzle: a grey border, 22 colours inside, every shared edge matching) baked
 // in at seed 20260714. It exists so the hero shows a stable, official-looking

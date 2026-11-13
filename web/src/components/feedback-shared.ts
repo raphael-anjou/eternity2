@@ -38,7 +38,7 @@ export const COPY: { en: FeedbackCopy; fr: FeedbackCopy; es: FeedbackCopy } = {
     ideaDesc: "A feature or improvement",
     contentTitle: "Fix the content",
     contentDesc: "A research-wiki error or typo",
-    more: "Something else — all options on GitHub",
+    more: "Something else: all options on GitHub",
   },
   fr: {
     trigger: "Votre avis",
@@ -50,7 +50,7 @@ export const COPY: { en: FeedbackCopy; fr: FeedbackCopy; es: FeedbackCopy } = {
     ideaDesc: "Une fonctionnalité ou une amélioration",
     contentTitle: "Corriger le contenu",
     contentDesc: "Une erreur ou coquille du wiki",
-    more: "Autre chose — toutes les options sur GitHub",
+    more: "Autre chose : toutes les options sur GitHub",
   },
   es: {
     trigger: "Opiniones",
@@ -62,6 +62,6 @@ export const COPY: { en: FeedbackCopy; fr: FeedbackCopy; es: FeedbackCopy } = {
     ideaDesc: "Una función o una mejora",
     contentTitle: "Corregir el contenido",
     contentDesc: "Un error o errata del wiki",
-    more: "Otra cosa — todas las opciones en GitHub",
+    more: "Otra cosa: todas las opciones en GitHub",
   },
 };

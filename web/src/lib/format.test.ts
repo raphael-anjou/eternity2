@@ -29,8 +29,8 @@ describe("formatCompact", () => {
 
 describe("formatKM", () => {
   it("returns an em dash for null/undefined", () => {
-    expect(formatKM(null)).toBe("—");
-    expect(formatKM(undefined)).toBe("—");
+    expect(formatKM(null)).toBe("–");
+    expect(formatKM(undefined)).toBe("–");
   });
   it("compacts to one-decimal M at/above a million", () => {
     expect(formatKM(1_000_000)).toBe("1.0M");

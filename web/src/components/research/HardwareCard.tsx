@@ -8,7 +8,7 @@ import type { AcceleratorKind, HardwareInfo } from "@/lib/research/types";
 // native run (the badge); how much compute did it actually cost (core-hours,
 // the headline number); and on exactly what kit (the spec grid). The
 // core-hours figure is what lets a 1-core / 60 s bench and a 400-core cluster
-// run sit honestly in the same table — raw score alone hides the effort behind
+// run sit fairly in the same table: raw score alone hides the effort behind
 // it. core-hours is DERIVED here (cores × wall-clock hours), never authored.
 
 const T = {
@@ -16,12 +16,12 @@ const T = {
     title: "Hardware & run",
     standardized: "Standardized bench",
     standardizedTitle:
-      "one logical core, fixed time budget — a cross-comparable baseline",
+      "one logical core, fixed time budget, a cross-comparable baseline",
     native: "Native run",
     nativeTitle:
-      "run on its own hardware and budget — recorded for provenance, not directly comparable",
+      "run on its own hardware and budget; recorded for provenance, not directly comparable",
     coreHours: "core-hours",
-    coreHoursTitle: "cores × wall-clock hours — the compute this run actually cost",
+    coreHoursTitle: "cores × wall-clock hours: the compute this run actually cost",
     cores: "Cores",
     nodes: "Nodes",
     threads: "Threads",
@@ -45,13 +45,13 @@ const T = {
     title: "Matériel & exécution",
     standardized: "Banc standardisé",
     standardizedTitle:
-      "un cœur logique, budget de temps fixe — une base comparable entre toutes",
+      "un cœur logique, budget de temps fixe, une base comparable entre toutes",
     native: "Exécution native",
     nativeTitle:
-      "exécuté sur son propre matériel et budget — noté pour la traçabilité, pas directement comparable",
+      "exécuté sur son propre matériel et budget ; noté pour la traçabilité, pas directement comparable",
     coreHours: "cœurs·heure",
     coreHoursTitle:
-      "cœurs × heures d'horloge — le calcul que cette exécution a réellement coûté",
+      "cœurs × heures d'horloge : le calcul que cette exécution a réellement coûté",
     cores: "Cœurs",
     nodes: "Nœuds",
     threads: "Fils",
@@ -75,13 +75,13 @@ const T = {
     title: "Hardware y ejecución",
     standardized: "Banco estandarizado",
     standardizedTitle:
-      "un núcleo lógico, presupuesto de tiempo fijo — una base comparable entre todas",
+      "un núcleo lógico, presupuesto de tiempo fijo, una base comparable entre todas",
     native: "Ejecución nativa",
     nativeTitle:
-      "ejecutado en su propio hardware y presupuesto — registrado para trazabilidad, no directamente comparable",
+      "ejecutado en su propio hardware y presupuesto; registrado para trazabilidad, no directamente comparable",
     coreHours: "núcleos·hora",
     coreHoursTitle:
-      "núcleos × horas de reloj — el cómputo que esta ejecución realmente costó",
+      "núcleos × horas de reloj: el cómputo que esta ejecución realmente costó",
     cores: "Núcleos",
     nodes: "Nodos",
     threads: "Hilos",
@@ -135,6 +135,7 @@ export function HardwareCard({ hardware }: { hardware: HardwareInfo }) {
     ...(hw.ramGb !== undefined ? [{ label: t.ram, value: `${hw.ramGb} GiB` }] : []),
     ...(hw.gpus !== undefined ? [{ label: t.gpus, value: `${hw.gpus}` }] : []),
     ...(hw.cpu ? [{ label: t.cpu, value: hw.cpu }] : []),
+    // style-allow-em-dash: compared against the authored hardware.gpu value
     ...(hw.gpu && hw.gpu !== "—" ? [{ label: t.gpu, value: hw.gpu }] : []),
     ...(hw.machine ? [{ label: t.machine, value: hw.machine }] : []),
     ...(hw.wallClock ? [{ label: t.wallClock, value: hw.wallClock }] : []),

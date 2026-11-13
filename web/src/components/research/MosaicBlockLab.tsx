@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 // MOSAIC's load-bearing fact, made tangible: a small block solves to its exact
 // optimum almost instantly. We solve four independent 4x4 blocks with the real
 // engine, each to a perfectly-matched board (its maximum score), and lay them
-// out as a 2x2 tiling — the picture of "tile the board, solve each tile exactly,
+// out as a 2x2 tiling: the picture of "tile the board, solve each tile exactly,
 // then compose". The seams between tiles are NOT solved here (that is the soft-
 // boundary composition the method adds); this shows only that the tiles
 // themselves are exactly solvable, which is what makes the whole approach
@@ -46,33 +46,33 @@ function solveBlock(seed: number): SolvedBlock {
 
 const T = {
   en: {
-    title: "A block solves exactly — instantly",
+    title: "A block solves exactly, instantly",
     intro:
-      "MOSAIC rests on one fact: a small block of the puzzle solves to its exact best in a flash. Here are four independent 4×4 blocks, each solved by the real engine to a perfectly-matched board — every interior edge agrees. Tiling them is the easy half; the method's real work is composing the seams between them.",
+      "MOSAIC rests on one fact: a small block of the puzzle solves to its exact best in a flash. Here are four independent 4×4 blocks, each solved by the real engine to a perfectly-matched board: every interior edge agrees. Tiling them is the easy half; the method's real work is composing the seams between them.",
     blockLabel: (i: number) => `block ${i + 1}`,
     perfect: "perfect",
     reshuffle: "New blocks",
-    note: (n: string) => `Each block solved to its optimum (${BLOCK_MAX}/${BLOCK_MAX} edges) in about ${n} placement tries — milliseconds. The full 16×16 is the same trick, sixteen times, plus the hard part: the seams.`,
+    note: (n: string) => `Each block solved to its optimum (${BLOCK_MAX}/${BLOCK_MAX} edges) in about ${n} placement tries, milliseconds. The full 16×16 is the same trick, sixteen times, plus the hard part: the seams.`,
     loading: "Loading the engine…",
   },
   fr: {
-    title: "Un bloc se résout exactement — instantanément",
+    title: "Un bloc se résout exactement, instantanément",
     intro:
-      "MOSAIC repose sur un fait : un petit bloc du puzzle se résout à son optimum en un éclair. Voici quatre blocs 4×4 indépendants, chacun résolu par le vrai moteur en un plateau parfaitement apparié — chaque bord intérieur concorde. Les juxtaposer est la moitié facile ; le vrai travail de la méthode, c'est de composer les jointures entre eux.",
+      "MOSAIC repose sur un fait : un petit bloc du puzzle se résout à son optimum en un éclair. Voici quatre blocs 4×4 indépendants, chacun résolu par le vrai moteur en un plateau parfaitement apparié : chaque bord intérieur concorde. Les juxtaposer est la moitié facile ; le vrai travail de la méthode, c'est de composer les jointures entre eux.",
     blockLabel: (i: number) => `bloc ${i + 1}`,
     perfect: "parfait",
     reshuffle: "Nouveaux blocs",
-    note: (n: string) => `Chaque bloc résolu à son optimum (${BLOCK_MAX}/${BLOCK_MAX} bords) en environ ${n} essais de pose — des millisecondes. Le 16×16 complet, c'est la même astuce, seize fois, plus la partie difficile : les jointures.`,
+    note: (n: string) => `Chaque bloc résolu à son optimum (${BLOCK_MAX}/${BLOCK_MAX} bords) en environ ${n} essais de pose, soit des millisecondes. Le 16×16 complet, c'est la même astuce, seize fois, plus la partie difficile : les jointures.`,
     loading: "Chargement du moteur…",
   },
   es: {
-    title: "Un bloque se resuelve exactamente — al instante",
+    title: "Un bloque se resuelve exactamente, al instante",
     intro:
-      "MOSAIC se apoya en un hecho: un pequeño bloque del puzzle se resuelve a su óptimo en un abrir y cerrar de ojos. Aquí hay cuatro bloques 4×4 independientes, cada uno resuelto por el motor real hasta un tablero perfectamente encajado — cada arista interior concuerda. Yuxtaponerlos es la mitad fácil; el verdadero trabajo del método es componer las junturas entre ellos.",
+      "MOSAIC se apoya en un hecho: un pequeño bloque del puzzle se resuelve a su óptimo en un abrir y cerrar de ojos. Aquí hay cuatro bloques 4×4 independientes, cada uno resuelto por el motor real hasta un tablero perfectamente encajado: cada arista interior concuerda. Yuxtaponerlos es la mitad fácil; el verdadero trabajo del método es componer las junturas entre ellos.",
     blockLabel: (i: number) => `bloque ${i + 1}`,
     perfect: "perfecto",
     reshuffle: "Nuevos bloques",
-    note: (n: string) => `Cada bloque resuelto a su óptimo (${BLOCK_MAX}/${BLOCK_MAX} aristas) en unos ${n} intentos de colocación — milisegundos. El 16×16 completo es el mismo truco, dieciséis veces, más la parte difícil: las junturas.`,
+    note: (n: string) => `Cada bloque resuelto a su óptimo (${BLOCK_MAX}/${BLOCK_MAX} aristas) en unos ${n} intentos de colocación, es decir, milisegundos. El 16×16 completo es el mismo truco, dieciséis veces, más la parte difícil: las junturas.`,
     loading: "Cargando el motor…",
   },
 };

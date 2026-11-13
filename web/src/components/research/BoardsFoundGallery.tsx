@@ -1,9 +1,9 @@
 // Gallery of the 2026 five-clue record wave: every board whose e2.bucas.name
 // link was shared, rendered from its own edges and linking into our viewer so
 // each edge is checkable. Two data sets, kept visually distinct:
-//   - FIVE_CLUE_RECORDS_2026    — full boards scored by matched edges /480
-//   - PARTIALS_WITH_HINTS_2026  — spiral-in partials respecting all five clues
-//   - PARTIALS_OTHER_2026       — partial-hint / run-length partials, off the ladder
+//   - FIVE_CLUE_RECORDS_2026:   full boards scored by matched edges /480
+//   - PARTIALS_WITH_HINTS_2026: spiral-in partials respecting all five clues
+//   - PARTIALS_OTHER_2026:      partial-hint / run-length partials, off the ladder
 // Scores/counts were re-verified from each board's edges before publishing.
 
 import { useT } from "@/i18n";
@@ -21,7 +21,7 @@ const T = {
   en: {
     recordsHeading: "Five-clue record boards (464 → 460)",
     recordsIntro:
-      "Every board below is a full 256-piece layout that respects all five official clues, scored by matched edges out of 480. Benjamin Riotte's 464 broke Bruno Gauthier's 460, which had stood since 2023; Igor Pejic reached the same 463–464 range independently. The strict record has since moved to 465, found by the community's distributed fleet in August 2026; those boards live in the project's own library rather than here. These are the boards a verification link was shared for — the full census is far larger (10 boards at 464, 290 at 463, 2213 at 462, 38 at 461). Click any board to re-score it edge by edge in the viewer.",
+      "Every board below is a full 256-piece layout that respects all five official clues, scored by matched edges out of 480. Benjamin Riotte's 464 broke Bruno Gauthier's 460, which had stood since 2023; Igor Pejic reached the same 463–464 range independently. The strict line has moved since, first to 465 with the community's distributed fleet in August 2026 and then further; the records page carries the current best, and those later boards are not bundled here. These are the boards a verification link was shared for; the July 2026 census is far larger (10 boards at 464, 290 at 463, 2213 at 462, 38 at 461). Click any board to re-score it edge by edge in the viewer.",
     partialsHeading: "Spiral-in partials, all five clues",
     partialsIntro:
       "A parallel, different pursuit: partial boards that place as many pieces as possible while respecting all five official clues, built by a spiral-in fill. The number is the pieces placed, not an edge score. Peter McGavin and Patrick Hegland posted these to the groups.io SAT thread in 2024; One Small Step continued the line on Discord in 2025–26. The counts are re-verified from each board. Thanks to Peter McGavin for flagging that the SAT-thread boards belonged here.",
@@ -45,7 +45,7 @@ const T = {
   fr: {
     recordsHeading: "Plateaux records à cinq indices (464 → 460)",
     recordsIntro:
-      "Chaque plateau ci-dessous est une disposition complète de 256 pièces qui respecte les cinq indices officiels, notée en arêtes appariées sur 480. Le 464 de Benjamin Riotte a battu le 460 de Bruno Gauthier, qui tenait depuis 2023 ; Igor Pejic a atteint la même plage 463–464 de façon indépendante. Le record strict est depuis passé à 465, trouvé par la flotte distribuée de la communauté en août 2026 ; ces plateaux se trouvent dans la bibliothèque du projet et non ici. Ce sont les plateaux pour lesquels un lien de vérification a été partagé — le recensement complet est bien plus vaste (10 plateaux à 464, 290 à 463, 2213 à 462, 38 à 461). Cliquez sur un plateau pour le re-noter arête par arête dans le visualiseur.",
+      "Chaque plateau ci-dessous est une disposition complète de 256 pièces qui respecte les cinq indices officiels, notée en arêtes appariées sur 480. Le 464 de Benjamin Riotte a battu le 460 de Bruno Gauthier, qui tenait depuis 2023 ; Igor Pejic a atteint la même plage 463–464 de façon indépendante. La ligne stricte a bougé depuis, d'abord à 465 avec la flotte distribuée de la communauté en août 2026, puis au-delà ; la page des records donne le meilleur plateau actuel, et ces plateaux plus récents ne sont pas embarqués ici. Ce sont les plateaux pour lesquels un lien de vérification a été partagé ; le recensement de juillet 2026 est bien plus vaste (10 plateaux à 464, 290 à 463, 2213 à 462, 38 à 461). Cliquez sur un plateau pour le re-noter arête par arête dans le visualiseur.",
     partialsHeading: "Partiels en spirale, les cinq indices",
     partialsIntro:
       "Une quête parallèle et différente : des plateaux partiels qui posent le plus de pièces possible tout en respectant les cinq indices officiels, construits par un remplissage en spirale. Le nombre indique les pièces posées, pas un score d'arêtes. Peter McGavin et Patrick Hegland les ont publiés dans le fil SAT de groups.io en 2024 ; One Small Step a prolongé la lignée sur Discord en 2025–26. Les décomptes sont revérifiés depuis chaque plateau. Merci à Peter McGavin d'avoir signalé que les plateaux du fil SAT avaient leur place ici.",
@@ -69,7 +69,7 @@ const T = {
   es: {
     recordsHeading: "Tableros récord con cinco pistas (464 → 460)",
     recordsIntro:
-      "Cada tablero de abajo es una disposición completa de 256 piezas que respeta las cinco pistas oficiales, puntuada por aristas coincidentes sobre 480. El 464 de Benjamin Riotte superó el 460 de Bruno Gauthier, que se mantenía desde 2023; Igor Pejic alcanzó el mismo rango 463–464 de forma independiente. El récord estricto ha pasado desde entonces a 465, encontrado por la flota distribuida de la comunidad en agosto de 2026; esos tableros están en la biblioteca del proyecto, no aquí. Estos son los tableros para los que se compartió un enlace de verificación: el censo completo es mucho mayor (10 tableros a 464, 290 a 463, 2213 a 462, 38 a 461). Haz clic en cualquier tablero para volver a puntuarlo arista por arista en el visor.",
+      "Cada tablero de abajo es una disposición completa de 256 piezas que respeta las cinco pistas oficiales, puntuada por aristas coincidentes sobre 480. El 464 de Benjamin Riotte superó el 460 de Bruno Gauthier, que se mantenía desde 2023; Igor Pejic alcanzó el mismo rango 463–464 de forma independiente. La línea estricta se ha movido desde entonces, primero a 465 con la flota distribuida de la comunidad en agosto de 2026 y después más allá; la página de récords recoge el mejor tablero actual, y esos tableros posteriores no se incluyen aquí. Estos son los tableros para los que se compartió un enlace de verificación: el censo de julio de 2026 es mucho mayor (10 tableros a 464, 290 a 463, 2213 a 462, 38 a 461). Haz clic en cualquier tablero para volver a puntuarlo arista por arista en el visor.",
     partialsHeading: "Parciales en espiral, las cinco pistas",
     partialsIntro:
       "Una búsqueda paralela y distinta: tableros parciales que colocan tantas piezas como sea posible respetando las cinco pistas oficiales, construidos con un relleno en espiral. El número indica las piezas colocadas, no una puntuación de aristas. Peter McGavin y Patrick Hegland los publicaron en el hilo SAT de groups.io en 2024; One Small Step continuó la línea en Discord en 2025–26. Los recuentos están reverificados a partir de cada tablero. Gracias a Peter McGavin por señalar que los tableros del hilo SAT tenían su lugar aquí.",
