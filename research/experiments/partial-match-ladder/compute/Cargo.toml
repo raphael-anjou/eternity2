@@ -1,0 +1,31 @@
+[package]
+name = "partial-match-ladder"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Partial-match ladder: planted boards where score-maximising engines stall below the optimum; verified best score at fixed work."
+
+# Standalone workspace so the crate builds from a clean checkout on its own.
+[workspace]
+
+[lib]
+name = "pml"
+path = "src/lib.rs"
+
+[[bin]]
+name = "pml"
+path = "src/main.rs"
+
+[dependencies]
+eternity2-engine = { path = "../../../../engine" }
+hard-ladder = { path = "../../hard-ladder/compute" }
+eternity2-core = { path = "../../single-core-benchmark/engine/crates/core" }
+eternity2-localsearch = { path = "../../single-core-benchmark/engine/crates/localsearch" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
