@@ -1,0 +1,47 @@
+warning: unused import: `Puzzle`
+  --> crates/localsearch/src/oracle_swap.rs:19:48
+   |
+19 | use eternity2_core::{Board, PieceId, Position, Puzzle, Rotation};
+   |                                                ^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `best_rotation` is never used
+   --> crates/localsearch/src/filament.rs:112:4
+    |
+112 | fn best_rotation(puzzle: &Puzzle, board: &Board, pos: Position, pid: PieceId) -> (Rotation, u32) {
+    |    ^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `eternity2-localsearch` (lib) generated 2 warnings (run `cargo fix --lib -p eternity2-localsearch` to apply 1 suggestion)
+warning: unused variable: `estr`
+   --> crates/bench-audit/src/mini.rs:753:9
+    |
+753 |     let estr: Vec<usize> = (0..k).map(|j| nc.pow((k - 1 - j) as u32)).collect();
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_estr`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `eternity2-bench-audit` (lib) generated 1 warning (run `cargo fix --lib -p eternity2-bench-audit` to apply 1 suggestion)
+   Compiling eternity2-bench-audit v0.1.0 (head/research/experiments/single-core-benchmark/engine/crates/bench-audit)
+    Finished `release` profile [optimized] target(s) in 3.16s
+     Running unittests src/bin/blackwood_bt.rs (target/release/deps/blackwood_bt-bd6a8f2f4e7cf2d6)
+
+running 13 tests
+test tests::default_keying_is_blackwoods_set_read_as_a_share ... ok
+test tests::a_break_may_touch_a_cell_that_already_carries_one ... ok
+test tests::legal_break_path_offers_only_physical_pieces_and_his_breaks ... ok
+test tests::legal_break_path_never_breaks_in_the_scan_first_column_or_at_corners ... ok
+test tests::exact_fits_come_before_more_privileged_breaks ... ok
+test tests::published_order_is_his_board_order_in_this_frame ... ok
+test tests::hints_count_when_the_scan_reaches_them ... ok
+test tests::share_quota_is_his_count_for_his_keying_and_scales_with_the_sides ... ok
+test tests::wrong_class_matches_the_frame_sides_of_the_cell ... ok
+test tests::quota_counts_the_candidate_like_his ... ok
+test tests::published_order_searches_class_correct_boards_with_and_without_clues ... ok
+test tests::no_break_path_never_places_a_wrong_class_piece ... ok
+test tests::early_breaks_place_only_class_correct_pieces ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.58s
+

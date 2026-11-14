@@ -1,9 +1,9 @@
-# Standalone engine calibration — benchmark grid
+# Standalone engine calibration, benchmark grid
 
-> **Archived record — one claim below has since expired.** This file documents
+> **Archived record, one claim below has since expired.** This file documents
 > the calibration as it stood when the published results were measured, and is
 > kept for provenance; it is not maintained. The "Threading mechanism" table
-> below says the producer has *"none — no `rayon`/`thread::spawn` anywhere in
+> below says the producer has *"none, no `rayon`/`thread::spawn` anywhere in
 > the binary"* and is *"inherently single-core"*. That was accurate then. It is
 > no longer: all four strong engines now take `--threads`/`--chains` and can use
 > many cores. The grid is still single-core, but because the wrapper now passes
@@ -17,29 +17,29 @@ measurements below are single runs of `crates/bench-grid/wrappers/run_standalone
 functions against `output/variants_20260713T221027/variant_00.csv`
 (official 16x16 E2 puzzle + 3 pinned corners, 8 hints total; one of the 10
 corner-pinned benchmark variants). `verify_bucas` is the sole scoring
-oracle — every score below is the independently-verified `canonical_score`,
+oracle, every score below is the independently-verified `canonical_score`,
 not the engine's self-reported number (the two agreed in every run tested,
 but only the verify_bucas number is trusted per repo convention).
 
 Reproduce any row below with:
 
 ```bash
-cd /Users/raphaelanjou/Documents/dev-projects/polytech/eternity2/v2
+cd <repo>/v2
 source crates/bench-grid/wrappers/run_standalone.sh
 run_<engine> output/variants_20260713T221027/variant_00.csv <seed> 60 /tmp/out.url
 ```
 
-(must be run with `bash`, not `zsh` — the script uses `BASH_SOURCE`; `run_grid.py`
+(must be run with `bash`, not `zsh`, the script uses `BASH_SOURCE`; `run_grid.py`
 already invokes it via `bash -c`.)
 
 ## Single-core audit summary
 
 | Engine | Threading mechanism | Verdict |
 |---|---|---|
-| `producer_trie` | none — no `rayon`/`thread::spawn` anywhere in the binary (grep-verified) | inherently single-core |
+| `producer_trie` | none, no `rayon`/`thread::spawn` anywhere in the binary (grep-verified) | inherently single-core |
 | `blackwood_bt` | spawns exactly ONE `std::thread::Builder` worker (256MB stack, for the 256-deep recursive DFS) per restart, `.join()`s it synchronously before the next restart | single-core in practice (2 OS threads total, only 1 ever runs) |
 | `verhaard_faithful_v2` | same pattern as `blackwood_bt` (same author lineage) | single-core in practice |
-| `alns_only` | `run_alns` (single-chain entry point, what this wrapper calls) has zero rayon calls on the default `--repair-kind sa` path. Rayon exists in the crate only for `run_alns_portfolio`/`run_alns_pt` (unused here) and `RepairKind::Cp` (unused here — we pass no `--repair-kind`, default is `sa`) | single-core on the path used here |
+| `alns_only` | `run_alns` (single-chain entry point, what this wrapper calls) has zero rayon calls on the default `--repair-kind sa` path. Rayon exists in the crate only for `run_alns_portfolio`/`run_alns_pt` (unused here) and `RepairKind::Cp` (unused here, we pass no `--repair-kind`, default is `sa`) | single-core on the path used here |
 
 All four were also empirically checked with `/usr/bin/time -l` (`user` time
 ≈ `real` time, 96–99% CPU) and with `ps -M <pid>` (2 OS threads max, i.e. at
@@ -59,7 +59,7 @@ maintains (blackwood/verhaard), or true time-boxing (alns).
 ## 1. Producer (`producer_trie`)
 
 Beam search, `--order comb:14` (the comb fill-order that beat plain
-row-major — see memory: "comb broke the old 455 raw ceiling"). Not natively
+row-major, see memory: "comb broke the old 455 raw ceiling"). Not natively
 time-bounded: the binary runs the given `--beam` to full completion, no
 timer. Calibration = finding a beam that completes in ~60s.
 
@@ -100,7 +100,7 @@ search is exactly `layers` sequential frontier-expansion steps, each
 expanding the surviving `beam_width` parents; `layers*beam_width` (both
 printed on the engine's own CSV summary line) is reported as `nodes`, unit
 `beam-nodes/s`. This is a beam-expansion count, not a search-tree-node count
-— stated explicitly so it isn't confused with blackwood/verhaard's DFS node
+, stated explicitly so it isn't confused with blackwood/verhaard's DFS node
 counter.
 
 ---
@@ -117,7 +117,7 @@ every new-best) after the kill.
 
 First tried `--nodecap 200000000` (200M): only 1–2 restarts complete in 60s,
 so the binary's periodic `# progress` throughput line (emitted every 25
-restarts) never fires before the `timeout` kill — no honest total-nodes
+restarts) never fires before the `timeout` kill, no honest total-nodes
 figure obtainable under a hard kill with this nodecap. Score was fine (432,
 439) but node/nps reporting was blind.
 
@@ -146,7 +146,7 @@ target/release/verify_bucas output/variants_20260713T221027/variant_00.csv "$(ca
 | 2 | 60.05 | 99% | **440/480** | 3,500,000,000 | 59,700,000 |
 
 `timeout` cleanly SIGTERMs the process at budget_s; exit is non-zero
-(expected — not treated as failure since the checkpoint file is what gets
+(expected, not treated as failure since the checkpoint file is what gets
 banked). No orphaned processes observed after any run (`pgrep` checked).
 
 ---
@@ -156,7 +156,7 @@ banked). No orphaned processes observed after any run (`pgrep` checked).
 Same architecture as `blackwood_bt` (comb/border-first fill order + a
 different depth-gated quota/slip schedule reconstructed from the Verhaard
 "eii" binary). Same nodecap-calibration rationale and checkpoint pattern.
-Default `--stage 3` already enables the full (quota + slip) engine — no
+Default `--stage 3` already enables the full (quota + slip) engine, no
 separate stage-4 exists distinct from stage 3 for this binary.
 
 ### Exact command
@@ -177,7 +177,7 @@ target/release/verify_bucas output/variants_20260713T221027/variant_00.csv "$(ca
 | 2 | 60.05 | 99% | **441/480** | 2,088,000,000 | 40,000,000 |
 
 Verhaard's per-node throughput (~40 Mnode/s) is noticeably lower than
-Blackwood's (~60 Mnode/s) at the same nodecap — consistent with Verhaard's
+Blackwood's (~60 Mnode/s) at the same nodecap, consistent with Verhaard's
 extra good-groups bookkeeping per placement (see
 `the project write-ups
 
@@ -185,27 +185,27 @@ extra good-groups bookkeeping per placement (see
 
 ## 4. ALNS (`alns_only`)
 
-Time-bounded (`--alns-budget-ms`) but requires a **starting board** —
+Time-bounded (`--alns-budget-ms`) but requires a **starting board** ,
 `alns_only` has no producer of its own. Two-stage chain inside the same
 `budget_s` wall-clock window:
 
-- **Stage A** — `producer_trie`, fixed `--beam 16384`
+- **Stage A**, `producer_trie`, fixed `--beam 16384`
  (`--order comb:14`), which completes in a MEASURED ~9s regardless of
  `budget_s` (it is not itself time-bounded; 16384 was chosen because it
  reliably lands well under any reasonable sub-budget while still landing
  in the "raw ~453-457" band the memory-recorded winning pipeline starts
- from — "comb14 B=16384 seed9 -> 457 raw -> ALNS -> 461").
+ from, "comb14 B=16384 seed9 -> 457 raw -> ALNS -> 461").
 - **Convert**: `dump_board_json <bucas-url>` (decodes the bucas URL back to
  a placement JSON) piped through `jq '{placement: .board}'` to match
  `alns_only`'s `load_cp_board` schema (`{"placement":[{piece_id,rotation}|
- {pos,piece_id,rotation}, ...]}` — sparse-with-`pos` form used here).
+ {pos,piece_id,rotation}, ...]}`, sparse-with-`pos` form used here).
  ~1s overhead.
-- **Stage B** — `alns_only --ops basic_lkh` (the memory-recorded winning
+- **Stage B**, `alns_only --ops basic_lkh` (the memory-recorded winning
  preset: "ALNS `alns_only` ops=basic_lkh, repair=sa ... 457->459->460->461")
  for the ACTUAL remaining wall-clock: `budget_s - measured_stageA_wall -
  2s conversion overhead`, floor 5s. This measure-then-allocate approach
  (rather than a fixed a-priori split) avoids wasting budget when stage A
- finishes faster than any fixed allowance — an earlier version of this
+ finishes faster than any fixed allowance, an earlier version of this
  wrapper fixed a 22s producer sub-budget for a beam that actually finished
  in ~3s, silently discarding ~19s of the 60s window (found and fixed
  during calibration; see script comments).
@@ -218,12 +218,12 @@ Time-bounded (`--alns-budget-ms`) but requires a **starting board** —
  every single run (never actually picking up ALNS's output). Fixed by
  grepping the captured stderr log.
 2. **`alns_only --puzzle` does NOT affect `load_cp_board`'s internal piece
- catalog load** — `load_cp_board` (used to parse `--cp-board`) hardcodes
+ catalog load**, `load_cp_board` (used to parse `--cp-board`) hardcodes
  `../data/puzzles/size_16_official_eternity.csv` relative to CWD,
  independent of the `--puzzle` flag (which only affects the main
  scoring/ALNS puzzle load). This is safe here ONLY because piece
  ids/edges are identical across all 10 corner-pinned benchmark variants
- (only the 8 hint cells differ) — verified by checking the file actually
+ (only the 8 hint cells differ), verified by checking the file actually
  exists at that relative path. **The wrapper explicitly `cd`s to
  `$V2_ROOT` before invoking `alns_only` and `dump_board_json`** (both
  binaries share this hardcoded-relative-path pattern) so `../data/...`
@@ -240,7 +240,7 @@ Time-bounded (`--alns-budget-ms`) but requires a **starting board** —
 ### Exact command (manual, 2-stage)
 
 ```bash
-cd /Users/raphaelanjou/Documents/dev-projects/polytech/eternity2/v2 # cwd matters, see bug #2
+cd <repo>/v2 # cwd matters, see bug #2
 target/release/producer_trie \
  output/variants_20260713T221027/variant_00.csv \
  --order comb:14 --beam 16384 --tol 0 --seed 1 --emit-best /tmp/base.url
@@ -260,14 +260,14 @@ target/release/alns_only \
 | 2 | 9.15s | 453 | 48.0s | 32 | **453/480** | 57.2s | 99% |
 
 `nodes`/`nps` for this engine are reported in `iters`/`iters-per-second`
-(alns_only has no "search node" concept — its unit of work is one
+(alns_only has no "search node" concept, its unit of work is one
 destroy+repair iteration): seed 1 → `nodes=32 nps=0.67 nps_unit=iters/s`;
 seed 2 → the same (32 iters / 48s). Only ~0.67 iters/s at ~48s budget is
 consistent with `basic_lkh`'s `lkh_chain` op being expensive per call (each
-repair does an LKH-style chain reconstruction) — this matches the memory
+repair does an LKH-style chain reconstruction), this matches the memory
 note that the historic 461-record pipeline needed ~20 MINUTES of ALNS, not
 60 seconds, to walk 457→461. **A 60s grid budget for `alns_only` samples
-only ~30 iterations — expect it to often report FLAT (no improvement over
+only ~30 iterations, expect it to often report FLAT (no improvement over
 the stage-A base board) at this budget, which is an honest, correctly
 time-boxed result, not a bug.** This is noted explicitly so the grid's
 consumers don't misread "no gain in 60s" as "ALNS doesn't work."
@@ -283,5 +283,5 @@ consumers don't misread "no gain in 60s" as "ALNS doesn't work."
 | `run_verhaard` | 437 | 441 | 60.05s (timeout-killed) | yes |
 | `run_alns` (2-stage) | 454 | 453 | 57.2–57.3s | yes |
 
-No engine in this grid is disqualified for multi-core use — all 4 confirmed
+No engine in this grid is disqualified for multi-core use, all 4 confirmed
 single-core (see audit table above).
