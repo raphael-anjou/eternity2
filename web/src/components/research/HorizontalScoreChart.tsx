@@ -129,7 +129,7 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
               width={categoryWidth}
               tick={
                 categoryNote
-                  ? (props: { x?: number | string; y?: number | string; payload?: { value?: unknown } }) => {
+                  ? (props: { x?: number | string; y?: number | string; payload?: { value?: string | number } }) => {
                       const row = rows.find((r) => r[categoryKey] === props.payload?.value);
                       const note = row ? categoryNote(row) : undefined;
                       const lines = note ? wrapNote(note, Math.floor(categoryWidth / 4.4)) : [];
@@ -138,7 +138,7 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
                       return (
                         <g transform={`translate(${props.x},${props.y})`} className="text-muted-foreground">
                           <text x={-3} y={top} fontSize={11} fill="currentColor" textAnchor="end" dominantBaseline="central">
-                            {String(props.payload?.value ?? "")}
+                            {props.payload?.value ?? ""}
                           </text>
                           {lines.map((l, i) => (
                             <text
