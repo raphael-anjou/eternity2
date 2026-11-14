@@ -1,0 +1,50 @@
+== theory memo, section 1 table and section 4
+ 4x4  (2, 4)  P     144  P/N   9.0  zeros 2944  share  28.6%  6/N  37.5%  R 1.19  tile-rule share of zeros 0.21
+ 5x5  (3, 4)  P     484  P/N  19.4  zeros 2.77e+04  share  23.7%  6/N  24.0%  R 1.58  tile-rule share of zeros 0.22
+ 6x6  (4, 5)  P    1296  P/N  36.0  zeros 1.562e+05  share  18.6%  6/N  16.7%  R 2.09  tile-rule share of zeros 0.21
+ 7x7  (4, 7)  P    2916  P/N  59.5  zeros 6.199e+05  share  14.6%  6/N  12.2%  R 2.67  tile-rule share of zeros 0.20
+ 8x8  (5, 8)  P    5776  P/N  90.2  zeros 1.887e+06  share  11.3%  6/N   9.4%  R 3.32  tile-rule share of zeros 0.20
+10x10 (5,10)  P   17424  P/N 174.2  zeros 1.095e+07  share   7.2%  6/N   6.0%  R 4.73  tile-rule share of zeros 0.19
+12x12 (5,12)  P   41616  P/N 289.0  zeros 4.273e+07  share   4.9%  6/N   4.2%  R 6.22  tile-rule share of zeros 0.19
+16x16 (5,17)  P  156816  P/N 612.6  zeros 3.322e+08  share   2.7%  6/N   2.3%  R 9.28  tile-rule share of zeros 0.18
+16x16: P 156816, Z 3.322e+08, F 1.196e+10
+  dense, 8 P^2 bytes            : 183.2 GiB = 196.7 GB
+  equalities of the theta form  : m = Z + P + 1 = 3.324e+08, least r with r(r+1)/2 >= m: 25782
+  factor at that rank, 8 P r    : 30.1 GiB = 32.3 GB
+  multipliers for Y >= 0, 8 F   : 89.1 GiB = 95.7 GB
+  factor + multipliers          : 119.3 GiB = 128.1 GB
+  if every free pair counts as a constraint: m = 1.23e+10, r = 156817 (P = 156816), factor 183.2 GiB
+  SCS as coded, 72 F bytes      : 0.86 TB
+  splitting, 5 dense matrices   : 40 (P+1)^2 = 916 GiB = 984 GB
+  10 P^3 flops                  : 3.9e+16
+  chordal block 4 (I^2/2 + I/2) : 77224 of 156816
+  edge-colour order 480 x 17    : 8160, ratio 19.2, cubed 7097
+  6x6 dense copy, 8 x 1297^2    : 13.5 MB
+
+== engineering memo, iteration growth from 4x4 (P 138) to 5x5 (P 478), one size step
+  exponent  1.57   ratio    7.0   splitting, memo's pairing: <= 500 (first log line) to 3,500
+  exponent  2.00   ratio   12.0   splitting, memo's pairing: <= 500 to 6,000
+  exponent  2.29   ratio   17.3   SCS, memo's pairing: 175 to 3,025
+  exponent  3.10   ratio   46.9   SCS, memo's pairing: 175 to 8,200 (unconverged)
+  exponent  1.49   ratio    6.4   SCS, the memo's other 4x4 figure: 475 to 3,025
+  exponent  2.29   ratio   17.3   SCS: 475 to 8,200
+  exponent  2.61   ratio   25.7   splitting to residual 1e-7, l2: 1,387 (4x4 seed 3, rho 30) to 35,602 (5x5 seed 1, rho 300)
+  exponent -1.14   ratio    0.2   splitting, mass under 1e-5, 4x4 seed 0 at rho 1 (14,500) to 5x5 at best rho (3,500)
+  exponent -0.71   ratio    0.4   same, to 6,000
+  exponent  3.30   ratio   60.0   if the true 4x4 count were 100 (the log cannot exclude it): 100 to 6,000
+
+== engineering memo, section 4: the scaling table from the Appendix F inputs
+ 5x5  D    436  s/it 0.0196  its 4.56e+03 / 4.67e+03 | 1 core 89 s / 92 s | 14 cores (1 core / 6) 15 s / 15 s | card 91 s / 93 s | row scan 14 cores 0.00029 s | 5 matrices 0 GiB
+ 6x6  D   1226  s/it 0.343  its 1.22e+04 / 8.97e+04 | 1 core 70 min / 8.5 h | 14 cores (1 core / 6) 12 min / 85 min | card 4.1 min / 30 min | row scan 14 cores 0.015 s | 5 matrices 0 GiB
+ 7x7  D   2820  s/it 4.25  its 2.75e+04 / 1.02e+06 | 1 core 32 h / 50 d | 14 cores (1 core / 6) 5.4 h / 8.4 d | card 9.9 min / 6.1 h | row scan 14 cores 0.28 s | 5 matrices 0 GiB
+ 8x8  D   5650  s/it 34.2  its 5.44e+04 / 7.94e+06 | 1 core 21 d / 8.6 y | 14 cores (1 core / 6) 86 h / 1.4 y | card 2.6 h / 16 d | row scan 14 cores 33 s | 5 matrices 1 GiB
+10x10 D  17226  s/it 968  its 1.64e+05 / 2.18e+08 | 1 core 5 y / 6.7e+03 y | 14 cores (1 core / 6) 0.84 y / 1.1e+03 y | card 9.4 d / 34 y | row scan 14 cores 2.2e+02 y | 5 matrices 11 GiB
+12x12 D  41330  s/it 1.34e+04  its 3.92e+05 / 2.97e+09 | 1 core 1.7e+02 y / 1.3e+06 y | 14 cores (1 core / 6) 28 y / 2.1e+05 y | card 0.85 y / 6.4e+03 y | row scan 14 cores 1.6e+13 y | 5 matrices 65 GiB
+16x16 D 156306  s/it 7.23e+05  its 1.48e+06 / 1.59e+11 | 1 core 3.4e+04 y / 3.6e+09 y | 14 cores (1 core / 6) 5.6e+03 y / 6.1e+08 y | card 1.7e+02 y / 1.9e+07 y | row scan 14 cores 4.1e+24 y | 5 matrices 916 GiB
+
+== crossover: largest iteration exponent a for which ONE lift solve on 14 cores still beats row scan on 14 cores
+   8x8 : a < -2.67  (and a < -1.28 if the row-scan tree is 2^5 larger, a < -4.06 if 2^5 smaller)
+  10x10: a < 2.54  (and a < 3.51 if the row-scan tree is 2^5 larger, a < 1.58 if 2^5 smaller)
+  12x12: a < 7.06  (and a < 7.84 if the row-scan tree is 2^5 larger, a < 6.29 if 2^5 smaller)
+  so along THIS colour ladder the crossing size moves little with a; it is set by the tree model (28 bits between 8x8 and 10x10)
+  8x8 with one colour fewer (5,7): tree 2^41.6 (memo): row scan on 14 cores 4.1 h, against the card's best case 2.6 h

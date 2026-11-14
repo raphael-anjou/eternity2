@@ -1,0 +1,76 @@
+== 1. cost model
+  5x5: P 478, t = P^2 (a + 16 b) = 0.001142 s
+  6x6: P 1290, t = P^2 (a + 16 b) = 0.008318 s
+  7x7: P 2916, t = P^2 (a + 16 b) = 0.0425 s
+  12x12: P 41616, t = P^2 (a + 16 b) = 8.657 s
+  16x16: P 156816, t = P^2 (a + 16 b) = 122.9 s
+  placements 5x5: no pin 484, first corner pinned 478
+  placements 6x6: no pin 1296, first corner pinned 1290
+  placements 7x7: no pin 2916, first corner pinned 2910
+  placements 8x8: no pin 5776, first corner pinned 5770
+  placements 12x12: no pin 41616, first corner pinned 41610
+  placements 16x16: no pin 156816, first corner pinned 156810
+  16x16: pairs 1.23e+10, F 1.2e+10; conflict list 2K x 12 B = 7.9 GB; vectors (2m+8) P r x 8 B = 0.56 GB; scratch 10 x 64 x P x 8 B = 0.80 GB; nonneg multipliers 2 x 0.84 F x 12 B = 241 GB
+  16x16 AS CODED (src/board.rs, al.rs, solver.rs: kind u8, conf_idx u32, confm f64, freem f64, pl f64, gram f64 with fast_outer=1): 910 GB
+  5x5 working set: V 61 kB, 64-row block 245 kB (cache resident); 16x16: V 20 MB, block 80 MB per thread
+  3,017 evaluations at 12.3 s: 10.3 h
+== 2. 5x5 reference (S10, the rows of the memo)
+  n 50, median evals 3017, mean (= evals per solution) 5083, CPU s per solution 5.79, s per evaluation 1.139 ms
+  boards with at most 14 solutions (seeds 1, 2, 4; the 6x6 boards have 3 to 14): mean 5828, median 3745
+== 3. 6x6 rows on this Mac
+  b6_s3 start 0: solved, evals 140075, CPU s 1338, restarts 5, outer 5510
+  b6_s2 start 0: time_limit, evals 188243, CPU s 1800, restarts 7, outer 7386
+  b6_s4 start 0: time_limit, evals 187537, CPU s 1800, restarts 7, outer 7405
+  b6_s1 start 0: time_limit, evals 187725, CPU s 1800, restarts 7, outer 7362
+  b6_s0 start 0: time_limit, evals 188135, CPU s 1800, restarts 7, outer 7369
+  b6_s1 start 1: solved, evals 24379, CPU s 217, restarts 0, outer 963
+  b6_s0 start 1: solved, evals 83647, CPU s 766, restarts 3, outer 3267
+  b6_s2 start 1: solved, evals 79714, CPU s 696, restarts 3, outer 3114
+  b6_s1 start 2: solved, evals 122423, CPU s 1067, restarts 4, outer 4821
+  b6_s3 start 1: time_limit, evals 213741, CPU s 1800, restarts 8, outer 8394
+  b6_s4 start 1: time_limit, evals 214381, CPU s 1800, restarts 8, outer 8444
+  b6_s0 start 2: time_limit, evals 217918, CPU s 1800, restarts 8, outer 8533
+  b6_s1 start 3: solved, evals 43434, CPU s 349, restarts 1, outer 1709
+  b6_s2 start 2: time_limit, evals 223068, CPU s 1800, restarts 8, outer 8760
+  b6_s0 start 3: solved, evals 101542, CPU s 799, restarts 3, outer 3970
+  rows 15, solved 7, total evals 2215962, CPU s 19634, per evaluation (whole run) 8.86 ms; model 8.32 ms for the evaluation alone, x 1/0.75 (5x5 share of the evaluation in a run) = 11.1 ms
+  cost per evaluation: observed / model = 1.06 (evaluation only), 0.80 (whole run)
+== 4. work per solution at 6x6, capped runs as censored exposure
+  this Mac (read): 7 solutions in 2.216e+06 evaluations: 3.17e+05 per solution, 95% [1.54e+05, 7.87e+05] (Poisson, constant rate)
+     against all five 5x5 boards (5083): factor 62 [30, 155], two-point exponent in P 4.2 [3.4, 5.1], per added cell x1.46 [1.36, 1.58]
+     against 5x5 boards with <= 14 solutions (5828): factor 54 [26, 135], two-point exponent in P 4.0 [3.3, 4.9], per added cell x1.44 [1.35, 1.56]
+  x86 (REPORTED, third solve at 5000): 3 solutions in 4.356e+05 evaluations: 1.45e+05 per solution, 95% [4.97e+04, 7.04e+05] (Poisson, constant rate)
+     against all five 5x5 boards (5083): factor 29 [10, 139], two-point exponent in P 3.4 [2.3, 5.0], per added cell x1.36 [1.23, 1.57]
+     against 5x5 boards with <= 14 solutions (5828): factor 25 [9, 121], two-point exponent in P 3.2 [2.2, 4.8], per added cell x1.34 [1.22, 1.55]
+  pooled (third solve at 5000): 10 solutions in 2.652e+06 evaluations: 2.65e+05 per solution, 95% [1.44e+05, 5.53e+05] (Poisson, constant rate)
+     against all five 5x5 boards (5083): factor 52 [28, 109], two-point exponent in P 4.0 [3.4, 4.7], per added cell x1.43 [1.36, 1.53]
+     against 5x5 boards with <= 14 solutions (5828): factor 45 [25, 95], two-point exponent in P 3.8 [3.2, 4.6], per added cell x1.41 [1.34, 1.51]
+  x86 (REPORTED, third solve at 35000): 3 solutions in 4.656e+05 evaluations: 1.55e+05 per solution, 95% [5.31e+04, 7.53e+05] (Poisson, constant rate)
+     against all five 5x5 boards (5083): factor 31 [10, 148], two-point exponent in P 3.4 [2.4, 5.0], per added cell x1.36 [1.24, 1.58]
+     against 5x5 boards with <= 14 solutions (5828): factor 27 [9, 129], two-point exponent in P 3.3 [2.2, 4.9], per added cell x1.35 [1.22, 1.56]
+  pooled (third solve at 35000): 10 solutions in 2.682e+06 evaluations: 2.68e+05 per solution, 95% [1.46e+05, 5.59e+05] (Poisson, constant rate)
+     against all five 5x5 boards (5083): factor 53 [29, 110], two-point exponent in P 4.0 [3.4, 4.7], per added cell x1.43 [1.36, 1.53]
+     against 5x5 boards with <= 14 solutions (5828): factor 46 [25, 96], two-point exponent in P 3.9 [3.2, 4.6], per added cell x1.42 [1.34, 1.51]
+== 5. medians: fraction solved inside a budget
+  5x5: inside 35,000 evaluations 50/50; inside 25,000 49/50
+  6x6 Mac, inside 35,000: 1/15 = 7%, 95% [0.2%, 31.9%]  => median above this budget with 95% confidence
+  6x6 Mac, inside its cap (about 188,000): 7/15 = 47%, 95% [21.3%, 73.4%]  => the interval contains one half: the median is not bounded with confidence
+  6x6 x86 REPORTED, inside about 35,000: 3/14 = 21%, 95% [4.7%, 50.8%]  => the interval contains one half: the median is not bounded with confidence
+  6x6 pooled, inside about 35,000: 4/29 = 14%, 95% [3.9%, 31.7%]  => median above this budget with 95% confidence
+  if the 6x6 median exceeds 35000: factor over the 5x5 median 3,017 above 11.6, two-point exponent above 2.47
+  if the 6x6 median exceeds 188000: factor over the 5x5 median 3,017 above 62.3, two-point exponent above 4.16
+== 6. the memo's expectation
+  growth P^1: 8142 evaluations, 68 s at the model cost
+  growth P^2: 21973 evaluations, 183 s at the model cost
+  observed on this Mac: CPU s per solution 2805 (95% [1361, 6976]); against 70 to 190 s: factor 15 to 40
+  of which cost per evaluation 1.06, the rest is the evaluation count
+== 7. segments (a restart every 1,000 outer steps, about 25,500 evaluations)
+  Mac 6x6: 7 successful segments, 79 abandoned at the restart: success per segment 8.1%, 95% [3.3%, 16.1%] (the partial last segment of each capped run is left out)
+  5x5 (S9, no restart): solved inside 1,000 outer steps 49/50, 95% [89.4%, 99.9%]
+  6x6 solved run: outer step of the solution 5510, restarts 5 -> outer steps into its segment 510
+  6x6 solved run: outer step of the solution 963, restarts 0 -> outer steps into its segment 963
+  6x6 solved run: outer step of the solution 3267, restarts 3 -> outer steps into its segment 267
+  6x6 solved run: outer step of the solution 3114, restarts 3 -> outer steps into its segment 114
+  6x6 solved run: outer step of the solution 4821, restarts 4 -> outer steps into its segment 821
+  6x6 solved run: outer step of the solution 1709, restarts 1 -> outer steps into its segment 709
+  6x6 solved run: outer step of the solution 3970, restarts 3 -> outer steps into its segment 970

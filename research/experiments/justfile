@@ -373,3 +373,25 @@ approach-pricing:
 learning-vs-propagation:
     cd learning-vs-propagation/scripts && python3 -I analyze.py
     cd learning-vs-propagation/scripts && python3 -I analyze_extra.py
+
+# RELAXATION-SMALL-BOARDS: small-board smoke runs of the relaxation studies (toy boards only,
+# negative result). See relaxation-small-boards/README.md.
+relaxation-small-boards:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    root="$(pwd)/relaxation-small-boards"
+    tmp="$(mktemp -d)"
+    # 1. convex lift, 4x4 toy, largest-l2 objective (converges in seconds)
+    (cd "$root/scripts/convex-6x6" && PYTHONDONTWRITEBYTECODE=1 uv run --with numpy --with scipy python -I admm.py 4 3 4 0 l2 300 20 "$tmp")
+    # 2. low-rank penalty search, Rust: export two 5x5 toy boards, build, run two starts
+    cp -R "$root/lowrank-rust" "$tmp/lr"
+    (cd "$tmp/lr" && PYTHONDONTWRITEBYTECODE=1 uv run --with numpy --with scipy python -I py/export.py 5 16 \
+      && cargo build --release -j 4 \
+      && mkdir -p results \
+      && ./target/release/lowrank-rust run kernel=blk r=16 inner_iters=20 fast_outer=1 mult_mode=1 \
+           restart_outer=1000 round_every=1 round_inner=1 max_outer=100000000 time_limit=60 wall_limit=1e9 \
+           jobs=2 boards=b5_s1 starts=0-1 out=results/smoke.jsonl tag=smoke)
+    # 3. restart annealing on a 6x6 toy board (short run; the committed runs are 100 to 1000 times longer)
+    cp -R "$root/scripts/anneal-vs-relaxation" "$tmp/an"
+    (cd "$tmp/an" && cc -O2 -o iso_t iso_t.c -lm && ./iso_t boards/b_6_4_5_0.txt anneal 3 3000000 1 1 0.8 0.2)
+    rm -rf "$tmp"

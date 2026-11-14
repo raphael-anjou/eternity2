@@ -1,0 +1,80 @@
+
+## board (5, 3, 4, 0): 36 solutions, P = 478 placements, log2 DFS nodes 15.82, controls annealed 20, sampled 20, pin {'tile': 0, 'rotation': 3, 'cell': '0 (top-left)', 'sides_NESW': [0, 2, 3, 0]}
+
+| point | solver status | bits on solutions | bits annealed | z vs annealed | bits sampled | z vs sampled | z vs random | placements x<1e-4 that AC keeps | placements x>=1e-4 that AC kills | x mass per cell off solution placements | hull distance (Linf) | max sum of x off solutions (LP/SDP certificate) | rounding gives a solution |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SDP lift | solved (inaccurate - reached time_limit_secs), 8200 it | 26.40 | -18.24 | 2.71 | -21.81 | 2.01 | 5.53 | 173 | 0 | 0.0009 | 0.0012 | 0.00591 (solve inaccurate) | no |
+| LP (no PSD) | solved, 175 it | 13.15 | 3.43 | 1.02 | -5.41 | 1.30 | 3.99 | 135 (certified 98) | 0 | 0.1791 | 0.1751 | 11.3 | no |
+| arc consistency (Sinkhorn of AC domains) |  | 4.79 | 2.60 | 0.42 | -8.29 | 1.20 | 2.29 | 0 | 0 | 0.3168 | 0.1836 | n/a | no |
+| probe B flow (median of 4 runs) | n/a | 8.17 | 7.38 | 0.42 | 4.75 | 1.57 | 3.68 | n/a | n/a | n/a | n/a | n/a | n/a |
+
+SDP: top eigenvalues [6.1575, 2.7404, 2.2293, 1.8152, 1.6494, 1.631, 1.31, 1.2576], rank@1e-3 28, rank of the solutions' span 32, min eig -0.00001889, res_pri 0.00002366, res_dual 0.00005007, solve 1106.0 s, peak RSS 0.59 GB, free pairs 86800, eigvec rounding {'valid': True, 'mismatches': 17, 'is_solution': False, 'dist_to_nearest_solution': 14}, min x on solution placements 0.0001, certificates {"leak_off_solutions": {"candidates": 240, "certified_zero": 0, "finished": true, "rounds": [{"size": 240, "max_sum": 0.00591, "status": "solved (inaccurate - reached time_limit_secs)", "iters": 9050, "seconds": 1002.9}]}, "kills_beyond_ac": {"candidates": 173, "certified_zero": 0, "finished": false, "rounds": []}}
+
+LP: res_pri 0.00000057, solve 13.3 s, certificates {"leak_off_solutions": {"candidates": 240, "certified_zero": 0, "finished": true, "rounds": [{"size": 240, "max_sum": 11.302257, "status": "solved", "iters": 1225, "seconds": 64.1}]}, "kills_beyond_ac": {"candidates": 135, "certified_zero": 98, "finished": true, "rounds": [{"size": 135, "max_sum": 2.490197, "status": "solved", "iters": 775, "seconds": 43.4}, {"size": 118, "max_sum": 1.764036, "status": "solved", "iters": 1225, "seconds": 67.7}, {"size": 110, "max_sum": 1.478261, "status": "solved", "iters": 375, "seconds": 19.5}, {"size": 104, "max_sum": 1.0, "status": "solved", "iters": 250, "seconds": 13.6}, {"size": 98, "max_sum": 0.0, "status": "solved", "iters": 200, "seconds": 10.5}]}}
+
+AC: alive 451 of 478, in some solution 211, seconds 0.01
+
+## board (5, 3, 4, 1): 6 solutions, P = 478 placements, log2 DFS nodes 15.05, controls annealed 20, sampled 20, pin {'tile': 6, 'rotation': 1, 'cell': '0 (top-left)', 'sides_NESW': [0, 2, 3, 0]}
+
+| point | solver status | bits on solutions | bits annealed | z vs annealed | bits sampled | z vs sampled | z vs random | placements x<1e-4 that AC keeps | placements x>=1e-4 that AC kills | x mass per cell off solution placements | hull distance (Linf) | max sum of x off solutions (LP/SDP certificate) | rounding gives a solution |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SDP lift | solved, 4925 it | 51.11 | -114.87 | 2.60 | -141.17 | 3.49 | 8.71 | 325 (certified 325) | 0 | 0.0000 | 0.0000 | 4e-05 | no |
+| LP (no PSD) | solved, 225 it | 13.71 | 7.63 | 0.50 | -18.13 | 1.82 | 3.60 | 39 (certified 32) | 0 | 0.5284 | 0.3541 | 21 | no |
+| arc consistency (Sinkhorn of AC domains) |  | 8.72 | 7.25 | 0.33 | -12.63 | 1.37 | 2.88 | 0 | 0 | 0.5689 | 0.4074 | n/a | no |
+| probe B flow (median of 4 runs) | n/a | 4.30 | 4.23 | 0.20 | 2.38 | 1.62 | 3.20 | n/a | n/a | n/a | n/a | n/a | n/a |
+
+SDP: top eigenvalues [9.7907, 6.4177, 4.4886, 2.9298, 1.5451, 0.8283, 0.0, 0.0], rank@1e-3 6, rank of the solutions' span 6, min eig -0.00000374, res_pri 0.00000417, res_dual 0.00000109, solve 702.4 s, peak RSS 0.59 GB, free pairs 86565, eigvec rounding {'valid': True, 'mismatches': 17, 'is_solution': False, 'dist_to_nearest_solution': 13}, min x on solution placements 0.0804, certificates {"leak_off_solutions": {"candidates": 325, "certified_zero": 325, "finished": true, "rounds": [{"size": 325, "max_sum": 4e-05, "status": "solved", "iters": 3450, "seconds": 438.1}]}, "kills_beyond_ac": {"candidates": 325, "certified_zero": 325, "finished": true, "rounds": [{"size": 325, "max_sum": 4e-05, "status": "solved", "iters": 3450, "seconds": 497.1}]}}
+
+LP: res_pri 0.00000001, solve 28.8 s, certificates {"leak_off_solutions": {"candidates": 325, "certified_zero": 0, "finished": true, "rounds": [{"size": 325, "max_sum": 21.0, "status": "solved", "iters": 225, "seconds": 22.0}]}, "kills_beyond_ac": {"candidates": 39, "certified_zero": 32, "finished": true, "rounds": [{"size": 39, "max_sum": 1.383051, "status": "solved", "iters": 1000, "seconds": 79.4}, {"size": 33, "max_sum": 0.5, "status": "solved", "iters": 325, "seconds": 27.0}, {"size": 32, "max_sum": 0.0, "status": "solved", "iters": 250, "seconds": 19.6}]}}
+
+AC: alive 418 of 478, in some solution 93, seconds 0.01
+
+## board (5, 3, 4, 2): 8 solutions, P = 478 placements, log2 DFS nodes 14.97, controls annealed 20, sampled 20, pin {'tile': 1, 'rotation': 2, 'cell': '0 (top-left)', 'sides_NESW': [0, 3, 3, 0]}
+
+| point | solver status | bits on solutions | bits annealed | z vs annealed | bits sampled | z vs sampled | z vs random | placements x<1e-4 that AC keeps | placements x>=1e-4 that AC kills | x mass per cell off solution placements | hull distance (Linf) | max sum of x off solutions (LP/SDP certificate) | rounding gives a solution |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SDP lift | solved, 3025 it | 45.69 | -119.18 | 3.42 | -159.63 | 3.95 | 7.70 | 268 | 0 | 0.0000 | 0.0000 | 0.00068 (solve inaccurate) | no |
+| LP (no PSD) | solved, 225 it | 16.50 | 15.70 | 0.17 | -31.19 | 1.54 | 4.49 | 21 (certified 3) | 0 | 0.4481 | 0.3661 | 19.2 | no |
+| arc consistency (Sinkhorn of AC domains) |  | 14.89 | 13.57 | 0.33 | -33.37 | 1.56 | 4.19 | 0 | 0 | 0.4732 | 0.3571 | n/a | no |
+| probe B flow (median of 4 runs) | n/a | 8.24 | 8.53 | -0.26 | 1.78 | 1.21 | 4.01 | n/a | n/a | n/a | n/a | n/a | n/a |
+
+SDP: top eigenvalues [8.976, 4.9664, 4.4286, 3.4428, 2.947, 0.8711, 0.3674, 0.0001], rank@1e-3 7, rank of the solutions' span 8, min eig -0.00001297, res_pri 0.00002336, res_dual 0.00000387, solve 398.3 s, peak RSS 0.58 GB, free pairs 86229, eigvec rounding {'valid': True, 'mismatches': 10, 'is_solution': False, 'dist_to_nearest_solution': 13}, min x on solution placements 0.0000, certificates {"leak_off_solutions": {"candidates": 267, "certified_zero": 267, "finished": true, "rounds": [{"size": 267, "max_sum": 0.00068, "status": "solved (inaccurate - reached time_limit_secs)", "iters": 8000, "seconds": 1004.2}]}, "kills_beyond_ac": {"candidates": 268, "certified_zero": 0, "finished": false, "rounds": []}}
+
+LP: res_pri 0.00000039, solve 27.5 s, certificates {"leak_off_solutions": {"candidates": 267, "certified_zero": 0, "finished": true, "rounds": [{"size": 267, "max_sum": 19.173626, "status": "solved", "iters": 1500, "seconds": 145.1}]}, "kills_beyond_ac": {"candidates": 21, "certified_zero": 3, "finished": true, "rounds": [{"size": 21, "max_sum": 1.602137, "status": "solved", "iters": 925, "seconds": 87.3}, {"size": 7, "max_sum": 1.0, "status": "solved", "iters": 225, "seconds": 21.0}, {"size": 3, "max_sum": 0.0, "status": "solved", "iters": 225, "seconds": 21.7}]}}
+
+AC: alive 373 of 478, in some solution 106, seconds 0.01
+
+## board (6, 4, 5, 0): 7 solutions, P = 1290 placements, log2 DFS nodes 21.83, controls annealed 20, sampled 20, pin {'tile': 9, 'rotation': 2, 'cell': '0 (top-left)', 'sides_NESW': [0, 2, 4, 0]}
+
+| point | solver status | bits on solutions | bits annealed | z vs annealed | bits sampled | z vs sampled | z vs random | placements x<1e-4 that AC keeps | placements x>=1e-4 that AC kills | x mass per cell off solution placements | hull distance (Linf) | max sum of x off solutions (LP/SDP certificate) | rounding gives a solution |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SDP lift | not run |
+| LP (no PSD) | solved, 225 it | 23.04 | 17.78 | 0.73 | -5.29 | 2.05 | 4.95 | 250 | 0 | 0.7038 | 0.4897 | n/a | no |
+| arc consistency (Sinkhorn of AC domains) |  | 10.13 | 9.56 | 0.23 | -15.73 | 1.95 | 3.45 | 0 | 0 | 0.7370 | 0.5136 | n/a | no |
+| probe B flow (median of 4 runs) | n/a | 20.18 | 14.31 | 1.26 | 9.03 | 1.91 | 5.43 | n/a | n/a | n/a | n/a | n/a | n/a |
+
+LP: res_pri 0.00000031, solve 1811.6 s, certificates null
+
+AC: alive 1199 of 1290, in some solution 109, seconds 0.04
+
+## board (6, 4, 5, 1): 4 solutions, P = 1290 placements, log2 DFS nodes 20.89, controls annealed 20, sampled 20, pin {'tile': 18, 'rotation': 1, 'cell': '0 (top-left)', 'sides_NESW': [0, 3, 1, 0]}
+
+| point | solver status | bits on solutions | bits annealed | z vs annealed | bits sampled | z vs sampled | z vs random | placements x<1e-4 that AC keeps | placements x>=1e-4 that AC kills | x mass per cell off solution placements | hull distance (Linf) | max sum of x off solutions (LP/SDP certificate) | rounding gives a solution |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SDP lift | not run |
+| LP (no PSD) | not run |
+| arc consistency (Sinkhorn of AC domains) |  | 14.70 | 11.99 | 0.50 | 3.80 | 0.87 | 3.71 | 0 | 0 | 0.7332 | 0.6426 | n/a | no |
+| probe B flow (median of 4 runs) | n/a | 25.89 | 21.30 | 0.69 | 12.52 | 1.98 | 6.42 | n/a | n/a | n/a | n/a | n/a | n/a |
+
+AC: alive 1121 of 1290, in some solution 113, seconds 0.05
+
+## board (6, 4, 5, 2): 14 solutions, P = 1290 placements, log2 DFS nodes 21.85, controls annealed 20, sampled 20, pin {'tile': 2, 'rotation': 0, 'cell': '0 (top-left)', 'sides_NESW': [0, 4, 1, 0]}
+
+| point | solver status | bits on solutions | bits annealed | z vs annealed | bits sampled | z vs sampled | z vs random | placements x<1e-4 that AC keeps | placements x>=1e-4 that AC kills | x mass per cell off solution placements | hull distance (Linf) | max sum of x off solutions (LP/SDP certificate) | rounding gives a solution |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SDP lift | not run |
+| LP (no PSD) | not run |
+| arc consistency (Sinkhorn of AC domains) |  | 16.46 | 13.44 | 0.46 | -13.90 | 1.51 | 3.96 | 0 | 0 | 0.5264 | 0.5000 | n/a | no |
+| probe B flow (median of 4 runs) | n/a | 10.51 | 10.47 | 0.06 | 6.56 | 1.75 | 4.47 | n/a | n/a | n/a | n/a | n/a | n/a |
+
+AC: alive 1098 of 1290, in some solution 250, seconds 0.06
