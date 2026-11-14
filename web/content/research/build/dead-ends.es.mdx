@@ -5,8 +5,8 @@ description: >-
   según la solidez de su evidencia. Veinte veredictos se apoyan en datos
   publicados en el repositorio, una fuente pública con nombre o una
   derivación; otros veintidós se enuncian sin evidencia que un lector pueda
-  abrir, y aparecen aparte con el experimento que zanjaría cada uno, y una pregunta medida que sigue indecisa.
-metaDescription: "Enfoques de Eternity II que no movieron la puntuación, cada uno con su grado de evidencia (medido, reportado, argumentado o sin evidencia en el repositorio) y el alcance del veredicto: veinte callejones establecidos, veintidós afirmaciones sin comprobar con su prueba decisiva, una pregunta indecisa."
+  abrir, y aparecen aparte con el experimento que zanjaría cada uno, y un resultado negativo medido sobre el aprendizaje de cláusulas.
+metaDescription: "Enfoques de Eternity II que no movieron la puntuación, cada uno con su grado de evidencia (medido, reportado, argumentado o sin evidencia en el repositorio) y el alcance del veredicto: veinte callejones establecidos, veintidós afirmaciones sin comprobar con su prueba decisiva, un negativo medido sobre el aprendizaje de cláusulas."
 kind: reference
 order: 50
 group: Skip these
@@ -63,9 +63,9 @@ de la mitad de los veredictos de abajo aún no están establecidos: de 43
 entradas, 10 están medidas con datos publicados en el repositorio, 5 las
 reporta una fuente pública con nombre, 5 se argumentan con una derivación,
 22 se apoyan en ejecuciones cuyos datos no están en el repositorio y 1 está
-medida pero indecisa. Solo los tres primeros grupos se llaman aquí callejones
+medida y negativa en las piezas reales. Solo los tres primeros grupos se llaman aquí callejones
 sin salida; el cuarto aparece aparte, entrada por entrada, con el experimento
-que lo zanjaría, y la entrada indecisa tiene su propia sección breve justo
+que lo zanjaría, y la entrada sobre aprendizaje de cláusulas tiene su propia sección breve justo
 después.
 
 ## Grados de evidencia
@@ -132,7 +132,7 @@ da.
 | Anillos concéntricos | Afirmación sin evidencia en el repositorio | un programa, una ejecución por presupuesto |
 | Tabla de transposición compartida | Afirmación sin evidencia en el repositorio | una ejecución de ocho trabajadores |
 | Cierre euleriano del borde | Afirmación sin evidencia en el repositorio | una prueba sobre un millón de bordes parciales |
-| Aprendizaje de cláusulas frente a la propagación | Medido, veredicto indeciso | tableros generados de 5×5 a 7×7; sin ejecución en piezas reales |
+| Aprendizaje de cláusulas frente a la propagación | Medido, negativo | tableros generados de 5×5 a 7×7 y 160 prefijos erróneos de las piezas reales; la cláusula de tamaño no está establecida |
 
 ## Callejones sin salida establecidos
 
@@ -1226,19 +1226,19 @@ ejecutas.
 
 **Lo que lo zanjaría:** el motor de un núcleo ya tiene un propagador euleriano de borde; ejecutarlo en la escalera difícil generada frente al mismo solucionador sin él, y publicar los conteos de nodos.
 
-## Medido, veredicto indeciso
+## Medido, negativo
 
-Una pregunta tiene datos publicados y ningún veredicto. No es un callejón sin salida.
+Una pregunta tiene un negativo medido en las piezas reales y una cláusula de tamaño no establecida. Se lista aparte de los callejones calificados.
 
 ### Aprendizaje de cláusulas frente a la propagación
 
 *Añadir aprendizaje de cláusulas a un solucionador para que recuerde por qué murieron las ramas.*
 
-**Medido, veredicto indeciso**, en tableros de juguete generados con borde de 5×5 a 7×7 (diez por tamaño, un hilo, límite de 3 500 s), reverificado de forma independiente. El trabajo se cuenta en conflictos para los solucionadores que aprenden y en nodos o ramas para los que solo propagan, en bits de log2 (nodos del barrido sobre trabajo). Pareado con el mismo orden estático, aprender frente a no aprender aporta **1,31** bits en 5×5 (95 % de 1,06 a 1,49) y **2,03** bits en 6×6 (1,33 a 2,26). No hay valor en 7×7: el brazo que aprende terminó 0 de 10 tableros, y las entradas de la tabla 7×7 calculadas con ejecuciones cortadas en el límite son cotas superiores, no mediciones. La línea de parada fijada de antemano (la ventaja sobre el control sin aprendizaje debe subir 2 bits de 6×6 a 7×7 y 3 bits de la profundidad 104 a 88) es **indecidible con estos datos**: la cláusula de profundidad necesita una parte en piezas reales que nunca se ejecutó, y la de tamaño admite una subida de a lo sumo 2,09 frente a un umbral de 2, sin cota inferior. Un fallo hallado en la reverificación, un tablero 7×7 descartado que CaDiCaL terminó en 430 s y que es el mejor caso del solucionador que aprende, hace que la cifra de la primera nota solo acote los 8 tableros usados. El tamaño está confundido con la tensión (4, 5 y 7 colores interiores). Tasado para el rompecabezas completo en **0 a 2 bits en tiempo** (la estimación de la reverificación); en segundos, aprender es unos 3 bits más lento en 6×6.
+**Medido, negativo**, reverificado de forma independiente, en tableros de juguete generados con borde de 5×5 a 7×7 y en 160 prefijos erróneos de las piezas reales a profundidades de 112 a 88. La línea de parada fijada de antemano se activó: el aprendizaje de cláusulas no da ventaja en trabajo de búsqueda sobre el barrido por filas con consistencia de arco (-0,07 bits en profundidad 104, +0,14 en 96, a lo sumo -0,25 en 88). La cláusula de tamaño en tableros de juguete se inclina a activada sin estar establecida, y toda cifra en segundos es propiedad de los programas ejecutados, no del método. Resultados completos: [aprender frente a propagar](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation).
 
-No es un callejón sin salida cerrado y no se califica como tal. No dice nada sobre aprender en 8×8, sobre prefijos de piezas reales, con un solucionador de cardinalidad, ni más allá de 3 500 s.
+Se califica aparte de los callejones establecidos porque la cláusula de tamaño sigue abierta y no se ejecutó un aprendiz de explicaciones cortas sobre un propagador.
 
-**Qué lo zanjaría:** la parte en piezas reales (40 prefijos erróneos en profundidades libres de 112 a 88), un peldaño 8×8 y ejecuciones de más de 3 500 s, con un control que solo propague.
+**Qué zanjaría el resto:** un peldaño 8×8, ejecuciones de más de 3 500 s y un aprendiz de explicaciones cortas construido sobre un propagador.
 
 Evidencia: [learning-vs-propagation](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/learning-vs-propagation); la página de la serie es [aprender frente a propagar](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation). Nada de esto es un avance en Eternity II.
 

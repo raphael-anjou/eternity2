@@ -355,14 +355,16 @@ exactitud se sostuviera, eso por sí solo vale 0 bits; justificaría pruebas en
 ### Aprendizaje de cláusulas frente a propagación sola, en subárboles de piezas reales
 
 **Pregunta.** ¿Crece la ventaja de un solver que aprende sobre un control de
-solo propagación con la profundidad y el tamaño? **Estado.** Solo tableros de
-juguete, revisado de forma independiente: aprender ahorra +1,31 bits en 5x5 y
-+2,03 en 6x6, no hay valor en 7x7 (el brazo con aprendizaje terminó 0 de 10
-tableros), y la línea de parada fijada de antemano es indecidible con esos
-datos. La estimación para el puzle completo es de 0 a 2 bits en tiempo. **Qué lo
-resolvería.** La parte con piezas reales: 40 prefijos erróneos a profundidades
-libres de 112 a 88, con el control de solo propagación. **Coste.** Unas 10
-horas-núcleo para esa parte; no se ejecutó.
+solo propagación con la profundidad y el tamaño? **Estado.** Medido, negativo,
+revisado de forma independiente. En 160 prefijos erróneos de las piezas reales a
+profundidades de 112 a 88, la línea de parada fijada de antemano se activó: el
+aprendizaje de cláusulas no da ventaja en trabajo de búsqueda sobre el barrido
+por filas con consistencia de arco (a lo sumo -0,25 bits en profundidad 88). La
+cláusula de tamaño en tableros de juguete se inclina a activada sin estar
+establecida, y las cifras en segundos son propiedades de los programas
+ejecutados. Véase [aprender frente a la propagación](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation).
+**Qué resolvería el resto.** Un peldaño 8x8 y un aprendiz de explicaciones
+cortas construido sobre un propagador; ninguno se ejecutó.
 
 ### Crecimiento de los solvers sin árbol frente al árbol
 

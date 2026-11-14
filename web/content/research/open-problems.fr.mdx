@@ -358,14 +358,16 @@ justifierait des essais en 7x7 et 8x8
 ### Apprentissage de clauses contre propagation seule, sur des sous-arbres de vraies pièces
 
 **Question.** L'avance d'un solveur qui apprend sur un témoin à propagation
-seule croît-elle avec la profondeur et la taille ? **État.** Plateaux jouets
-seulement, revérifié indépendamment : l'apprentissage économise +1,31 bit en 5x5
-et +2,03 en 6x6, il n'y a pas de valeur en 7x7 (le bras avec apprentissage a
-fini 0 plateau sur 10), et le seuil d'arrêt fixé d'avance est indécidable sur
-ces données. L'estimation pour le puzzle complet est de 0 à 2 bits en temps.
-**Ce qui trancherait.** La partie sur vraies pièces : 40 préfixes faux à des
-profondeurs libres de 112 à 88, avec le témoin à propagation seule. **Coût.**
-Environ 10 heures-cœur pour cette partie ; non lancée.
+seule croît-elle avec la profondeur et la taille ? **État.** Mesuré, négatif,
+revérifié indépendamment. Sur 160 préfixes faux des vraies pièces aux
+profondeurs 112 à 88, le seuil d'arrêt fixé d'avance a été atteint :
+l'apprentissage de clauses ne donne aucune avance en travail de recherche sur le
+balayage par lignes avec cohérence d'arc (au plus -0,25 bit à la profondeur 88).
+La clause de taille sur plateaux jouets penche vers le seuil atteint sans être
+établie, et les chiffres en secondes sont des propriétés des programmes lancés.
+Voir [apprendre contre la propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation).
+**Ce qui trancherait le reste.** Un échelon 8x8 et un apprenant à explications
+courtes bâti sur un propagateur ; ni l'un ni l'autre n'a été lancé.
 
 ### Croissance des solveurs hors arbre face à l'arbre
 

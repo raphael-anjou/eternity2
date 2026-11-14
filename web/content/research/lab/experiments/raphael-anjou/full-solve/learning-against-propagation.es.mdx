@@ -1,0 +1,101 @@
+---
+title: "Aprendizaje de cláusulas frente a propagación: un resultado negativo"
+description: >-
+  El aprendizaje de cláusulas no da ninguna ventaja creciente sobre la simple
+  propagación por consistencia de arco en prefijos erróneos de las piezas reales:
+  la línea de parada fijada de antemano se activó sobre el trabajo acumulado, y
+  en recuentos el aprendizaje vale 0 bits más que la consistencia de arco. Los
+  tableros de juguete (5x5 a 7x7) apuntan en el mismo sentido sin establecerlo.
+  Nada de esto es progreso en Eternity II.
+metaDescription: "Resultado negativo: en 160 prefijos erróneos de las piezas reales (profundidades 112 a 88) la ventaja de CaDiCaL sobre el barrido por filas con consistencia de arco es plana en trabajo acumulado (-0,07, +0,14, como máximo -0,25 bits): la línea de parada fijada de antemano se activó. Tableros de juguete 5x5 a 7x7: misma tendencia, no establecida."
+kind: experiment
+contribution: negative
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+hardware:
+  cores: 10
+  ramGb: 32
+  gpus: 0
+  accelerator: none
+  machine: "Portátil Apple M4 de 10 núcleos, 32 GB; portátil Apple M1 de 8 núcleos, 16 GB; portátil x86 de bajo consumo de 14 núcleos"
+  wallClock: "Parte de piezas reales: 800 ejecuciones, 9,15 horas-núcleo, límite de 1.200 s por ejecución. Parte de juguete: límite de 3.500 s por ejecución, un solo hilo."
+  seedPolicy: "tableros de juguete, semillas 1 a 10 por tamaño; prefijos de las piezas reales con semilla 1000*profundidad + índice, los mismos para cada solver"
+  measured: false
+repro:
+  kind: exact
+  cmd: just experiments learning-vs-propagation
+  produces: artifact
+  scope: "Vuelve a ejecutar los análisis y sus recálculos independientes sobre las salidas brutas versionadas (Python estándar, unos segundos). No relanza los cálculos de los solvers: 9,15 horas-núcleo la parte de piezas reales, más la de juguete."
+order: 60
+updated: 2026-11-14
+date: 2026-11
+topics: [exact-methods, search-space, backtracking]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "learning-vs-propagation: README con el resultado, las notas de las dos partes, las dos re-verificaciones independientes y los resultados brutos"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/learning-vs-propagation
+---
+
+¿El aprendizaje de cláusulas ahorra trabajo de búsqueda frente a la simple propagación, y esa ventaja crece con el tamaño? No, en las piezas reales. La prueba y su línea de parada se escribieron antes de cualquier ejecución sobre piezas reales: «la ventaja sobre el control de solo propagación no sube 2 bits de 6x6 a 7x7, ni 3 bits de la profundidad 104 a 88». La línea de parada se activó. Todas las cifras son bits de log2 del trabajo. Los precios fijos del puzle completo están en el [hub de la serie](/research/lab/experiments/raphael-anjou/full-solve) y no se rederivan aquí.
+
+## El montaje
+
+El control es un barrido por filas con consistencia de arco (AC), contado en ramas probadas. Los aprendices son CaDiCaL 1.5.3 (K) y clasp 3.3.10 (C), contados en conflictos. U0 es clasp sin aprendizaje, con orden estático: aísla lo que añade el aprendizaje. T es el barrido por filas simple, contado en nodos. La ventaja de X sobre Y es log2(trabajo de Y / trabajo de X).
+
+- Parte 1, tableros de juguete: tableros generados de 5x5, 6x6 y 7x7, diez por tamaño, esquina fijada, 3 colores de marco y 4, 5 y 7 colores interiores. Estado: solo tableros de juguete.
+- Parte 2, piezas reales: las piezas oficiales con cinco pistas, barrido por filas desde la esquina superior izquierda. 40 prefijos erróneos muestreados en cada profundidad 112, 104, 96 y 88 (160 prefijos), cada uno refutado exhaustivamente por T, AC, K, C y U0 con 1.200 s por ejecución. 800 ejecuciones, 9,15 horas-núcleo, ninguna compleción en ningún sitio. Estado: re-verificado de forma independiente.
+
+## Parte 2: piezas reales
+
+Ventaja de CaDiCaL sobre AC en trabajo acumulado (la medida que lleva el coste):
+
+| Profundidad | 112 | 104 | 96 | 88 |
+|---|---|---|---|---|
+| K sobre AC | +0,95 | -0,07 | +0,14 | como máximo -0,25 |
+| C sobre AC | +0,83 | -0,29 | -2,03 | como máximo -0,80 |
+| U0 sobre AC | +0,83 | +1,86 | +1,83 | +1,82 |
+| K sobre U0 | +0,12 | -1,93 | -1,68 | como máximo -2,07 |
+
+Las entradas a 88 son cotas superiores: CaDiCaL se cortó en los tres prefijos más grandes y clasp por defecto en diez, y un corte solo puede bajar la ventaja. La subida de 104 a 88 es como máximo -0,18, y ninguno de los 10.000 remuestreos bootstrap llega a 3. La cláusula de profundidad se activó, con claridad. El estadístico previsto, la mediana sobre 40 prefijos, vale 0,00 a 104 y a 88: también se activó, pero no dice nada, porque la mayoría de los prefijos los refutan todos los solvers en la raíz.
+
+El aprendizaje además pierde contra su propio control. Clasp sin aprendizaje necesita menos pasos (acumulado a profundidad 88: 4,19 millones de conflictos frente a 14,8 millones de ramas para AC), y CaDiCaL necesita más conflictos que él en 45 de 45 prefijos con trabajo. Parte de cualquier ventaja de un solver sobre las «ramas probadas» de AC es un cambio de unidad (unos 1,8 bits), no aprendizaje. Las cláusulas aprendidas de clasp promedian 511, 934 y 1.366 literales a profundidades 104, 96 y 88: más largas cuanto menos profundo el prefijo, lo contrario de lo que haría falta para una ventaja creciente.
+
+Límites de la muestra: 40 prefijos no captan los raros prefijos costosos a 112 y 104 (2,7 y 2,2 bits por debajo de la media de la población). Los recuentos de clasp por defecto varían con la compilación (uno de cinco difirió al repetir); los demás brazos se reprodujeron idénticos.
+
+## Parte 1: tableros de juguete
+
+Estado: solo tableros de juguete. La cláusula de tamaño (ventaja que sube 2 bits de 6x6 a 7x7) tiende a activarse, sin quedar establecida.
+
+| Medida | 5x5 | 6x6 | 7x7 |
+|---|---|---|---|
+| Aprendizaje solo, U1 menos U0 (clasp, mismo orden, aprendizaje activado frente a desactivado), exhaustivo | +1,31 | +2,03 | sin valor: U1 terminó 0 de 10 |
+| K sobre AC | +2,32 | +2,19 | como máximo +4,28 |
+
+El valor a 7x7 es una cota, no una medida: la mayoría de los aprendices se cortaron a 3.500 s. Falta un tablero en todos los pares contra AC porque la ejecución de AC se mató sin salida; el aprendiz lo terminó en 430 s, así que es su mejor caso (al menos unos 8 bits, inferidos del ritmo de AC, no contados). La subida de 6x6 a 7x7 es como máximo +2,09 frente a un umbral de 2, sin cota inferior. Los colores interiores también cambian con el tamaño (4, 5, 7): el tamaño está confundido con la dureza.
+
+## Propiedades de los programas, no del método
+
+Todas las cifras en segundos, la codificación por pares (unos 24 millones de cláusulas a profundidad 88), CaDiCaL llamado desde una envoltura de Python en tandas de 5.000 conflictos y un solver AC sin optimizar que copia su estado en cada rama son propiedades de estos programas. En segundos a profundidad 88, K frente a AC es -3,0 a -3,2 bits en medianas y -3,3 a -3,8 por máquina; AC frente al barrido por filas simple, -5,1 a -5,9 por máquina; K frente al barrido simple, unos -9 bits. Ninguna de estas razones es un enunciado sobre el aprendizaje de cláusulas ni sobre la consistencia de arco en general.
+
+Lo que es propiedad del método, hasta donde se ha mostrado, son los recuentos: ninguna ventaja sobre AC, y un coste de 1,7 a 2,1 bits en conflictos frente a la propagación sola sobre la misma codificación.
+
+## Qué significa para una solución completa
+
+0 bits en recuentos sobre la consistencia de arco (rango -0,7 a +0,1). La brecha del [hub](/research/lab/experiments/raphael-anjou/full-solve) es de 56 a 73 bits frente a los dos presupuestos grandes y de unos 84 bits frente a una ejecución modesta de unos 10^15 nodos, así que esto no es una palanca. Tampoco la cerraría una comprobación tardía: las profundidades útiles llegan después del nivel más ancho del árbol, como muestran los [filtros tardíos](/research/lab/experiments/raphael-anjou/full-solve/late-filters). No es progreso en Eternity II. Los récords actuales están en [/research/records](/research/records) y la frontera en [/research/open-problems](/research/open-problems).
+
+## Qué no se ejecutó
+
+Un aprendiz basado en propagadores con explicaciones cortas (la única variante sin probar); 8x8; un solver de cardinalidad; un solver AC incremental optimizado; cualquier ejecución por encima de 3.500 s (juguete) o 1.200 s (piezas reales). No se promete ningún resultado para ninguna.
+
+## Reproducir
+
+`just experiments learning-vs-propagation` repite los análisis y un recálculo independiente con su propio analizador, y recupera las tablas versionadas. No relanza los cálculos de los solvers. Todo está en la [carpeta del experimento](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/learning-vs-propagation).

@@ -5,8 +5,8 @@ description: >-
   strength of its evidence. Twenty verdicts rest on committed data, a named
   public report or a derivation; twenty-two more are stated without evidence a
   reader can open, and are listed separately with the experiment that would
-  settle each, and one measured question that stays undecided.
-metaDescription: "Eternity II approaches that did not move the score, each with an evidence grade (measured, reported, argued, or claimed without committed evidence) and the scope of its verdict: twenty established dead ends, twenty-two untested claims with the test that would settle each, one undecided question."
+  settle each, and one measured negative result on clause learning.
+metaDescription: "Eternity II approaches that did not move the score, each with an evidence grade (measured, reported, argued, or claimed without committed evidence) and the scope of its verdict: twenty established dead ends, twenty-two untested claims with the test that would settle each, one measured negative on clause learning."
 kind: reference
 order: 50
 group: Skip these
@@ -62,9 +62,9 @@ each with the strength of its evidence. None of these are bad ideas in
 general. About half of the verdicts below are not yet established: of 43 entries,
 10 are measured with committed data, 5 are reported by a named public source,
 5 are argued from a derivation, 22 rest on runs whose data are not
-committed, and 1 is measured but undecided. Only the first three groups are
+committed, and 1 is measured and negative on the real pieces. Only the first three groups are
 called dead ends here; the fourth is listed separately, entry by entry, with
-the experiment that would settle it, and the undecided one has its own short
+the experiment that would settle it, and the clause-learning one has its own short
 section after it.
 
 ## Evidence grades
@@ -128,7 +128,7 @@ verdict (board sizes, budgets, engines) where the evidence gives one.
 | Concentric rings | Claim without committed evidence | one schedule, one run per budget |
 | Shared transposition table | Claim without committed evidence | one run of eight workers |
 | Eulerian border closure | Claim without committed evidence | one test of a million partial borders |
-| Clause learning against propagation | Measured, verdict undecided | generated boards 5×5 to 7×7; no real-piece run |
+| Clause learning against propagation | Measured, negative | generated boards 5×5 to 7×7 and 160 wrong prefixes of the real pieces; the size clause is not established |
 
 ## Graded dead ends
 
@@ -1127,19 +1127,19 @@ checks you already run.
 
 **What would settle it:** the single-core engine already has a border Eulerian propagator; run it on the generated hard ladder against the same solver without it, and commit the node counts.
 
-## Measured, verdict undecided
+## Measured, negative
 
-One question has committed data and no verdict. It is not a dead end.
+One question has a measured negative on the real pieces and a size clause that is not established. It is listed apart from the graded dead ends.
 
 ### Clause learning against propagation
 
 *Add clause learning to a solver and let it remember why branches died.*
 
-**Measured, verdict undecided**, on generated framed toy boards of 5×5 to 7×7 (ten per size, one thread, 3,500 s limit), independently re-checked. Work is counted in conflicts for the learning solvers and in nodes or branches for the propagation-only ones, as bits of log2 (row-scan nodes over work). Paired on the same static order, learning on against off gains **1.31** bits at 5×5 (95% 1.06 to 1.49) and **2.03** bits at 6×6 (1.33 to 2.26). There is no 7×7 value: the learning arm finished 0 of 10 boards, and the 7×7 table entries computed from runs cut at the limit are upper bounds, not measurements. The stop line fixed in advance (the lead over the propagation-only control must rise by 2 bits from 6×6 to 7×7 and by 3 bits from depth 104 to 88) is **undecidable on this data**: the depth clause needs a real-piece part that was never run, and the size clause allows a rise of at most 2.09 against a threshold of 2, with no lower bound. A fault found by the re-check, a dropped 7×7 board that CaDiCaL finished in 430 s and that is the learning solver's best case, means the first note's figure bounds only the 8 boards it used. Size is confounded with tightness (4, 5 and 7 inner colours). Priced for the full puzzle at **0 to 2 bits in time** (the re-check's estimate); in seconds, learning is about 3 bits slower at 6×6.
+**Measured, negative**, independently re-checked, on generated framed toy boards of 5×5 to 7×7 and on 160 wrong prefixes of the real pieces at depths 112 to 88. The stop line fixed in advance fired: clause learning gives no lead in search work over row scan with arc consistency (-0.07 bits at depth 104, +0.14 at 96, at most -0.25 at 88). The toy-board size clause leans fired but is not established, and every figure in seconds is a property of the programs run, not of the method. Full results: [learning against propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation).
 
-This is not a closed dead end and is not graded as one. It tells nothing about learning at 8×8, on real-piece prefixes, with a cardinality solver, or past 3,500 s.
+This is graded apart from the established dead ends because the size clause is open and a learner with short explanations built on a propagator was not run.
 
-**What would settle it:** the real-piece part (40 wrong prefixes at free depths 112 to 88), an 8×8 rung, and runs past 3,500 s, with a propagation-only control.
+**What would settle the rest:** an 8×8 rung, runs past 3,500 s, and a learner with short explanations built on a propagator.
 
 Evidence: [learning-vs-propagation](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/learning-vs-propagation); the series page is [learning against propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation). Nothing here is Eternity II progress.
 

@@ -1,0 +1,100 @@
+---
+title: "Clause learning against propagation: a negative result"
+description: >-
+  Clause learning gave no growing lead over plain arc-consistency propagation on
+  wrong prefixes of the real pieces: the pre-stated stop line fired on summed
+  work, and in counts learning is worth 0 bits over arc consistency. The toy
+  boards (5x5 to 7x7) lean the same way but do not establish it. Nothing here is
+  Eternity II progress.
+metaDescription: "Negative result: on 160 wrong prefixes of the real pieces (depths 112 to 88) CaDiCaL's lead over row scan with arc consistency is flat in summed work (-0.07, +0.14, at most -0.25 bits), so the pre-stated stop line fired. Toy boards 5x5 to 7x7 lean the same way, not established."
+kind: experiment
+contribution: negative
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+hardware:
+  cores: 10
+  ramGb: 32
+  gpus: 0
+  accelerator: none
+  machine: "10-core Apple M4 laptop, 32 GB; 8-core Apple M1 laptop, 16 GB; 14-core low-power x86 laptop"
+  wallClock: "Real-piece part: 800 runs, 9.15 core-hours, 1,200 s limit per run. Toy part: 3,500 s limit per run, one thread."
+  seedPolicy: "toy boards seeds 1 to 10 per size; real-piece prefixes seeded 1000*depth + index, the same for every solver"
+  measured: false
+repro:
+  kind: exact
+  cmd: just experiments learning-vs-propagation
+  produces: artifact
+  scope: "Reruns the analyses and their independent recomputations on the committed raw outputs (standard-library Python, a few seconds). It does not rerun the solver jobs: 9.15 core-hours for the real-piece part, hours more for the toy part."
+order: 60
+updated: 2026-11-14
+date: 2026-11
+topics: [exact-methods, search-space, backtracking]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "learning-vs-propagation: README with the outcome, the notes for both parts, the two independent re-checks and the raw results"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/learning-vs-propagation
+---
+
+Does clause learning buy search work over plain propagation, and does that lead grow as the problem gets bigger? It does not, on the real pieces. The test and its stop line were written before any real-piece run: "the lead over the propagation-only control does not rise by 2 bits from 6x6 to 7x7, and not by 3 bits from depth 104 to 88." The stop line fired. All figures are bits of log2 work. The fixed prices for the full puzzle are on the [series hub](/research/lab/experiments/raphael-anjou/full-solve) and are not re-derived here.
+
+## The setup
+
+The control is a row scan with arc consistency (AC), counted in branches tried. The learners are CaDiCaL 1.5.3 (K) and clasp 3.3.10 (C), counted in conflicts. U0 is clasp with learning off and a static order, which isolates what learning adds. T is the plain row scan, counted in nodes. The lead of X over Y is log2(work of Y / work of X).
+
+- Part 1, toy boards: generated boards of 5x5, 6x6 and 7x7, ten per size, corner pinned, 3 frame colours and 4, 5 and 7 inner colours. Status: toy boards only.
+- Part 2, real pieces: the official pieces with five clues, row scan from the top left. 40 sampled wrong prefixes at each depth 112, 104, 96 and 88 (160 prefixes), each refuted exhaustively by T, AC, K, C and U0 with 1,200 s per run. 800 runs, 9.15 core-hours, no completion anywhere. Status: independently re-checked.
+
+## Part 2: real pieces
+
+Lead of CaDiCaL over AC on summed work (the measure that carries cost):
+
+| Depth | 112 | 104 | 96 | 88 |
+|---|---|---|---|---|
+| K over AC | +0.95 | -0.07 | +0.14 | at most -0.25 |
+| C over AC | +0.83 | -0.29 | -2.03 | at most -0.80 |
+| U0 over AC | +0.83 | +1.86 | +1.83 | +1.82 |
+| K over U0 | +0.12 | -1.93 | -1.68 | at most -2.07 |
+
+The 88 entries are upper bounds: CaDiCaL was cut on the three largest prefixes and clasp default on ten, and a cut can only lower the lead. The rise from 104 to 88 is at most -0.18, and none of 10,000 bootstrap resamples reaches 3. The depth clause fired, firmly. The planned statistic, the median over 40 prefixes, is 0.00 at 104 and at 88, so it fired too but says nothing: most prefixes are refuted at the root by every solver.
+
+Learning also loses to its own control. Clasp with learning off needs the fewest steps (summed at depth 88: 4.19 million conflicts against 14.8 million branches for AC), and CaDiCaL needs more conflicts than it on 45 of 45 prefixes with work. Part of any solver lead over AC's "branches tried" is a change of unit (about 1.8 bits), not learning. Clasp's learnt clauses average 511, 934 and 1,366 literals at depths 104, 96 and 88, longer as the prefix gets shallower, the opposite of what a rising lead needs.
+
+Limits of the sample: 40 prefixes miss the rare costly ones at 112 and 104 (2.7 and 2.2 bits below the population mean). Clasp default's counts vary with the build (one of five reruns differed); the other arms reproduced exactly.
+
+## Part 1: toy boards
+
+Status: toy boards only. The size clause (lead rising by 2 bits from 6x6 to 7x7) leans fired but is not established.
+
+| Measure | 5x5 | 6x6 | 7x7 |
+|---|---|---|---|
+| Learning alone, U1 minus U0 (clasp, same order, learning on against off), exhaustive | +1.31 | +2.03 | no value: U1 finished 0 of 10 |
+| K over AC | +2.32 | +2.19 | at most +4.28 |
+
+The 7x7 value is a bound, not a measurement: most learners were cut at 3,500 s. One board is missing from every pair against AC because the AC run was killed with no output; the learner finished it in 430 s, so it is the learner's best case (at least about 8 bits, inferred from the AC rate, not counted). The rise from 6x6 to 7x7 is at most +2.09 against a threshold of 2, with no lower bound. Inner colours also change with size (4, 5, 7), so size is confounded with tightness.
+
+## Properties of the programs, not of the method
+
+Every figure in seconds, the pairwise encoding (about 24 million clauses at depth 88), CaDiCaL called through a wrapper in calls of 5,000 conflicts, and an untuned AC solver that copies its state at every branch are properties of these programs. In seconds at depth 88, K against AC is -3.0 to -3.2 bits in medians and -3.3 to -3.8 per machine; AC against the plain row scan is -5.1 to -5.9 per machine; K against the plain row scan about -9 bits. None of these ratios is a statement about clause learning or arc consistency in general.
+
+What is a property of the method, as far as shown, is the counts: no lead over AC, and a cost of 1.7 to 2.1 bits in conflicts against propagation alone on the same encoding.
+
+## What it means for a full solution
+
+0 bits in counts over arc consistency (range -0.7 to +0.1). The gap on the [hub](/research/lab/experiments/raphael-anjou/full-solve) is 56 to 73 bits against the two large budgets and about 84 bits against a modest run of about 10^15 nodes, so this is not a lever. Nor can a late check close it: the useful depths come after the widest level of the tree, as [late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters) shows. Not Eternity II progress. Current records are on [/research/records](/research/records) and the frontier on [/research/open-problems](/research/open-problems).
+
+## What was not run
+
+A propagator-based learner with short explanations (the one untested variant); 8x8; a cardinality solver; a tuned incremental AC solver; any run above 3,500 s (toy) or 1,200 s (real pieces). No outcome is promised for any of them.
+
+## Reproduce
+
+`just experiments learning-vs-propagation` reruns the analyses and an independent recomputation with its own parser, matching the committed tables. The solver jobs are not rerun by it. Everything is in the [experiment folder](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/learning-vs-propagation).

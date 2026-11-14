@@ -5,8 +5,8 @@ description: >-
   classée selon la solidité de sa preuve. Vingt verdicts reposent sur des
   données versées dans le dépôt, une source publique nommée ou une dérivation ;
   vingt-deux autres sont énoncés sans preuve qu'un lecteur puisse ouvrir, et
-  figurent à part avec l'expérience qui trancherait chacun, plus une question mesurée qui reste indécise.
-metaDescription: "Des approches d'Eternity II sans effet sur le score, chacune avec son niveau de preuve (mesuré, rapporté, argumenté, ou affirmé sans preuve dans le dépôt) et la portée de son verdict : vingt impasses établies, vingt-deux affirmations non vérifiées avec le test décisif, une question indécise."
+  figurent à part avec l'expérience qui trancherait chacun, plus un résultat négatif mesuré sur l'apprentissage de clauses.
+metaDescription: "Des approches d'Eternity II sans effet sur le score, chacune avec son niveau de preuve (mesuré, rapporté, argumenté, ou affirmé sans preuve dans le dépôt) et la portée de son verdict : vingt impasses établies, vingt-deux affirmations non vérifiées avec le test décisif, un négatif mesuré sur l'apprentissage de clauses."
 kind: reference
 order: 50
 group: Skip these
@@ -63,9 +63,9 @@ Environ la moitié des verdicts ci-dessous ne sont pas encore établis : sur 43
 entrées, 10 sont mesurées sur des données versées dans le dépôt, 5 sont
 rapportées par une source publique nommée, 5 sont argumentées par une
 dérivation, 22 reposent sur des essais dont les données ne sont pas versées,
-et 1 est mesurée mais indécise. Seuls les trois premiers groupes sont appelés
+et 1 est mesurée et négative sur les pièces réelles. Seuls les trois premiers groupes sont appelés
 impasses ici ; le quatrième figure à part, entrée par entrée, avec
-l'expérience qui le trancherait, et l'entrée indécise a sa propre courte
+l'expérience qui le trancherait, et l'entrée sur l'apprentissage de clauses a sa propre courte
 section juste après.
 
 ## Niveaux de preuve
@@ -130,7 +130,7 @@ verdict (tailles de plateau, budgets, moteurs) quand la preuve en donne une.
 | Anneaux concentriques | Affirmation sans preuve dans le dépôt | un programme, un essai par budget |
 | Table de transposition partagée | Affirmation sans preuve dans le dépôt | un essai de huit travailleurs |
 | Fermeture eulérienne de la bordure | Affirmation sans preuve dans le dépôt | un test sur un million de bordures partielles |
-| Apprentissage de clauses face à la propagation | Mesuré, verdict indécis | plateaux générés de 5×5 à 7×7 ; aucun essai sur pièces réelles |
+| Apprentissage de clauses face à la propagation | Mesuré, négatif | plateaux générés de 5×5 à 7×7 et 160 préfixes faux des pièces réelles ; la clause de taille n'est pas établie |
 
 ## Impasses établies, avec leur niveau de preuve
 
@@ -1231,19 +1231,19 @@ vérifications déjà en place.
 
 **Ce qui trancherait :** le moteur mono-cœur a déjà un propagateur eulérien de bordure ; le lancer sur l'échelle difficile générée face au même solveur sans lui, et verser les nombres de nœuds.
 
-## Mesuré, verdict indécis
+## Mesuré, négatif
 
-Une question a des données versées et aucun verdict. Ce n'est pas une impasse.
+Une question a un négatif mesuré sur les pièces réelles et une clause de taille non établie. Elle figure à part des impasses notées.
 
 ### Apprentissage de clauses face à la propagation
 
 *Ajouter l'apprentissage de clauses à un solveur pour qu'il retienne pourquoi des branches sont mortes.*
 
-**Mesuré, verdict indécis**, sur des plateaux jouets générés à bordure de 5×5 à 7×7 (dix par taille, un fil, limite de 3 500 s), revérifié indépendamment. Le travail se compte en conflits pour les solveurs qui apprennent et en nœuds ou branches pour ceux qui ne font que propager, en bits de log2 (nœuds du balayage sur travail). Apparié sur le même ordre statique, apprendre contre ne pas apprendre rapporte **1,31** bit à 5×5 (95 % de 1,06 à 1,49) et **2,03** bits à 6×6 (1,33 à 2,26). Il n'y a pas de valeur à 7×7 : le bras qui apprend a fini 0 plateau sur 10, et les entrées du tableau 7×7 calculées sur des essais coupés à la limite sont des majorants, pas des mesures. Le seuil d'arrêt fixé à l'avance (l'avance sur le témoin sans apprentissage doit croître de 2 bits de 6×6 à 7×7 et de 3 bits de la profondeur 104 à 88) est **indécidable sur ces données** : la clause de profondeur exige une partie sur pièces réelles qui n'a jamais été lancée, et la clause de taille autorise une hausse d'au plus 2,09 pour un seuil de 2, sans borne inférieure. Un défaut relevé par la revérification, un plateau 7×7 écarté que CaDiCaL a fini en 430 s et qui est le meilleur cas du solveur qui apprend, fait que le chiffre de la première note ne borne que les 8 plateaux utilisés. La taille est confondue avec la tension (4, 5 et 7 couleurs intérieures). Chiffré pour le casse-tête complet à **0 à 2 bits en temps** (l'estimation de la revérification) ; en secondes, l'apprentissage est environ 3 bits plus lent à 6×6.
+**Mesuré, négatif**, revérifié indépendamment, sur des plateaux jouets générés à bordure de 5×5 à 7×7 et sur 160 préfixes faux des pièces réelles aux profondeurs 112 à 88. Le seuil d'arrêt fixé à l'avance a été atteint : l'apprentissage de clauses ne donne aucune avance en travail de recherche sur le balayage rangée par rangée avec cohérence d'arc (-0,07 bit à la profondeur 104, +0,14 à 96, au plus -0,25 à 88). La clause de taille sur plateaux jouets penche vers le seuil atteint sans être établie, et tout chiffre en secondes est une propriété des programmes lancés, pas de la méthode. Résultats complets : [apprendre face à la propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation).
 
-Ce n'est pas une impasse close et elle n'est pas notée comme telle. Elle ne dit rien de l'apprentissage à 8×8, sur des préfixes de pièces réelles, avec un solveur à cardinalité, ou au-delà de 3 500 s.
+Elle est notée à part des impasses établies parce que la clause de taille reste ouverte et qu'un apprenant à explications courtes bâti sur un propagateur n'a pas été lancé.
 
-**Ce qui trancherait :** la partie sur pièces réelles (40 préfixes faux aux profondeurs libres 112 à 88), un échelon 8×8, et des essais au-delà de 3 500 s, avec un témoin qui ne fait que propager.
+**Ce qui trancherait le reste :** un échelon 8×8, des essais au-delà de 3 500 s, et un apprenant à explications courtes bâti sur un propagateur.
 
 Preuve : [learning-vs-propagation](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/learning-vs-propagation) ; la page de la série est [apprendre face à la propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation). Rien ici n'est un progrès sur Eternity II.
 

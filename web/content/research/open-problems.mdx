@@ -337,13 +337,15 @@ exactness held, that alone is worth 0 bits; it would justify 7x7 and 8x8 tests
 ### Clause learning against propagation on real-piece subtrees
 
 **Question.** Does the lead of a learning solver over a propagation-only control
-rise with depth and with size? **Status.** Toy boards only, independently
-re-checked: learning saves +1.31 bits at 5x5 and +2.03 at 6x6, there is no 7x7
-value (the learning arm finished 0 of 10 boards), and the pre-stated stop line
-is undecidable on that data. The estimate for the full puzzle is 0 to 2 bits in
-time. **What would settle it.** The real-piece part: 40 wrong prefixes at free
-depths 112 to 88, with the propagation-only control. **Cost.** About 10
-core-hours for that part; not run.
+rise with depth and with size? **Status.** Measured, negative,
+independently re-checked. On 160 wrong prefixes of the real pieces at depths 112
+to 88 the pre-stated stop line fired: clause learning gives no lead in search
+work over row scan with arc consistency (at most -0.25 bits at depth 88). The
+toy-board size clause leans fired but is not established, and figures in seconds
+are properties of the programs run. See [learning against
+propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation).
+**What would settle the rest.** An 8x8 rung and a learner with short
+explanations built on a propagator; neither was run.
 
 ### Growth of non-tree solvers against the tree
 
