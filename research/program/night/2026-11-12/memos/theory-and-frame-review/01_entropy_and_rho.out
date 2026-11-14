@@ -1,0 +1,28 @@
+interior pieces 196, colours 17, oriented tiles 784 (all distinct)
+
+== A(n): exact int64 block counts against the committed file ==
+  A(2) = 4550669   committed 4550669   match
+  A(3) = 195941569440   committed 195941569440   match
+  A(4) = 62607390876341976   committed 62607390876341976   match
+
+== strip growth lambda_n (rows of n cells, many rows) ==
+  n=1: lambda=46.1815  h(n)=log10(lambda)/n=1.6645  rows=5  last three growth factors 46.180 46.181 46.181  [0s]
+  n=2: lambda=125.7449  h(n)=log10(lambda)/n=1.0497  rows=7  last three growth factors 125.745 125.745 125.745  [0s]
+  n=3: lambda=342.5017  h(n)=log10(lambda)/n=0.8449  rows=7  last three growth factors 342.500 342.501 342.502  [0s]
+  n=4: lambda=932.9490  h(n)=log10(lambda)/n=0.7425  rows=7  last three growth factors 932.942 932.948 932.949  [0s]
+  n=5: lambda=2541.3033  h(n)=log10(lambda)/n=0.6810  rows=7  last three growth factors 2541.279 2541.299 2541.303  [1s]
+  n=6: lambda=6922.3744  h(n)=log10(lambda)/n=0.6400  rows=6  last three growth factors 6922.039 6922.304 6922.374  [11s]
+  increments log10(lambda_{n+1}/lambda_n): 0.4350 0.4352 0.4352 0.4352 0.4352
+  page values h(1..4): 1.6645 1.0497 0.8449 0.7425 ; n*h(n) differences from the page's own four numbers: 0.4349 0.4353 0.4353
+  Fekete: h_inf = inf h(n) <= h(6) = 0.6400 ; the page says the limit is about 0.67
+  mean field log10(784/289) = 0.4334
+
+== distinct-piece fraction rho by exact uniform sampling of colour-valid patches ==
+  memo law: -ln rho = 0.0209 x (adjacent pairs) + C(m,2)/196 ; page fit: rho = exp(-0.0445 x cells)
+  2x2  cells  4: A=4.550669e+06  rho=0.89218 (s.e. 0.00069, 178436 of 200000)  exact 0.892166 | memo law 0.89207 | page fit 0.83694 | E[equal adjacent pairs]=0.1027 (per pair 0.0257) E[equal non-adjacent pairs]=0.0129 (per pair 0.00644, 1/196=0.00510)  [5s]
+  3x3  cells  9: A=1.959416e+11  rho=0.64489 (s.e. 0.00107, 128977 of 200000)  exact 0.647680 | memo law 0.64761 | page fit 0.66998 | E[equal adjacent pairs]=0.3126 (per pair 0.0261) E[equal non-adjacent pairs]=0.1410 (per pair 0.00587, 1/196=0.00510)  [10s]
+  4x4  cells 16: A=6.260739e+16  rho=0.32543 (s.e. 0.00105, 65086 of 200000) | memo law 0.32829 | page fit 0.49066 | E[equal adjacent pairs]=0.6240 (per pair 0.0260) E[equal non-adjacent pairs]=0.5437 (per pair 0.00566, 1/196=0.00510)  [20s]
+  4x6  cells 24: A=5.449263e+22  rho=0.10769 (s.e. 0.00069, 21539 of 200000) | memo law 0.11054 | page fit 0.34370 | E[equal adjacent pairs]=0.9854 (per pair 0.0259) E[equal non-adjacent pairs]=1.3044 (per pair 0.00548, 1/196=0.00510)  [32s]
+  4x8  cells 32: A=4.743007e+28  rho=0.02474 (s.e. 0.00035, 4947 of 200000) | memo law 0.02685 | page fit 0.24075 | E[equal adjacent pairs]=1.3478 (per pair 0.0259) E[equal non-adjacent pairs]=2.4001 (per pair 0.00541, 1/196=0.00510)  [41s]
+  4x12 cells 48: A=3.593239e+40  rho=0.00038 (s.e. 0.00004, 114 of 300000) | memo law 0.00059 | page fit 0.11813 | E[equal adjacent pairs]=2.0831 (per pair 0.0260) E[equal non-adjacent pairs]=5.5847 (per pair 0.00533, 1/196=0.00510)  [107s]
+[total 228s]

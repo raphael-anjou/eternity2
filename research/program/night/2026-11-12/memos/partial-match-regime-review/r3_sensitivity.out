@@ -1,0 +1,58 @@
+== 1. Score histogram of one engine with a fixed list (model) ==
+Blackwood 10 entries   log10 boards by breaks: 5:17.06 6:19.08 7:21.06 8:23.00 9:24.88 10:26.69
+                       factor per point lost : 475->474: x106 474->473: x96 473->472: x86 472->471: x76 471->470: x64
+repo 12 entries        log10 boards by breaks: 7:21.06 8:23.00 9:24.88 10:26.69 11:28.42 12:28.15
+                       factor per point lost : 473->472: x86 472->471: x76 471->470: x64 470->469: x54 469->468: x1
+13 entries (181..)     log10 boards by breaks: 8:24.11 9:26.18 10:28.20 11:30.18 12:32.10 13:33.94
+                       factor per point lost : 472->471: x118 471->470: x106 470->469: x95 469->468: x83 468->467: x70
+Observed, one engine, one run (site, edge-slipping.mdx and eii.mdx, msg 6687): 17.7, 16.7, 21.8 per point from 463 to 466;
+five-clue fleet (five-clue-fleet.mdx): 7645 at 463, 327 at 464, 11 at 465: 23.4 and 29.7.
+
+== 2. Price of a point with the lists that exist ==
+10 entries (470 target)                    log10 nodes/board 23.34 (boards 26.69, nodes 50.03)  against the 10-entry list: 10^+0.00
+9 entries, first dropped                   log10 nodes/board 25.71 (boards 24.32, nodes 50.03)  against the 10-entry list: 10^+2.38
+9 entries, last dropped                    log10 nodes/board 25.14 (boards 24.88, nodes 50.03)  against the 10-entry list: 10^+1.81
+11 entries: + 241 (repo)                   log10 nodes/board 21.61 (boards 28.42, nodes 50.03)  against the 10-entry list: 10^-1.73
+12 entries: + 241, 256 (repo)              log10 nodes/board 21.42 (boards 28.61, nodes 50.03)  against the 10-entry list: 10^-1.91
+11 entries: 196 + list (memo assumption)   log10 nodes/board 21.01 (boards 29.11, nodes 50.12)  against the 10-entry list: 10^-2.33
+
+== 3. Tail below one perfect depth-160 prefix, pool spread over fewer colours ==
+   (the memo, section 2.5: the record engine exhausts two interior colours and one ring colour by depth 160)
+-- 17 interior + 5 ring colours left --
+Blackwood list: tail nodes per prefix 10^1.47, boards per prefix 10^-23.27, share of tail nodes at depth >= 201: 0.000144, peak depth 161
+   prefix cost c0 at which the first 160 cells and the tail cost the same: 10^1.47 nodes per quota-satisfying prefix
+   c0 = 10^0   | Blackwood list 470: 10^24.75 per board (late share 0.000144); 471 by truncation: x10^2.39; ideal reuse bound on it: /10^0.00
+               | best list 470: 10^23.82 [184, 196, 204, 211, 216, 220, 226, 229, 231, 234] (late share 0.308); best list 471: x10^1.93; best list with ideal reuse bound: 10^23.18 (gain 10^0.64); perfect oracle from 201: 10^24.29
+   c0 = 10^3   | Blackwood list 470: 10^26.28 per board (late share 4.22e-06); 471 by truncation: x10^2.39; ideal reuse bound on it: /10^0.00
+               | best list 470: 10^24.91 [174, 190, 200, 207, 214, 218, 222, 227, 230, 233] (late share 0.332); best list 471: x10^1.97; best list with ideal reuse bound: 10^24.31 (gain 10^0.60); perfect oracle from 201: 10^25.82
+   c0 = 10^6   | Blackwood list 470: 10^29.27 per board (late share 4.35e-09); 471 by truncation: x10^2.39; ideal reuse bound on it: /10^0.00
+               | best list 470: 10^27.04 [162, 174, 190, 200, 207, 214, 218, 222, 228, 231] (late share 0.239); best list 471: x10^2.04; best list with ideal reuse bound: 10^26.51 (gain 10^0.53); perfect oracle from 201: 10^28.81
+   c0 = 10^9   | Blackwood list 470: 10^32.27 per board (late share 4.35e-12); 471 by truncation: x10^2.39; ideal reuse bound on it: /10^0.00
+               | best list 470: 10^29.48 [162, 162, 171, 188, 199, 206, 214, 218, 222, 228] (late share 0.161); best list 471: x10^2.12; best list with ideal reuse bound: 10^29.10 (gain 10^0.39); perfect oracle from 201: 10^31.81
+   c0 = 10^12  | Blackwood list 470: 10^35.27 per board (late share 4.35e-15); 471 by truncation: x10^2.39; ideal reuse bound on it: /10^0.00
+               | best list 470: 10^32.18 [162, 162, 164, 168, 186, 198, 205, 213, 218, 223] (late share 0.0726); best list 471: x10^2.20; best list with ideal reuse bound: 10^32.01 (gain 10^0.17); perfect oracle from 201: 10^34.81
+-- 15 interior + 4 ring colours left --
+Blackwood list: tail nodes per prefix 10^4.17, boards per prefix 10^-13.06, share of tail nodes at depth >= 201: 0.978, peak depth 229
+   prefix cost c0 at which the first 160 cells and the tail cost the same: 10^4.17 nodes per quota-satisfying prefix
+   c0 = 10^0   | Blackwood list 470: 10^17.23 per board (late share 0.978); 471 by truncation: x10^0.76; ideal reuse bound on it: /10^1.45
+               | best list 470: 10^16.06 [199, 210, 216, 221, 227, 230, 233, 233, 236, 238] (late share 0.288); best list 471: x10^1.72; best list with ideal reuse bound: 10^15.50 (gain 10^0.56); perfect oracle from 201: 10^15.10
+   c0 = 10^3   | Blackwood list 470: 10^17.26 per board (late share 0.916); 471 by truncation: x10^1.30; ideal reuse bound on it: /10^1.01
+               | best list 470: 10^16.46 [196, 206, 215, 220, 226, 229, 232, 234, 236, 238] (late share 0.338); best list 471: x10^1.75; best list with ideal reuse bound: 10^15.88 (gain 10^0.58); perfect oracle from 201: 10^15.73
+   c0 = 10^6   | Blackwood list 470: 10^19.07 per board (late share 0.0141); 471 by truncation: x10^2.35; ideal reuse bound on it: /10^0.01
+               | best list 470: 10^18.20 [162, 196, 207, 215, 220, 226, 229, 232, 235, 237] (late share 0.413); best list 471: x10^1.83; best list with ideal reuse bound: 10^17.64 (gain 10^0.56); perfect oracle from 201: 10^18.61
+   c0 = 10^9   | Blackwood list 470: 10^22.06 per board (late share 1.43e-05); 471 by truncation: x10^2.36; ideal reuse bound on it: /10^0.00
+               | best list 470: 10^20.25 [162, 162, 196, 206, 215, 220, 226, 229, 232, 235] (late share 0.277); best list 471: x10^1.91; best list with ideal reuse bound: 10^19.73 (gain 10^0.52); perfect oracle from 201: 10^21.61
+   c0 = 10^12  | Blackwood list 470: 10^25.06 per board (late share 1.43e-08); 471 by truncation: x10^2.36; ideal reuse bound on it: /10^0.00
+               | best list 470: 10^22.57 [162, 162, 164, 194, 205, 214, 220, 225, 229, 233] (late share 0.175); best list 471: x10^2.01; best list with ideal reuse bound: 10^22.13 (gain 10^0.43); perfect oracle from 201: 10^24.61
+
+== 4. Seventeen colours, nodes before depth 201 discounted by s (crude stand-in for everything that makes the strict part cheap) ==
+s = 10^0  | Blackwood list: 10^23.34 (late share 0.000866); 471 by truncation x10^2.38; ideal reuse bound /10^0.00
+           | best list [185, 198, 205, 213, 218, 221, 227, 230, 232, 235]: 10^22.57 (late share 0.173); best 471 list: x10^1.89; best list with bound 10^21.83 (gain 10^0.74); perfect oracle from 201: 10^22.88
+s = 10^-2 | Blackwood list: 10^21.37 (late share 0.0797); 471 by truncation x10^2.34; ideal reuse bound /10^0.04
+           | best list [186, 204, 212, 217, 221, 226, 229, 231, 234, 236]: 10^21.01 (late share 0.193); best 471 list: x10^1.84; best list with bound 10^19.86 (gain 10^1.16); perfect oracle from 201: 10^20.88
+s = 10^-4 | Blackwood list: 10^20.32 (late share 0.897); 471 by truncation x10^1.41; ideal reuse bound /10^0.92
+           | best list [202, 210, 215, 219, 223, 228, 230, 233, 235, 237]: 10^19.73 (late share 0.268); best 471 list: x10^1.79; best list with bound 10^18.63 (gain 10^1.10); perfect oracle from 201: 10^18.88
+s = 10^-6 | Blackwood list: 10^20.27 (late share 0.999); 471 by truncation x10^0.13; ideal reuse bound /10^1.74
+           | best list [207, 214, 218, 222, 227, 230, 232, 234, 236, 236]: 10^18.39 (late share 0.435); best 471 list: x10^1.73; best list with bound 10^17.48 (gain 10^0.91); perfect oracle from 201: 10^16.88
+s = 10^-8 | Blackwood list: 10^20.27 (late share 1); 471 by truncation x10^0.03; ideal reuse bound /10^1.76
+           | best list [210, 215, 219, 223, 228, 230, 233, 233, 236, 238]: 10^17.95 (late share 0.977); best 471 list: x10^1.71; best list with bound 10^17.01 (gain 10^0.94); perfect oracle from 201: 10^14.88

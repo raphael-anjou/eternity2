@@ -1,0 +1,97 @@
+row scan, five clues, r=15 first: 10^40.49 nodes ; exact frame count 10^37.608 ; break-even mean per frame 10^2.89
+hints (row, col): [(2, 2), (2, 13), (8, 7), (13, 2), (13, 13)]
+
+A. mu_d (mean valid partial interiors per frame), five clues, pooled census
+  spiral inward: sum 10^8.34, peak 10^7.36 at interior cell 91; mu falls below 1 for good at cell 141 of 191 (first time below 1: cell 2)
+    x exact frame count: 10^45.95, against row scan +5.45 digits
+    d : log10 mu_d : log10 nodes spent per frame up to d : bits a depth-d test can give = max(0, -log2 mu_d)
+      1 :    0.41 :   0.41 :    0.0
+      2 :   -0.43 :   0.47 :    1.4
+      3 :   -0.03 :   0.59 :    0.1
+      6 :    1.16 :   1.43 :    0.0
+      9 :    2.33 :   2.56 :    0.0
+     12 :    3.48 :   3.72 :    0.0
+     20 :    2.73 :   3.82 :    0.0
+     30 :    2.50 :   4.83 :    0.0
+     40 :    3.24 :   5.51 :    0.0
+     52 :    3.02 :   5.83 :    0.0
+     60 :    5.10 :   5.98 :    0.0
+     80 :    6.89 :   7.47 :    0.0
+     96 :    6.73 :   8.14 :    0.0
+    100 :    7.13 :   8.25 :    0.0
+    110 :    6.57 :   8.33 :    0.0
+    120 :    4.24 :   8.34 :    0.0
+    130 :    2.54 :   8.34 :    0.0
+    140 :    0.14 :   8.34 :    0.0
+    150 :   -4.35 :   8.34 :   14.5
+    160 :   -8.66 :   8.34 :   28.8
+    170 :  -15.60 :   8.34 :   51.8
+    180 :  -25.87 :   8.34 :   85.9
+    191 :  -45.10 :   8.34 :  149.8
+  four clue corner blocks first, then spiral: sum 10^8.34, peak 10^7.36 at interior cell 91; mu falls below 1 for good at cell 141 of 191 (first time below 1: cell 3)
+    x exact frame count: 10^45.94, against row scan +5.45 digits
+    d : log10 mu_d : log10 nodes spent per frame up to d : bits a depth-d test can give = max(0, -log2 mu_d)
+      1 :    0.41 :   0.41 :    0.0
+      2 :    0.81 :   0.95 :    0.0
+      3 :   -1.27 :   0.96 :    4.2
+      6 :   -2.55 :   0.98 :    8.5
+      9 :   -3.86 :   0.98 :   12.8
+     12 :   -5.18 :   0.98 :   17.2
+     20 :   -2.22 :   0.98 :    7.4
+     30 :    0.02 :   1.06 :    0.0
+     40 :    2.00 :   2.32 :    0.0
+     52 :    3.02 :   4.33 :    0.0
+     60 :    5.10 :   5.48 :    0.0
+     80 :    6.89 :   7.46 :    0.0
+     96 :    6.73 :   8.13 :    0.0
+    100 :    7.13 :   8.25 :    0.0
+    110 :    6.57 :   8.33 :    0.0
+    120 :    4.24 :   8.34 :    0.0
+    130 :    2.54 :   8.34 :    0.0
+    140 :    0.14 :   8.34 :    0.0
+    150 :   -4.35 :   8.34 :   14.5
+    160 :   -8.66 :   8.34 :   28.8
+    170 :  -15.60 :   8.34 :   51.8
+    180 :  -25.87 :   8.34 :   85.9
+    191 :  -45.10 :   8.34 :  149.8
+
+B. the clue corner blocks alone (3 free cells, 8 joints each)
+  after block 1: log10 mu = -1.266 (survivor fraction if at most one fill each: 0.0542, bits 4.21)
+  after block 2: log10 mu = -2.552 (survivor fraction if at most one fill each: 0.0028, bits 8.48)
+  after block 3: log10 mu = -3.858 (survivor fraction if at most one fill each: 0.0001, bits 12.82)
+  after block 4: log10 mu = -5.184 (survivor fraction if at most one fill each: 0.0000, bits 17.22)
+  class-aware census (seam joints their own class), after four blocks: log10 mu = -5.147, bits 17.10
+
+C. how small can a region be and still refute in the mean? mu of corner-anchored k x k interior blocks and of full rings
+  k= 1 (  1 cells): five clues log10 mu =    0.41 | centre clue only    0.41
+  k= 2 (  4 cells): five clues log10 mu =   -1.27 | centre clue only    1.24
+  k= 3 (  9 cells): five clues log10 mu =    0.71 | centre clue only    5.73
+  k= 4 ( 16 cells): five clues log10 mu =    3.37 | centre clue only    8.47
+  k= 5 ( 25 cells): five clues log10 mu =    6.63 | centre clue only   11.81
+  k= 6 ( 36 cells): five clues log10 mu =   10.33 | centre clue only   15.62
+  k= 7 ( 49 cells): five clues log10 mu =   13.03 | centre clue only   18.48
+  k= 8 ( 64 cells): five clues log10 mu =   15.48 | centre clue only   21.10
+  k= 9 ( 81 cells): five clues log10 mu =   19.08 | centre clue only   24.93
+  k=10 (100 cells): five clues log10 mu =   21.77 | centre clue only   27.94
+  k=11 (121 cells): five clues log10 mu =   22.79 | centre clue only   29.39
+  k=12 (144 cells): five clues log10 mu =   18.33 | centre clue only   28.05
+  k=13 (169 cells): five clues log10 mu =    7.04 | centre clue only   25.13
+  k=14 (196 cells): five clues log10 mu =  -45.10 | centre clue only  -22.28
+  after spiral ring 1 ( 52 free interior cells): log10 mu =    3.02
+  after spiral ring 2 ( 92 free interior cells): log10 mu =    6.25
+  after spiral ring 3 (128 free interior cells): log10 mu =    2.69
+  after spiral ring 4 (156 free interior cells): log10 mu =   -7.28
+  after spiral ring 5 (176 free interior cells): log10 mu =  -21.68
+  after spiral ring 6 (188 free interior cells): log10 mu =  -39.67
+  after spiral ring 7 (191 free interior cells): log10 mu =  -45.10
+
+D. the other side of the join: interiors without a frame (five clues on the board)
+  valid 14x14 interiors, frame ignored: 10^19.23 ; row-scan tree to list them: sum 10^50.88, peak 10^49.85
+  same by spiral: sum 10^77.57, peak 10^76.59
+  frames 10^37.61 ; so the frame list is the larger list
+
+E. oracle sizes: bits about the frame needed for frame-first search to cost a given budget
+  row scan (10^40.49)          rank of the true frame must be within 10^32.2 of 10^37.6: 18.1 bits
+  1,000 core-years (10^18.5)   rank of the true frame must be within 10^10.2 of 10^37.6: 91.2 bits
+  1e5 core-years (10^20.5)     rank of the true frame must be within 10^12.2 of 10^37.6: 84.5 bits
+[91.4s]

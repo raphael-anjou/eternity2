@@ -1,0 +1,33 @@
+== 1. sides per colour ==
+grey: 64 | frame colours 1..5: [24, 24, 24, 24, 24] | interior 6..22: [48, 48, 48, 48, 48, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+every count even: True | frame colours on interior tiles: 0 | interior colours on corner tiles: 0
+== 2. seam ==
+inward colours of the 56 edge tiles: {6: 4, 7: 5, 8: 3, 9: 3, 10: 1, 11: 1, 12: 2, 13: 3, 14: 4, 15: 6, 16: 4, 17: 2, 18: 3, 19: 6, 20: 4, 21: 3, 22: 2}
+joints: rim-to-rim 60, seam (rim to interior) 56, interior-to-interior 364; total 480
+chi-square of the seam histogram against a uniform draw of 56 of the 420 interior joints: 10.8; share of 5000 draws at least as large: 0.729; interior colours absent from the seam: []
+== 3. rim digraph (arc = border tile, from the colour it is entered by to the colour it is left by, clockwise) ==
+out-degree: [12, 12, 12, 12, 12] in-degree: [12, 12, 12, 12, 12] | balanced (needed for a closed rim): True
+arc counts a->b, rows a = 1..5: [[2, 4, 0, 3, 3], [2, 2, 4, 2, 2], [2, 2, 4, 2, 2], [4, 1, 2, 3, 2], [2, 3, 2, 2, 3]]
+== 4. colour-pair graphs, interior tiles ==
+statistic: official | painted boards min, mean, max | share of boards at or beyond official
+  adj_pairs_absent: 2 | 0, 1.5, 6 | 0.485
+  opp_pairs_absent: 8 | 4, 11.8, 19 | 0.140
+  adj_loops: 47 | 29, 44.1, 63 | 0.320
+  opp_loops: 23 | 8, 22.3, 34 | 0.485
+  adj_max: 12 | 10, 11.9, 15 | 0.625
+  opp_max: 8 | 6, 7.4, 10 | 0.380
+  four_distinct: 132 | 120, 136.2, 157 | 0.310
+  one_pair: 61 | 36, 55.7, 72 | 0.255
+  two_pairs: 0 | 0, 1.6, 6 | 0.170
+  triple: 3 | 0, 2.4, 7 | 0.415
+  four_equal: 0 | 0, 0.0, 1 | 0.960
+== 5. parity per colour with the checkerboard ==
+22 parity equations on 256 unknowns: rank 21, consistent: True. At most 21 bits of the 2^256 black/white assignments, and each equation is the mod 2 reading of a checkerboard count the memo's test 1 already contains.
+== 6. clues ==
+  tile 139 at row 8 col 7 as (8, 9, 9, 12): cell colour white
+  tile 181 at row 13 col 2 as (20, 9, 21, 12): cell colour white
+  tile 208 at row 2 col 2 as (22, 11, 12, 13): cell colour black
+  tile 249 at row 13 col 13 as (16, 21, 15, 17): cell colour black
+  tile 255 at row 2 col 13 as (22, 18, 22, 20): cell colour white
+  flux the other 251 tiles must cancel, vertical (south minus north) per colour: {8: -1, 9: 1, 12: 1, 15: 1, 16: -1, 20: -1, 21: 1, 22: -1} | horizontal (east minus west): {9: 2, 11: 1, 12: -2, 13: -1, 17: -1, 18: 1, 20: -1, 21: 1}
+  clue tiles on black cells: 2 of 5

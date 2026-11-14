@@ -1,0 +1,10 @@
+Append to research/experiments/justfile (recipes run with research/experiments/ as the working directory):
+
+# Approach pricing: reprint the ceiling table of a perfect free cut and rerun the
+# cheap checks (seconds, stdlib only). E2_CSV points the piece loader at the official set.
+approach-pricing:
+    cd approach-pricing/scripts/route-audit && python3 -I strata_gain.py
+    cd approach-pricing/scripts/route-audit && python3 -I propagation_control.py
+    cd approach-pricing/scripts/far-ideas-different-question && E2_CSV=../../../../../engine/data/official_eternity2.csv python3 -I 01_blocks_2x2.py
+
+Expected: strata_gain.py prints ceilings 57.1, 44.8, 29.8, 17.1, 10.7, 6.8, 2.4, 0.5 bits at depths 52, 64, 80, 96, 112, 128, 144, 158.

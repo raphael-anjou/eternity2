@@ -1,0 +1,37 @@
+== item 8: static fill orders, log10 expected nodes ==
+order            | uniform colours, no clue | real census, no clue | real census, five clues
+rows top-down    |  51.37 |  50.03 |  41.38
+rows bottom-up   |  51.37 |  50.03 |  40.52
+cols left-right  |  51.37 |  50.03 |  40.53
+cols right-left  |  51.37 |  50.03 |  41.47
+spiral inward    |  55.84 |  57.90 |  51.99
+frame then rows  |  57.56 |  59.53 |  52.49
+anti-diagonal    |  57.72 |  56.52 |  50.39
+
+baseline (model, rows bottom-up, five clues): 10^40.52 = 2^134.6 ; peak 10^39.20 = 2^130.2 at depth 161
+
+== item 6: scan directions as 'presentations' ==
+four directions: 41.38 40.52 40.53 41.47 ; running all four costs 2^4.19 times the best one (4 equal trees would be 2^2)
+
+== item 6: best two-list band cut (five clues), log10 list sizes ==
+  cut after row  5: tops 30.02 bottoms 37.52  max 37.52
+  cut after row  6: tops 33.88 bottoms 38.49  max 38.49
+  cut after row  7: tops 37.01 bottoms 38.16  max 38.16
+  cut after row  8: tops 39.31 bottoms 36.73  max 39.31
+  cut after row  9: tops 38.16 bottoms 37.01  max 38.16
+  cut after row 10: tops 38.49 bottoms 33.88  max 38.49
+  cut after row 11: tops 37.52 bottoms 30.02  max 37.52
+
+== item 7: SMC or beam of population P used as a search ==
+  P=10^ 6.00  nodes per run 10^8.10  success 6.4e-34  expected nodes 2^137.2  (tree 2^134.6, 256*W_peak 2^138.2)
+  P=10^20.00  nodes per run 10^22.01  success 6.4e-20  expected nodes 2^136.9  (tree 2^134.6, 256*W_peak 2^138.2)
+  P=10^30.00  nodes per run 10^31.84  success 6.4e-10  expected nodes 2^136.3  (tree 2^134.6, 256*W_peak 2^138.2)
+  P=10^36.00  nodes per run 10^37.66  success 6.4e-04  expected nodes 2^135.7  (tree 2^134.6, 256*W_peak 2^138.2)
+  P=10^39.20  nodes per run 10^40.52  success 1.0e+00  expected nodes 2^134.6  (tree 2^134.6, 256*W_peak 2^138.2)
+
+== item 8: value of one extra correct pin, in bits (model, real census, five clues) ==
+  scan fixed (rows bottom-up)    best 9.6  median 4.8  mean 5.0  worst 1.0  | interior mean 5.5  edge mean 3.6  corner mean 1.5
+  best of four scan directions   best 9.6  median 9.3  mean 7.7  worst 1.0  | interior mean 8.6  edge mean 5.1  corner mean 1.7
+  by row (scan fixed), mean bits: 1.2 1.4 1.4 1.4 1.4 1.5 2.7 4.5 5.7 8.9 9.1 9.1 9.1 9.0 9.1 5.3
+  greedy best-placed pins (rows either way), cumulative bits: 10 19 29 38 48 57 67
+  pins to pass 56.5 bits: 6 ; 66.4 bits: 7

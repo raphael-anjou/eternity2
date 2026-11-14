@@ -1,0 +1,31 @@
+baseline, real-count ledger, five clues: row scan total 2^132.41, peak level 2^127.79 (measured total 134.4; this ledger is -2.0 bits off)
+
+== (a) orientation of every interior tile first
+check of the local-limit formula on colour 6: P(N-S = 0) exact 0.08884, Gaussian 0.08921; P(N-S = 0 and E-W = 0) exact 0.015697, Gaussian with the parity factor 2 0.015915
+variance of N_c - S_c per colour on the real tiles: min 20.00, max 23.00 (memo's uniform figure 21.70)
+test worth: memo 32 x 3.55 = 113.6 bits; real tiles, joint local limit with the parity lattice: 94.2 bits (without the parity factor it would read 110.2)
+committed 382 bits (191 free tiles); survivors 2^287.8; tree under one surviving guess 2^51.5; price 2^339.3 against 2^132.4: +206.9 bits
+axis only (191 bits, no test): tree 2^57.9; price 2^248.9: +116.5 bits
+
+== (b) checkerboard class of every tile first (98/98 interior, 28/28 edge, 2/2 corner)
+check on colour 6: P(black census = half) exact 0.11668, Gaussian 0.11749
+committed 242.2 bits; test = 20 independent equalities worth 57.3 bits on the real tiles; survivors 2^184.9
+tree under one surviving guess 2^40.7 (peak level 2^37.9); price 2^225.6 against 2^132.4: +93.2 bits
+   saved by the guess 91.7 of 242.2 committed (0.38 bit per bit); the test would have to be worth 150.5 bits to break even and is worth 57.3
+
+== (c) pool of the top half (98 interior tiles in rows 1..7) first; test = colour counts against the boundary
+frame unknown: 42 free boundary half-edges, the number of odd-count colours is always even and at most 17: the test never fails (0 bits)
+frame known (28 boundary sides fixed, 14 seam sides free): fails 11 of 20000 random pools: 0.001 bits for 191.9 bits committed
+with an ORACLE for 'this pool tiles a free 14x7 block': strict fillings 2^180.1 (real counts), expected tilings per pool 2^-11.8, so about 2^180.1 pools pass and the exact test is worth 11.8 bits
+
+== (d) census tests applied to the r interior tiles left at a row-scan node: first-moment number of ways to satisfy them
+r    log2(orientations) - directional census bits     log2(black/white splits) - checkerboard census bits
+ 16   degenerate                                       degenerate
+ 24   degenerate                                       degenerate
+ 32         17.2                                              6.0
+ 40         27.3                                             10.0
+ 56         50.1                                             21.6
+ 72         74.6                                             33.9
+100        122.2                                             57.7
+degenerate = the census covariance is singular on so few tiles (a colour pair is missing), the local-limit formula does not apply and the test may bite
+positive = the test is expected to pass on a typical remaining pool (it cannot refute); row scan's widest level has r = 68 to 72 interior tiles left

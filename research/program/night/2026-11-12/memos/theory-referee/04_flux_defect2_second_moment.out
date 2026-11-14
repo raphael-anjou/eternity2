@@ -1,0 +1,39 @@
+== flux law ranks (pieces in CSV orientation: top,right,bottom,left) ==
+  complex rank of the 22 x 256 flux matrix: 22 (real rank of the realified 44 x 512 system: 44 )
+  real rank of stacked [A; B] (44 x 256): 40
+  F2 rank of parity matrix: 21  augmented: 21
+  sum of the five frame-colour rows mod 2 is zero: True (each border piece carries exactly two frame-coloured sides)
+  2^21 = 2097152
+== defect-2 shell, tested on painted solved boards ==
+  board 0: near-twin pairs in the bag 140, (tile, rotation) moves keeping two sides 32; boards at 478 reached by one swap 140, by one in-place rotation 32; any at 479: 0
+  board 1: near-twin pairs in the bag 133, (tile, rotation) moves keeping two sides 17; boards at 478 reached by one swap 133, by one in-place rotation 17; any at 479: 0
+  board 2: near-twin pairs in the bag 138, (tile, rotation) moves keeping two sides 27; boards at 478 reached by one swap 143, by one in-place rotation 27; any at 479: 0
+== second moment: expected number of OTHER solutions that differ from a given one on a small set of cells ==
+  E[two-cell alternatives] ~ 5.72e-05; E[three-cell alternatives] <= 7.85e-05 (bound with 10 joints)
+    m=2: log10 bound -2.8
+    m=5: log10 bound -4.0
+    m=10: log10 bound -4.4
+    m=50: log10 bound 0.2
+    m=100: log10 bound 5.2
+    m=150: log10 bound -1.6
+    m=180: log10 bound -15.4
+    m=190: log10 bound -24.8
+    m=196: log10 bound -33.1
+  the crude bound peaks at m = (100, 5.216739930959891) (it ignores that large D must also satisfy all 420 joints; with all joints the m=196 term is the full first moment)
+  => within the model, E[Z^2]/E[Z] = 1 + E[Z'] + O(1e-4): the planted puzzle expects its own solution plus the unplanted first moment.
+== positivity of the reusable-tile entropy: rows of oriented tiles with top = bottom = a ==
+    colour 6: 4 oriented tiles with top=bottom=6, spectral radius 1.000
+    colour 8: 4 oriented tiles with top=bottom=8, spectral radius 1.000
+    colour 9: 2 oriented tiles with top=bottom=9, spectral radius 1.000
+    colour 10: 2 oriented tiles with top=bottom=10, spectral radius 1.000
+    colour 11: 4 oriented tiles with top=bottom=11, spectral radius 1.000
+    colour 12: 2 oriented tiles with top=bottom=12, spectral radius 1.000
+    colour 13: 2 oriented tiles with top=bottom=13, spectral radius 1.000
+    colour 15: 2 oriented tiles with top=bottom=15, spectral radius 1.000
+    colour 16: 6 oriented tiles with top=bottom=16, spectral radius 1.000
+    colour 17: 4 oriented tiles with top=bottom=17, spectral radius 1.000
+    colour 18: 2 oriented tiles with top=bottom=18, spectral radius 1.000
+    colour 20: 4 oriented tiles with top=bottom=20, spectral radius 1.000
+    colour 21: 2 oriented tiles with top=bottom=21, spectral radius 1.000
+    colour 22: 6 oriented tiles with top=bottom=22, spectral radius 1.000
+  best: (1.0, 6) => h_inf >= log10(lambda) = 0.0 (rows of such tiles stack freely)

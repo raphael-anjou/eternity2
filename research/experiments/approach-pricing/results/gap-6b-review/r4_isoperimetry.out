@@ -1,0 +1,54 @@
+n=4: sizes 4..12; min open edges by size 4:4(x8) 5:5(x16) 6:5(x16) 7:5(x8) 8:4(x4) 9:5(x8) 10:5(x16) 11:5(x16) 12:4(x8); bound n=4 holds: True
+n=5: sizes 7..18; min open edges by size 7:6(x24) 8:6(x20) 9:6(x12) 10:5(x4) 11:6(x8) 12:6(x8) 13:6(x8) 14:6(x8) 15:5(x4) 16:6(x12) 17:6(x20) 18:6(x24); bound n=5 holds: True
+
+row scan, five clues, real counts: peak level 2^127.79 at depth 161
+k   row-scan prefix (open edges)   best set found by annealing (open edges; corners, edge cells, interior non-clue cells; frame-frame, other closed edges)
+ 64    83.48 (16)       83.48 (16; 2, 20, 40; 21, 87)   gain +0.00 bits
+ 96   110.99 (16)      110.99 (16; 2, 24, 68; 25, 145)   gain +0.00 bits
+112   121.21 (16)      121.21 (16; 2, 26, 82; 27, 174)   gain +0.00 bits
+128   120.10 (16)      120.10 (16; 2, 28, 95; 29, 203)   gain +0.00 bits
+144   124.65 (16)      124.65 (16; 2, 30, 109; 31, 232)   gain +0.00 bits
+152   127.65 (17)      127.65 (17; 2, 31, 116; 32, 246)   gain +0.00 bits
+161   127.79 (17)      127.79 (17; 2, 33, 123; 34, 261)   gain +0.00 bits
+168   126.48 (17)      126.48 (17; 2, 33, 130; 34, 275)   gain +0.00 bits
+176   122.10 (16)      122.10 (16; 2, 34, 137; 35, 290)   gain +0.00 bits
+192   113.16 (16)       84.10 (56; 0, 0, 187; 0, 356)   gain +29.06 bits
+
+lower bound on the peak of ANY static cell order from these sets: max over k of the best value found = 2^127.79 (an estimate from annealing, not a certificate), against the row-scan peak 2^127.79
+
+best set found at k=128:
+  ################
+  ################
+  ################
+  ################
+  ################
+  ################
+  ################
+  ################
+  ................
+  ................
+  ................
+  ................
+  ................
+  ..c..........c..
+  ................
+  ................
+
+best set found at k=161:
+  ################
+  ################
+  ################
+  ################
+  ################
+  ################
+  ################
+  ################
+  ################
+  ################
+  #...............
+  ................
+  ................
+  ..c..........c..
+  ................
+  ................
+nice -n 10 python3 -I r4_isoperimetry.py 1  58,17s user 0,72s system 96% cpu 1:01,27 total

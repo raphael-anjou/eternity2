@@ -1,0 +1,38 @@
+== crit
+n  ring b  other c  critical c (S=1)  offset  ln S   | same board with 5 ring colours: critical c
+5  3       4          3.62            +0.38    -2.4 |  2.57
+5  3       5          3.62            +1.38    -7.8 |  2.57
+6  4       6          4.37            +1.63   -12.7 |  3.91
+6  4       7          4.37            +2.63   -18.9 |  3.91
+6  4       8          4.37            +3.63   -24.2 |  3.91
+7  4       11         5.75            +5.25   -39.0 |  5.25
+8  5       12         6.60            +5.40   -50.2 |  6.60
+reviewed balanced-ensemble values, 5 frame colours (growth-law.REVIEW.md line 78): n=6 4.65, n=7 5.99, n=8 7.32, n=9 8.63, n=10 9.94
+== near
+5x5, 3 ring colours, 4 other colours (offset +0.4 from critical): DFS reference existed in results.txt, the map was not run.
+n=5 b=3 c=4 seed=0 sols=44 nodes/sol=6456 sets=A its=[440, 251, 2065, 301, 1052] median=440 ratio=0.07 t=0.4s
+n=5 b=3 c=4 seed=0 sols=44 nodes/sol=6456 sets=ARK its=[2115, 734, 383, 1332, 1390] median=1332 ratio=0.21 t=3.2s
+n=5 b=3 c=4 seed=1 sols=20 nodes/sol=4561 sets=A its=[429, 7519, 1867, 357, 446] median=446 ratio=0.1 t=1.1s
+n=5 b=3 c=4 seed=1 sols=20 nodes/sol=4561 sets=ARK its=[1828, 374, 241, 3007, 659] median=659 ratio=0.14 t=3.1s
+== fixed
+1. Terminal layouts checked with an independent verifier (pieces used once, rim, every seam).
+Traceback (most recent call last):
+  File "<repo>/research/program/night/2026-11-12/memos/literature-and-path-6-review/extra.py", line 275, in <module>
+    {"crit": part_crit, "base": part_base, "near": part_near, "fixed": part_fixed}[sys.argv[1]]()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<repo>/research/program/night/2026-11-12/memos/literature-and-path-6-review/extra.py", line 261, in part_fixed
+    f"|PD - PC| at the stop = {gaps[-1]:.3f} (0 would be a fixed point of the map)")
+                               ~~~~^^^^
+IndexError: list index out of range
+== base
+Naive row scan, whole tree: where the nodes are. Then nodes to a FIRST solution
+(median over shuffled piece orders) for the naive scan and for a smallest-domain-first DFS.
+n b c seed | tree nodes sols nodes/sol | share of nodes in row 0, rows 0-1 | naive first-sol med (9) | mrv first-sol med (5) | ARK med its, ARK/naive-per-sol, ARK/mrv, A/mrv
+5 3 5 0 | 15638 12 1303 | 0.04 0.38 | 1004 (min 67, max 5005) | 175 [119, 27, 175, 924, 1378] | 351 0.269 2.01 1.11 | t=1s
+5 3 5 1 | 35293 4 8823 | 0.02 0.32 | 4927 (min 1618, max 10393) | 1968 [328, 6377, 1249, 1968, 3550] | 2287 0.259 1.16 2.87 | t=3s
+5 3 5 2 | 36217 8 4527 | 0.02 0.29 | 2794 (min 49, max 9947) | 3693 [77, 5380, 1962, 3693, 3925] | 465 0.103 0.13 0.25 | t=2s
+6 4 8 0 | 47909 4 11977 | 0.05 0.61 | 8930 (min 4031, max 17387) | 2020 [930, 2390, 1243, 5457, 2020] | 970 0.081 0.48 0.62 | t=7s
+6 4 8 1 | 17545 4 4386 | 0.11 0.72 | 3005 (min 313, max 5062) | 1227 [450, 495, 1753, 1227, 1530] | 299 0.068 0.24 0.26 | t=2s
+6 4 7 0 | 115366 4 28842 | 0.02 0.28 | 16261 (min 3798, max 30778) | 9062 [9062, 15450, 19741, 7897, 4680] | 2613 0.091 0.29 0.61 | t=15s
+7 4 11 1 | 221291 4 55323 | 0.10 0.85 | 18154 (min 8693, max 45612) | 7901 [12818, 4295, 15692, 7901, 6174] | 2515 0.045 0.32 2.17 | t=37s
+( for p in crit near fixed base; do; echo "== $p"; uv run --quiet --with nump)  67,08s user 0,27s system 78% cpu 1:25,68 total

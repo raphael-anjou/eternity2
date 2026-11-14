@@ -1,0 +1,121 @@
+# TOY boards only. log2(row-scan tree nodes / work), exhaustive enumeration unless marked first
+# sols check: boards where some arm's (uncensored) solution count differs from the tree's
+
+## n=5  tree: 10 boards, log2 nodes median 16.15 (range 13.97 to 17.74), solutions median 60.0
+  AC  row scan + arc consistency (dyn.c AC ROW), branches tried                   boards 10 censored 0  median +3.77  range +3.50..+4.57  boot95 +3.69..+4.14
+  WD  weighted degree + arc consistency (dyn.c AC WDEG), branches tried           boards 10 censored 0  median +4.90  range +3.51..+5.96  boot95 +4.27..+5.56
+  U0  clasp, learning off, static order, unit propagation only: conflicts         boards 10 censored 0  median +5.59  range +5.18..+6.36  boot95 +5.33..+5.83
+  U1  clasp, learning on, same static order: conflicts                            boards 10 censored 0  median +6.89  range +6.18..+7.94  boot95 +6.60..+7.31
+  L0  clasp, learning off, failed-literal lookahead: conflicts                    boards 10 censored 0  median +7.55  range +5.53..+9.71  boot95 +6.85..+8.60
+  L1  clasp, learning on, same lookahead heuristic: conflicts                     boards 10 censored 0  median +7.58  range +5.85..+9.65  boot95 +6.93..+8.85
+  C   clasp default (learning): conflicts                                         boards 10 censored 0  median +7.06  range +5.77..+8.80  boot95 +6.41..+7.76
+  K   CaDiCaL 1.5.3: conflicts                                                    boards 10 censored 0  median +6.16  range +5.35..+8.28  boot95 +5.62..+7.05
+  U0  decisions instead of conflicts                                       boards 10 median +5.53
+  U0  first solution: boards 10 median +4.88 range -0.17..+7.83
+  U1  first solution: boards 10 median +5.29 range +0.95..+8.17
+  L0  first solution: boards 10 median +3.31 range -0.52..+6.65
+  L1  first solution: boards 10 median +3.20 range -0.52..+6.65
+  C   first solution: boards 10 median +4.59 range +1.84..+7.12
+  K   first solution: boards 10 median +5.75 range +1.54..+9.09
+
+## n=6  tree: 10 boards, log2 nodes median 25.27 (range 23.38 to 27.88), solutions median 296.0
+  AC  row scan + arc consistency (dyn.c AC ROW), branches tried                   boards 10 censored 0  median +4.39  range +3.99..+7.54  boot95 +4.01..+5.49
+  WD  weighted degree + arc consistency (dyn.c AC WDEG), branches tried           boards 10 censored 0  median +5.32  range +3.66..+10.46  boot95 +4.46..+7.66
+  U0  clasp, learning off, static order, unit propagation only: conflicts         boards 10 censored 0  median +5.71  range +5.24..+8.73  boot95 +5.51..+6.75
+  U1  clasp, learning on, same static order: conflicts                            boards 10 censored 0  median +7.73  range +6.30..+11.11  boot95 +6.83..+9.73
+  L0  clasp, learning off, failed-literal lookahead: conflicts                    boards 10 censored 0  median +6.99  range +4.17..+13.95  boot95 +4.95..+10.01
+  L1  clasp, learning on, same lookahead heuristic: conflicts                     boards 10 censored 0  median +8.19  range +5.07..+14.04  boot95 +6.64..+10.96
+  C   clasp default (learning): conflicts                                         boards 10 censored 0  median +7.94  range +5.13..+14.27  boot95 +6.73..+10.80
+  K   CaDiCaL 1.5.3: conflicts                                                    boards 10 censored 0  median +6.97  range +4.86..+13.36  boot95 +5.83..+10.00
+  U0  decisions instead of conflicts                                       boards 10 median +5.71
+  U0  first solution: boards 10 median +5.55 range +2.67..+14.37
+  U1  first solution: boards 10 median +6.79 range +3.69..+15.50
+  L0  first solution: boards 10 median +5.73 range +2.69..+15.59
+  L1  first solution: boards 10 median +6.33 range +3.16..+15.59
+  C   first solution: boards 10 median +8.39 range +3.45..+15.94
+  K   first solution: boards 10 median +6.52 range +4.19..+12.65
+
+## n=7  tree: 10 boards, log2 nodes median 30.75 (range 30.31 to 35.78), solutions median 36.0
+  AC  row scan + arc consistency (dyn.c AC ROW), branches tried                   boards  9 censored 0  median +4.07  range +3.94..+4.56  boot95 +3.97..+4.21
+  WD  weighted degree + arc consistency (dyn.c AC WDEG), branches tried           boards 10 censored 0  median +5.64  range +3.15..+10.03  boot95 +5.03..+6.65
+  U0  clasp, learning off, static order, unit propagation only: conflicts         boards 10 censored 4  median +5.46  range +5.24..+9.58  boot95 +5.26..+6.67
+  U1  clasp, learning on, same static order: conflicts                            boards 10 censored 10  median +11.50  range +10.65..+16.10  boot95 +11.05..+12.69
+  L0  clasp, learning off, failed-literal lookahead: conflicts                    boards 10 censored 10  median +7.46  range +6.92..+12.43  boot95 +6.97..+8.40
+  L1  clasp, learning on, same lookahead heuristic: conflicts                     boards 10 censored 10  median +10.53  range +10.02..+15.60  boot95 +10.11..+11.62
+  C   clasp default (learning): conflicts                                         boards 10 censored 8  median +8.02  range +7.22..+15.24  boot95 +7.58..+9.51
+  K   CaDiCaL 1.5.3: conflicts                                                    boards  9 censored 5  median +8.17  range +7.18..+14.87  boot95 +7.70..+9.89
+  U0  decisions instead of conflicts                                       boards 10 median +5.46
+  U0  first solution: boards  4 median +6.72 range +5.00..+10.50
+  K   first solution: boards  8 median +7.61 range +1.38..+12.82
+
+# Bits due to learning: paired per board, ratio(learning arm) - ratio(control)
+
+U1 - U0: same solver and static order, learning on vs off (cleanest)
+  n=5 exhaust boards 10 censored 0  median +1.31  range +0.85..+2.19  boot95 +1.06..+1.49
+  n=6 exhaust boards 10 censored 0  median +2.03  range +1.06..+3.88  boot95 +1.33..+2.26
+  n=7 exhaust boards 10 censored 10  median +6.06  range +5.28..+6.52  boot95 +5.69..+6.24
+  trend exhaust n=5->6: change of median +0.72  boot95 -0.08..+1.09
+  trend exhaust n=6->7: change of median +4.04  boot95 +3.61..+4.84
+  n=5 first boards 10 censored 0  median +0.77  range +0.00..+1.81  boot95 +0.53..+1.15
+  n=6 first boards 10 censored 0  median +1.15  range +0.65..+4.40  boot95 +0.80..+1.79
+  trend first n=5->6: change of median +0.38  boot95 -0.12..+1.12
+
+L1 - L0: same solver and lookahead heuristic, learning on vs off
+  n=5 exhaust boards 10 censored 0  median +0.01  range -0.06..+0.32  boot95 -0.01..+0.10
+  n=6 exhaust boards 10 censored 0  median +0.92  range +0.09..+2.07  boot95 +0.62..+1.25
+  n=7 exhaust boards 10 censored 10  median +3.15  range +2.99..+3.61  boot95 +3.06..+3.18
+  trend exhaust n=5->6: change of median +0.91  boot95 +0.62..+1.25
+  trend exhaust n=6->7: change of median +2.23  boot95 +1.88..+2.53
+  n=5 first boards 10 censored 0  median +0.00  range -0.23..+0.18  boot95 +0.00..+0.06
+  n=6 first boards 10 censored 0  median +0.47  range -0.25..+1.88  boot95 +0.02..+0.90
+  trend first n=5->6: change of median +0.47  boot95 +0.01..+0.90
+
+K - U0: CaDiCaL minus clasp, learning off
+  n=5 exhaust boards 10 censored 0  median +0.37  range +0.02..+2.40  boot95 +0.05..+1.43
+  n=6 exhaust boards 10 censored 0  median +0.92  range -0.38..+6.30  boot95 +0.25..+2.39
+  n=7 exhaust boards  9 censored 7  median +2.59  range +0.97..+5.29  boot95 +1.93..+4.13
+  trend exhaust n=5->6: change of median +0.55  boot95 -0.60..+2.02
+  trend exhaust n=6->7: change of median +1.67  boot95 +0.08..+3.13
+  n=5 first boards 10 censored 0  median +0.53  range -3.21..+6.92  boot95 -1.24..+4.03
+  n=6 first boards 10 censored 0  median +1.09  range -6.04..+6.03  boot95 +0.48..+2.14
+  n=7 first boards  2 censored 0  median -1.19  range -3.41..+1.03  boot95 -3.41..+1.03
+  trend first n=5->6: change of median +0.56  boot95 -3.07..+2.78
+  trend first n=6->7: change of median -2.28  boot95 -5.45..+0.54
+
+C - U0: clasp default minus clasp learning off
+  n=5 exhaust boards 10 censored 0  median +1.34  range +0.21..+3.05  boot95 +0.69..+2.32
+  n=6 exhaust boards 10 censored 0  median +1.84  range -0.11..+7.22  boot95 +1.09..+3.48
+  n=7 exhaust boards 10 censored 9  median +2.41  range +1.35..+5.66  boot95 +2.17..+3.51
+  trend exhaust n=5->6: change of median +0.50  boot95 -0.63..+1.84
+  trend exhaust n=6->7: change of median +0.57  boot95 -0.83..+1.62
+  n=5 first boards 10 censored 0  median -0.18  range -1.78..+4.72  boot95 -1.58..+3.01
+  n=6 first boards 10 censored 0  median +2.05  range -5.13..+5.62  boot95 +0.72..+4.60
+  trend first n=5->6: change of median +2.23  boot95 -0.96..+5.47
+
+K - AC: pre-stated test: CaDiCaL lead over row scan + arc consistency
+  n=5 exhaust boards 10 censored 0  median +2.32  range +1.62..+3.87  boot95 +1.85..+3.11
+  n=6 exhaust boards 10 censored 0  median +2.19  range +0.87..+7.66  boot95 +1.80..+3.60
+  n=7 exhaust boards  8 censored 5  median +3.92  range +3.14..+5.33  boot95 +3.64..+4.88
+  trend exhaust n=5->6: change of median -0.13  boot95 -0.97..+1.39
+  trend exhaust n=6->7: change of median +1.73  boot95 +0.35..+2.73
+
+U1 - AC: pre-stated test: clasp static-order learning lead over row scan + AC
+  n=5 exhaust boards 10 censored 0  median +3.06  range +2.47..+3.72  boot95 +2.64..+3.43
+  n=6 exhaust boards 10 censored 0  median +3.34  range +2.31..+5.24  boot95 +2.72..+3.56
+  n=7 exhaust boards  9 censored 9  median +7.38  range +6.49..+9.81  boot95 +6.68..+8.05
+  trend exhaust n=5->6: change of median +0.27  boot95 -0.45..+0.75
+  trend exhaust n=6->7: change of median +4.04  boot95 +3.46..+4.83
+
+C - AC: pre-stated test: clasp default lead over row scan + AC
+  n=5 exhaust boards 10 censored 0  median +3.32  range +1.99..+4.57  boot95 +2.34..+3.89
+  n=6 exhaust boards 10 censored 0  median +3.20  range +1.14..+8.57  boot95 +2.58..+4.69
+  n=7 exhaust boards  9 censored 8  median +3.68  range +3.26..+5.55  boot95 +3.45..+4.99
+  trend exhaust n=5->6: change of median -0.12  boot95 -0.92..+1.31
+  trend exhaust n=6->7: change of median +0.48  boot95 -0.63..+2.11
+
+U0 - AC: clasp no-learning over row scan + AC (propagation strength)
+  n=5 exhaust boards 10 censored 0  median +1.68  range +1.47..+2.32  boot95 +1.55..+1.86
+  n=6 exhaust boards 10 censored 0  median +1.28  range +1.18..+1.75  boot95 +1.22..+1.44
+  n=7 exhaust boards  9 censored 3  median +1.26  range +1.19..+3.64  boot95 +1.20..+2.05
+  trend exhaust n=5->6: change of median -0.40  boot95 -0.58..-0.19
+  trend exhaust n=6->7: change of median -0.02  boot95 -0.19..+0.67

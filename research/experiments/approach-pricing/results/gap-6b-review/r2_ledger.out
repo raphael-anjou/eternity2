@@ -1,0 +1,35 @@
+== 1. full board
+uniform (memo)   constraint bits  1856.05  (interior 1716.73, frame 139.32)   log2 E[Z] no clue    4.04   one clue   -5.58   five clues  -43.96
+real counts      constraint bits  1846.01  (interior 1708.67, frame 137.34)   log2 E[Z] no clue   14.07   one clue    4.46   five clues  -33.92
+canonical (ROUTES row 65): no clue log2(1.153e7) = 23.46, one clue log2(14702.27) = 13.84, five log2(4.1e-8) = -24.54
+frames: uniform 4! 56! / 5^60 = 113.92; real counts 115.90; exact count on file 124.93
+
+== 2. row scan, first-moment level profile (interior clue tiles: no choice at the cell, tile withheld before)
+the centre clue is cell 120 of the scan (row 7, column 8 in scan coordinates) when the widest level sits near depth 158, as measured; the other placement is shown for comparison
+no clue                      uniform  peak level 2^166.41 at depth 161; total 2^170.66 = 10^51.37  (measured 10^50.04; difference +4.43 bits); last level   4.04
+no clue                      real     peak level 2^159.55 at depth 161; total 2^163.90 = 10^49.34  (measured 10^50.04; difference -2.33 bits); last level  14.07
+one clue (8,7)               uniform  peak level 2^160.37 at depth 135; total 2^162.88 = 10^49.03  (measured 10^47.14; difference +6.28 bits); last level  -5.58
+one clue (8,7)               real     peak level 2^154.44 at depth 135; total 2^156.85 = 10^47.22  (measured 10^47.14; difference +0.25 bits); last level   4.46
+one clue (7,8)               uniform  peak level 2^156.79 at depth 161; total 2^161.07 = 10^48.49  (measured 10^47.14; difference +4.48 bits); last level  -5.58
+one clue (7,8)               real     peak level 2^149.94 at depth 161; total 2^154.36 = 10^46.47  (measured 10^47.14; difference -2.23 bits); last level   4.46
+five clues, centre at (8,7)  uniform  peak level 2^138.98 at depth 135; total 2^141.39 = 10^42.56  (measured 10^40.457; difference +6.99 bits); last level -43.96
+five clues, centre at (8,7)  real     peak level 2^133.05 at depth 135; total 2^135.45 = 10^40.77  (measured 10^40.457; difference +1.05 bits); last level -33.92
+five clues, centre at (7,8)  uniform  peak level 2^134.65 at depth 161; total 2^139.00 = 10^41.84  (measured 10^40.457; difference +4.60 bits); last level -43.96
+five clues, centre at (7,8)  real     peak level 2^127.79 at depth 161; total 2^132.41 = 10^39.86  (measured 10^40.457; difference -1.99 bits); last level -33.92
+
+== 3. where the two ledgers part along the row scan (no clue): real minus uniform, bits
+  d16:-0.66  d32:-1.50  d64:-3.04  d96:-4.43  d128:-5.68  d158:-6.74  d192:-7.88  d224:-8.86  d240:-8.70  d256:+10.04
+
+== 4. memo prices redone with real counts
+free-boundary 7x7 interior block: fillings uniform  118.30, real  116.21
+free-boundary 14x7 interior block: fillings uniform  184.05, real  180.06
+free-boundary 14x14 interior block: fillings uniform  119.01, real  111.86
+colour-only (relaxed) solutions: uniform 361.64, real 371.68; P(strict | relaxed) 2^-357.6 in both
+coarse puzzles (interior colours merged), log2 E[number of arrangements that match], frame at full resolution:
+  17 classes                 match bits real 1708.67 (uniform-style 420 log2 1/q = 1716.53);  arrangements x P =   14.07  [upper bound on distinct coarse solutions; see r3 for the 2-class entropy cap]
+  one pair merged, 50+50     match bits real 1659.17 (uniform-style 420 log2 1/q = 1647.63);  arrangements x P =   63.58  [upper bound on distinct coarse solutions; see r3 for the 2-class entropy cap]
+  one pair merged, 48+48     match bits real 1661.17 (uniform-style 420 log2 1/q = 1652.76);  arrangements x P =   61.58  [upper bound on distinct coarse solutions; see r3 for the 2-class entropy cap]
+  15 classes                 match bits real 1609.66 (uniform-style 420 log2 1/q = 1585.77);  arrangements x P =  113.08  [upper bound on distinct coarse solutions; see r3 for the 2-class entropy cap]
+  6 classes (3,3,3,3,3,2)    match bits real 1076.53 (uniform-style 420 log2 1/q = 1073.69);  arrangements x P =  646.22  [upper bound on distinct coarse solutions; see r3 for the 2-class entropy cap]
+  2 classes (9,8)            match bits real  418.51 (uniform-style 420 log2 1/q =  418.02);  arrangements x P = 1304.24  [upper bound on distinct coarse solutions; see r3 for the 2-class entropy cap]
+residual at the peak (memo exit 2): surplus at depth 158 + log2 E[Z | five clues]: uniform ledger 139.0 and canonical -24.5

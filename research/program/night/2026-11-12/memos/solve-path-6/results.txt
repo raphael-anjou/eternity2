@@ -1,0 +1,73 @@
+Runs of 2026-11-12, one core, numpy via uv. Commands: ./run.sh <args>.
+Instances: gen(n, b, c, Random(1000*n + 10*c + seed)); b ring colours, c other colours.
+No clue is pinned, so "sols" counts the 4 rotations of every solution.
+DFS = naive row scan, no propagation; node = consistent placement; cap 300,000.
+its = iterations to an exact solution, one entry per random start; cap(best=k) = stopped at
+the iteration cap, best layout seen had k mismatched seams.
+
+== DFS reference ==
+dfs n=4 b=3 c=3 seed=0 nodes=795 sols=4
+dfs n=4 b=3 c=3 seed=1 nodes=806 sols=4
+dfs n=4 b=3 c=3 seed=2 nodes=1933 sols=24
+dfs n=4 b=3 c=4 seed=0 nodes=414 sols=4
+dfs n=4 b=3 c=4 seed=1 nodes=1258 sols=16
+dfs n=4 b=3 c=4 seed=2 nodes=492 sols=12
+dfs n=5 b=3 c=4 seed=0 nodes=284066 sols=44
+dfs n=5 b=3 c=4 seed=1 nodes=91217 sols=20
+dfs n=5 b=3 c=4 seed=2 nodes=300001 sols=262 capped
+dfs n=5 b=3 c=5 seed=0 nodes=15638 sols=12
+dfs n=5 b=3 c=5 seed=1 nodes=35293 sols=4
+dfs n=5 b=3 c=5 seed=2 nodes=36217 sols=8
+dfs n=6 b=4 c=6 seed=0 nodes=300001 sols=0 capped
+dfs n=6 b=4 c=6 seed=1 nodes=300001 sols=5 capped
+dfs n=6 b=4 c=7 seed=0 nodes=115366 sols=4
+dfs n=6 b=4 c=7 seed=1 nodes=300001 sols=0 capped
+dfs n=6 b=4 c=8 seed=0 nodes=47909 sols=4
+dfs n=6 b=4 c=8 seed=1 nodes=17545 sols=4
+dfs n=7 b=4 c=11 seed=0 nodes=300001 sols=2 capped
+dfs n=7 b=4 c=11 seed=1 nodes=221291 sols=4
+
+== pilot, beta=1 (plain Douglas-Rachford), cap 5000 (A) / 3000 (ARK) ==
+dm n=4 b=3 c=4 seed=0 sets=A form=a its=[14, 7, 22, 12]
+dm n=4 b=3 c=4 seed=1 sets=A form=a its=[12, 12, 8, 12]
+dm n=4 b=3 c=4 seed=0 sets=A form=b its=[33, 13, 9, 6]
+dm n=4 b=3 c=4 seed=1 sets=A form=b its=[19, cap(best=4), cap(best=4), cap(best=2)]
+dm n=4 b=3 c=4 seed=0 sets=ARK form=a its=[18, 20, 10, 26]
+dm n=4 b=3 c=4 seed=1 sets=ARK form=a its=[9, 23, 31, 26]
+dm n=4 b=3 c=4 seed=0 sets=ARK form=b its=[13, 17, 49, 11]
+dm n=4 b=3 c=4 seed=1 sets=ARK form=b its=[16, 25, 34, 17]
+
+== 5x5 c=5, form a, effect of the step beta (cap 20000; ARK beta=1 cap 10000) ==
+A   beta=1    seed0 [35, 360, 77, 222, 58]            seed1 [cap(3), cap(2), cap(3), cap(2), cap(2)]  seed2 [84, 1508, 891, 1208, 1485]   (8.9 s for seed1 = 100k iterations)
+ARK beta=1    seed0 [60, cap(2), 71, 33, 126]         seed1 [3445, cap(2), cap(2), cap(2), 277]       seed2 [125, 401, 790, 124, 1193]
+A   beta=0.5  seed0 [172, 158, 156, 179, 267]         seed1 [1053, cap(2), 4252, 2838, 990]           seed2 [593, 364, 305, 398, 597]
+A   beta=0.25 seed0 [460, 82, 46, 237, 195]           seed1 [2864, 13606, 5657, 2598, 6521]           seed2 [915, 937, 437, 944, 2006]
+ARK beta=0.25 seed0 [153, 650, 550, 309, 351]         seed1 [2577, 710, 2565, 2287, 1427]             seed2 [299, 1546, 465, 151, 767]
+
+== beta=0.25, form a ==
+dm n=6 b=4 c=8  seed=0 sets=A   its=[4702, 91, 1246]                       cap 40000
+dm n=6 b=4 c=8  seed=1 sets=A   its=[760, 322, 203]
+dm n=6 b=4 c=7  seed=0 sets=A   its=[10722, 4783, 5506]                    cap 60000
+dm n=6 b=4 c=7  seed=1 sets=A   its=[cap(best=2), cap(best=2), 16386]      t=21.2 s
+dm n=6 b=4 c=8  seed=0 sets=ARK its=[1102, 970, 356]                       cap 20000
+dm n=6 b=4 c=8  seed=1 sets=ARK its=[299, 389, 145]
+dm n=6 b=4 c=7  seed=0 sets=ARK its=[1818, 3001, 2613]                     t=6.0 s
+dm n=6 b=4 c=7  seed=1 sets=ARK its=[cap(best=2), 1132, 4226]              t=18.5 s
+dm n=7 b=4 c=11 seed=0 sets=A   its=[6052, 33430, 746]                     cap 50000, t=8.8 s
+dm n=7 b=4 c=11 seed=1 sets=A   its=[17136, 2438, cap(best=8)]             t=14.3 s
+dm n=7 b=4 c=11 seed=1 sets=ARK its=[2954, 2738, 2292, 120]                cap 20000, t=9.0 s
+dm n=8 b=5 c=12 seed=0 sets=ARK its=[14948, 20736]                         cap 25000, t=58.9 s
+
+== median iterations over DFS nodes per solution (tree nodes / sols), beta=0.25 ==
+n  c  seed  DFS/sol   A med   ARK med   A ratio  ARK ratio
+5  5  0      1303      195      351     0.15     0.27
+5  5  1      8823     5657     2287     0.64     0.26
+5  5  2      4527      937      465     0.21     0.10
+6  8  0     11977     1246      970     0.10     0.081
+6  8  1      4386      322      299     0.073    0.068
+6  7  0     28842     5506     2613     0.19     0.091
+7 11  1     55323    17136     2515     0.31     0.045
+Geometric mean of the ARK ratio: n=5 0.19, n=6 0.079, n=7 0.045 (one instance).
+
+Compute spent: about 8 CPU-minutes, of which 2.6 were lost to a generator loop
+(n=4, b=2, c=2 has no instance with distinct pieces; now capped at 20000 tries).

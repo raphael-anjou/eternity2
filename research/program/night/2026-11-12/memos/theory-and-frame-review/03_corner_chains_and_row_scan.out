@@ -1,0 +1,27 @@
+clues: {(2, 2): (207, (22, 11, 12, 13)), (2, 13): (254, (22, 18, 22, 20)), (8, 7): (138, (8, 9, 9, 12)), (13, 2): (180, (20, 9, 21, 12)), (13, 13): (248, (16, 21, 15, 17))}
+
+== (a) corner chains and clue blocks, own enumeration ==
+  corner 0 (clue at (2, 2)): chains 57131 | fillable, pool without this clue only: 2716 (0.0475, 4.39 bits; inward 4-tuples seen 22303, fillable 1145) | pool without all five clues: 2620 (0.0459, 4.45 bits)
+  corner 1 (clue at (2, 13)): chains 57131 | fillable, pool without this clue only: 3499 (0.0612, 4.03 bits; inward 4-tuples seen 22303, fillable 1257) | pool without all five clues: 3404 (0.0596, 4.07 bits)
+  corner 2 (clue at (13, 13)): chains 57131 | fillable, pool without this clue only: 2637 (0.0462, 4.44 bits; inward 4-tuples seen 22303, fillable 1044) | pool without all five clues: 2508 (0.0439, 4.51 bits)
+  corner 3 (clue at (13, 2)): chains 57131 | fillable, pool without this clue only: 2875 (0.0503, 4.31 bits; inward 4-tuples seen 22303, fillable 1090) | pool without all five clues: 2669 (0.0467, 4.42 bits)
+  sum of bits: 17.17 (memo's pool) ; 17.45 (pool without all five clues)   memo: 57,131 chains; 2,716 / 3,499 / 2,875 / 2,637; 17.17 bits
+  note: corner order here is top-left, top-right, bottom-right, bottom-left; the memo lists (0,0), (0,15), (15,0), (15,15)
+  [1s]
+
+== (b) the row-scan model and the corner clues ==
+  clues all five                                  : sum 10^40.49 (+0.00 digits against all five), peak 10^39.20 at cell 161
+  clues centre + the two near the start (rows 13) : sum 10^41.35 (+0.86 digits against all five), peak 10^40.08 at cell 161
+  clues centre + the two near the end (rows 2)    : sum 10^46.27 (+5.77 digits against all five), peak 10^44.97 at cell 161
+  clues centre only                               : sum 10^47.14 (+6.64 digits against all five), peak 10^45.86 at cell 161
+  clues none                                      : sum 10^50.03 (+9.53 digits against all five), peak 10^48.76 at cell 161
+  bottom blocks (rows 13 to 14) closed at scan cell 47 of 256: nodes spent before 10^21.64, nodes still to come 10^40.49 (share to come 1)
+  top blocks (rows 1 to 2) closed at scan cell 239 of 256: nodes spent before 10^40.49, nodes still to come 10^3.30 (share to come 6.37e-38)
+  one corner block is worth 4.29 bits = 1.29 digits; four are worth 5.17 digits
+
+== (c) design-recipe: no rotation-duplicate pair in a painted set ==
+  4000 painted 16x16 sets (uniform colours, 5 frame + 17 interior):
+    repeated interior pieces: mean 0.97 ; repeated border pieces: mean 3.68 ; half-turn-symmetric interior pieces: mean 0.68
+    no symmetric and no duplicate INTERIOR piece (the page's 'one time in five'): 0.183
+    no duplicate piece among all 256: 0.0045 ; and no symmetric piece either: 0.0020
+[2s]

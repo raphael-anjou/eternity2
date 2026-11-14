@@ -1,0 +1,34 @@
+small boards: W_d(planted)/mu_d against E[W^2]/E[W]^2, depths with mu_d >= 0.05 (ratios, then the mean over boards)
+  6x6 (4/6) s1  d: planted/size-bias  1: 1.1/1.5  2: 1.0/1.9  3: 1.3/2.2  4: 2.7/3.9  5: 2.2/5.1  6: 1.9/6.2  7: 10.3/13.9  8: 18.7/23.1  9: 29.7/30.5
+  6x6 (4/6) s2  d: planted/size-bias  1: 1.3/1.2  2: 1.5/1.3  3: 1.2/1.4  4: 2.5/2.0  5: 4.0/2.3  6: 6.6/2.6  7: 14.5/4.5  8: 17.3/5.4  9: 19.0/6.4  10: 35.9/14.6  11: 59.9/21.1
+  6x6 (4/6) s3  d: planted/size-bias  1: 1.3/1.3  2: 0.4/1.5  3: 0.9/1.8  4: 2.2/3.0  5: 3.7/3.6  6: 2.0/4.2  7: 7.3/9.4  8: 9.3/12.5  9: 15.8/16.1  10: 60.0/60.6  11: 220.6/105.5
+  6x6 (4/6) s4  d: planted/size-bias  1: 0.8/1.3  2: 0.8/1.8  3: 1.1/2.0  4: 1.5/4.8  5: 1.0/6.7  6: 0.9/8.7  7: 7.0/35.5  8: 6.2/57.5  9: 17.9/106.1
+  6x6 (4/6) s5  d: planted/size-bias  1: 1.0/1.4  2: 0.6/1.7  3: 0.5/1.9  4: 0.5/3.6  5: 0.4/4.6  6: 0.6/5.2  7: 2.7/13.6  8: 5.3/17.6  9: 2.8/22.0  10: 19.0/89.9  11: 26.6/146.6
+  51 (board, depth) pairs: mean planted ratio 12.81 (3.68 bits), mean size-bias prediction 17.71 (4.15 bits), mean 1/(surviving fraction) 9.40 (3.23 bits)
+  so of the 3.68 bits the planted frame shows, 3.23 are the sound filter and 0.45 are ranking among survivors
+
+when does the information arrive? bits held when a share of the mean per-frame cost has been spent
+  board | total bits | at 50%% of cost: sure, soft, post | at 90%% of cost: sure, soft, post | cost share spent when sure bits reach half of the total
+  6x6 (4/6) s1 | 13.7 | 0.39 1.07 -0.02 | 1.57 2.46 1.15 | 1.000
+  6x6 (4/6) s2 | 14.1 | 0.06 1.51 0.28 | 1.25 9.43 3.86 | 1.000
+  6x6 (4/6) s3 | 11.5 | 0.28 0.33 -1.21 | 1.30 2.32 0.99 | 1.000
+  6x6 (4/6) s4 | 12.8 | 0.36 0.70 -0.31 | 1.98 1.98 -0.00 | 0.999
+  6x6 (4/6) s5 | 14.6 | 0.16 0.52 -0.84 | 1.40 1.46 -0.78 | 1.000
+
+official set, model curve, five clues, clue corner blocks first then inward spiral
+  d=  3  log10 mu   -1.27  nodes per frame so far 10^0.96  first-moment bound on sure bits, -log2 of the lowest mu so far:    4.2
+  d= 12  log10 mu   -5.18  nodes per frame so far 10^0.98  first-moment bound on sure bits, -log2 of the lowest mu so far:   17.2
+  d= 13  log10 mu   -4.81  nodes per frame so far 10^0.98  first-moment bound on sure bits, -log2 of the lowest mu so far:   17.2
+  d= 20  log10 mu   -2.22  nodes per frame so far 10^0.98  first-moment bound on sure bits, -log2 of the lowest mu so far:   17.2
+  d= 40  log10 mu    2.00  nodes per frame so far 10^2.32  first-moment bound on sure bits, -log2 of the lowest mu so far:   17.2
+  d= 60  log10 mu    5.10  nodes per frame so far 10^5.48  first-moment bound on sure bits, -log2 of the lowest mu so far:   17.2
+  d= 91  log10 mu    7.36  nodes per frame so far 10^8.08  first-moment bound on sure bits, -log2 of the lowest mu so far:   17.2
+  d=120  log10 mu    4.24  nodes per frame so far 10^8.34  first-moment bound on sure bits, -log2 of the lowest mu so far:   17.2
+  d=140  log10 mu    0.14  nodes per frame so far 10^8.34  first-moment bound on sure bits, -log2 of the lowest mu so far:   17.2
+  d=145  log10 mu   -1.99  nodes per frame so far 10^8.34  first-moment bound on sure bits, -log2 of the lowest mu so far:   17.2
+  d=150  log10 mu   -4.35  nodes per frame so far 10^8.34  first-moment bound on sure bits, -log2 of the lowest mu so far:   17.2
+  d=160  log10 mu   -8.66  nodes per frame so far 10^8.34  first-moment bound on sure bits, -log2 of the lowest mu so far:   28.8
+  d=191  log10 mu  -45.10  nodes per frame so far 10^8.34  first-moment bound on sure bits, -log2 of the lowest mu so far:  149.8
+
+reuse-allowed relaxation at 16x16 (arithmetic): fills per frame if a piece may be used many times
+  191 cells x log10(764 oriented pieces) - 420 joints x log10(17.34) = 30.3 digits: the relaxation refutes no frame in the mean

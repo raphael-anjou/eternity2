@@ -1,0 +1,29 @@
+MODEL row scan, five clues: log10 total 42.052 (measured 40.457), peak 40.68 at free depth 158 (measured 39.16 at 158)
+  model E[solutions] five clues (random instance): log10 -12.994  (independently re-checked figure 4.1e-8 = -7.39)
+MODEL 2x2 block scan, all levels: log10 total 42.801 (+2.49 bits vs row scan), peak 41.80
+MODEL 2x2 block scan, block levels only (table lookups inside a block): log10 42.269 (+0.72 bits vs row scan)
+MODEL row scan, every 4th level only (same lookup trick on 4-cell runs): log10 41.488 (-1.87 bits)
+
+Solutions with a hole (row scan, hole cells never filled)
+hole                         k  log10E_H  log10T_H  log10(T_H/(E_H+1))  bits of T_H vs no hole
+last 16 cells                 16      4.87     42.05       37.19     +0.00
+last 32 cells                 32     20.18     42.05       21.87     +0.00
+last 48 cells                 48     30.49     42.05       11.57     -0.00
+last 64 cells                 64     37.47     42.05        4.58     -0.00
+last 80 cells                 80     39.82     42.04        2.22     -0.04
+last 96 cells                 96     40.55     41.84        1.29     -0.71
+square 1x1 late                1     -8.68     42.05       42.05     +0.00
+square 1x1 early               1     -8.68     44.50       44.50     +8.14
+square 1x1 peak rows           1     -8.68     43.87       43.87     +6.04
+square 2x2 early               4     -2.02     46.96       46.95    +16.30
+square 2x2 peak rows           4     -2.02     45.01       45.00     +9.81
+square 3x3 early               9      5.54     49.44       43.90    +24.55
+square 3x3 peak rows           9      5.54     44.61       39.07     +8.50
+square 4x4 early              16     13.25     51.94       38.69    +32.85
+square 4x4 peak rows          16     13.25     44.57       31.32     +8.35
+square 5x5 early              25     20.56     54.38       33.82    +40.94
+square 5x5 peak rows          25     20.56     44.73       24.18     +8.91
+square 6x6 early              36     27.07     56.55       29.48    +48.15
+square 6x6 peak rows          36     27.07     44.88       17.81     +9.39
+
+smallest late hole with <= 1e15 nodes per hole-solution: last 42 cells, log10 E_H 27.36; chance a found one is the planted board minus the hole: 10^-27.36

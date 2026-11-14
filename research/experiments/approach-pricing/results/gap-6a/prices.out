@@ -1,0 +1,45 @@
+exact census: corners 4, edge pieces 56, interior 196
+half-edges per colour (exact): {1: 24, 2: 24, 3: 24, 4: 24, 5: 24, 6: 48, 7: 48, 8: 48, 9: 48, 10: 48, 11: 50, 12: 50, 13: 50, 14: 50, 15: 50, 16: 50, 17: 50, 18: 50, 19: 50, 20: 50, 21: 50, 22: 50}
+sum of half-edges 960 = 2 x 480 internal edges
+
+[A] search-space sizes of the dual formulations, bits
+  placements (cells -> tiles, rotations): 1860.1
+  half-edge pairings inside colour classes (tiles as vertices, colours as matchings): 1956.9
+    of which frame colours [1, 2, 3, 4, 5]: 191.0
+  colourings of the 480 internal edges (chi): 1856.1
+
+[B] colour-only boards per solution (model): 2^357.6 ; with 14,702 solutions 2^371.5 ; with ~1: 2^357.6
+    path-1 toy correction (law high by 10^1.1 to 10^1.9 on toys): floor 2^338.8
+
+[C] oblivious algebra prices, bits (251 free tiles, contraction 2^75.4)
+  exterior algebra / any module where the full product survives: dim 2^251 ; x contraction = 326.4
+  Clifford (Majorana) spinor module: dim 2^125.5 ; trace over a basis x state x contraction = 326.4
+  sum of determinants over colour-only-feasible edge colourings: about 339 to 371 terms (bits)
+  central binomial C(256,128) (Nisan width of the symmetrised monomial): 2^251.7
+  set partitions of 256 cells (index set of the homomorphism-basis sieve): 2^1241.9
+
+[D] row systems (horizontal matching only), model
+  match cost: interior-interior 4.086 bits, edge piece inward to interior 4.107 bits, frame-frame 2.322
+  candidates for ONE interior row (edge, 14 interior, edge; horizontal matches only): 2^84.2
+  boards with all 240 horizontal edges matched (each tile once, verticals ignored): 2^931.9
+  bits the 240 vertical edges must then remove: 928.2
+
+[E] vertex stars (four tile corners around one interior board vertex, 4 matched edges), deep interior
+  candidate stars per vertex: 2^22.1 ; 169 deep-interior vertices
+
+[F] linear algebra on lifted variables (XL / Nullstellensatz / polynomial calculus), monomial counts
+  0/1 variables (cell, tile, rotation) with rim respected: 156816
+    degree  4: C(V,D) = 2^64.4, squared (dense elimination, omega=2) 2^128.9
+    degree  5: C(V,D) = 2^79.4, squared (dense elimination, omega=2) 2^158.8
+    degree  6: C(V,D) = 2^94.1, squared (dense elimination, omega=2) 2^188.1
+    degree  7: C(V,D) = 2^108.5, squared (dense elimination, omega=2) 2^217.0
+    degree  8: C(V,D) = 2^122.8, squared (dense elimination, omega=2) 2^245.5
+    degree  9: C(V,D) = 2^136.9, squared (dense elimination, omega=2) 2^273.7
+    degree 10: C(V,D) = 2^150.8, squared (dense elimination, omega=2) 2^301.6
+    degree 11: C(V,D) = 2^164.6, squared (dense elimination, omega=2) 2^329.2
+    degree 12: C(V,D) = 2^178.3, squared (dense elimination, omega=2) 2^356.5
+
+[G] self-reduction with a decision or counting oracle
+  calls, naive (every cell, every tile-rotation): at most 2^17.6 ; with the count oracle and bisection on a sorted candidate list: 256 x about 10 = 2^11.3
+
+[H] budget: 2^134.4 tree, 2^75.4 contraction => a sieve must have fewer than 2^59.0 terms

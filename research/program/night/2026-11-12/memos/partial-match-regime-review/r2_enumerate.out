@@ -1,0 +1,72 @@
+== Part 1: 2x2, all instances, all placements, exact ==
+ring [2, 2]: 36 instances; enumerated mean N(k) {0: '4', 2: '16', 4: '4'} ; formula {0: '4', 2: '16', 4: '4'} ; EQUAL
+ring [2, 1, 1]: 144 instances; enumerated mean N(k) {0: '2', 2: '10', 3: '8', 4: '4'} ; formula {0: '2', 2: '10', 3: '8', 4: '4'} ; EQUAL
+ring [3, 1]: 16 instances; enumerated mean N(k) {0: '6', 2: '18'} ; formula {0: '6', 2: '18'} ; EQUAL
+ring [1, 1, 1, 1]: 576 instances; enumerated mean N(k) {0: '1', 2: '6', 3: '8', 4: '9'} ; formula {0: '1', 2: '6', 3: '8', 4: '9'} ; EQUAL
+
+== Part 2: 3x3, sampled instances, every one of the 2304 placements ==
+ring [4, 4], interior half-edges [4, 4], 500 instances
+  k   formula E[N(k)]   enumerated mean +- s.e.     z    share of instances with N(k) = 0
+  0         2.8212         2.6080 +- 0.3097    -0.69   0.848
+  2        67.7094        65.5360 +- 3.1592    -0.69   0.394
+  4       470.2041       468.0800 +- 10.7641   -0.20   0.088
+  6       978.0245       969.0560 +- 9.5645    -0.94   0.012
+  8       634.7755       641.6480 +- 11.0734    0.62   0.016
+ 10       142.9420       148.7680 +- 6.0122     0.97   0.128
+ 12         7.5233         8.3040 +- 1.3031     0.60   0.666
+  largest |z| 0.97 over 7 values of k
+ring [4, 2, 2], interior half-edges [4, 2, 2], 500 instances
+  k   formula E[N(k)]   enumerated mean +- s.e.     z    share of instances with N(k) = 0
+  0         0.1567         0.1520 +- 0.0441    -0.11   0.974
+  2         4.7020         4.7120 +- 0.4698     0.02   0.700
+  3         7.5233         7.4000 +- 0.5452    -0.23   0.668
+  4        47.1771        49.1040 +- 2.3898     0.81   0.208
+  5       117.8645       120.4880 +- 3.9740     0.66   0.178
+  6       268.0163       274.6240 +- 5.6833     1.16   0.024
+  7       456.4114       456.4240 +- 5.5280     0.00   0.024
+  8       567.6931       564.2640 +- 4.3465    -0.79   0.000
+  9       486.5045       482.3280 +- 6.4419    -0.65   0.000
+ 10       265.1951       265.3040 +- 6.9441     0.02   0.016
+ 11        75.2327        72.9440 +- 3.1589    -0.72   0.176
+ 12         7.5233         6.2560 +- 0.6532    -1.94   0.742
+  largest |z| 1.94 over 12 values of k
+
+== Part 3: 4x4, sampled instances, depth-first count with at most J = 2 breaks anywhere ==
+ring joints per colour [6, 3, 3], interior joints per colour [5, 4, 3], 160 instances
+  d  j   formula        enumerated mean +- s.e.      z
+  3  0        31.240         30.656 +- 0.444      -1.31
+  3  1       105.521        105.237 +- 0.656      -0.43
+  3  2        87.240         88.106 +- 0.847       1.02
+  5  0        78.011         77.312 +- 2.314      -0.30
+  5  1       523.679        519.212 +- 8.671      -0.52
+  5  2      1334.781       1331.456 +- 7.576      -0.44
+  7  0       155.112        150.600 +- 6.349      -0.71
+  7  1      2363.341       2319.869 +- 67.431     -0.64
+  7  2     15766.129      15566.506 +- 332.915    -0.60
+  9  0       143.396        135.775 +- 8.055      -0.95
+  9  1      2909.706       2783.650 +- 118.688    -1.06
+  9  2     27037.917      26133.531 +- 853.644    -1.06
+ 11  0        48.607         45.888 +- 3.854      -0.71
+ 11  1      1394.540       1305.944 +- 69.956     -1.27
+ 11  2     18722.549      17782.456 +- 752.874    -1.25
+ 13  0        15.117         17.650 +- 2.596       0.98
+ 13  1       490.410        483.856 +- 35.213     -0.19
+ 13  2      7674.271       7392.625 +- 415.497    -0.68
+ 15  0         2.547          3.044 +- 0.760       0.65
+ 15  1        28.082         27.650 +- 3.465      -0.12
+ 15  2       433.269        434.719 +- 47.779      0.03
+ 16  0         1.514          1.725 +- 0.571       0.37
+ 16  1         0.000          0.000 +- 0.000       0.00
+ 16  2       210.474        188.600 +- 26.364     -0.83
+  largest |z| 1.31 over 24 comparisons
+
+== Part 4: 4x4, planted instances with the same census, same enumeration ==
+complete boards with exactly j breaks (no piece pinned, so each board counts with its 4 turns):
+  j   formula    ensemble mean (sd, share zero)      planted mean (sd, share zero)    planted / formula
+  0      1.514       1.725 (   7.228, 0.92)             44.650 ( 122.337, 0.00)         29.49
+  1      0.000       0.000 (   0.000, 1.00)              0.000 (   0.000, 1.00)         formula is zero
+  2    210.474     188.600 ( 333.481, 0.41)           1658.950 (2978.093, 0.00)         7.88
+  nodes at depth 8 (all j <= 2): formula 16936.0, ensemble mean 16385.0, planted mean 24338.6
+  nodes at depth 12 (all j <= 2): formula 9496.6, ensemble mean 9206.0, planted mean 20068.2
+  nodes per board found, ratio of sums: ensemble 776.9, planted 147.8
+  nodes per board, instance by instance (ensemble, instances with a board: 95 of 160): min 73.9 median 970.5 max 12316.8

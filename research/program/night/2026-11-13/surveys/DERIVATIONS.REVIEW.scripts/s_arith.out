@@ -1,0 +1,62 @@
+== item 3: exact-algorithms prices ==
+row cut 5^2*17^14 = 2^61.87 ; with in-row leg 2^65.96
+contraction time, 256 cells x 2^65.96 states x 2.71 fits = 2^75.4 = 10^22.70  (path 1: 10^22.7 = 2^75.4)
+  full sieve 251+75.4              326.4 bits
+  corners enumerated               327.0 bits
+  half sieve                       200.9 bits
+  narrow sieve 1.66                258.9 bits
+  subset DP worst 256+row          317.9 bits
+  colour coding 251+row            312.9 bits
+  subset convolution row+16+256    333.9 bits
+  break-even sieve terms: 134.4-75.4 = 59.0 ; 134.4-61.87 = 72.5 ; per free tile 0.235 to 0.289
+  134.4/256 = 0.525 bit per cell, 134.4/251 = 0.535 per free tile, base 1.439
+  C(256,135) = 2^251.1, C(256,128) = 2^251.7 ; peak 130.1 - row = 68.2
+  2x2 rearrangement 4!*4^4/17^12 = 1.05e-11 ; middle-row guess (256)_16*4^16 = 2^159.3
+  56^j/(56)_j at j=30: 13.95 bits
+
+== item 5: SAT D1 and the arc formula ==
+  784^196/17^420 = 2^167.7 ; 196!*4^196/17^420 = 2^-109.9
+  m= 2  m!/5^(m+1) = 2^  -6.0   (C(m,2)/25 twin swaps expected = 0.04)
+  m= 3  m!/5^(m+1) = 2^  -6.7   (C(m,2)/25 twin swaps expected = 0.12)
+  m= 6  m!/5^(m+1) = 2^  -6.8   (C(m,2)/25 twin swaps expected = 0.60)
+  m=12  m!/5^(m+1) = 2^  -1.3   (C(m,2)/25 twin swaps expected = 2.64)
+  m=13  m!/5^(m+1) = 2^   0.0   (C(m,2)/25 twin swaps expected = 3.12)
+  m=20  m!/5^(m+1) = 2^  12.3   (C(m,2)/25 twin swaps expected = 7.60)
+  m=30  m!/5^(m+1) = 2^  35.7   (C(m,2)/25 twin swaps expected = 17.40)
+  30 pieces in 10 arcs: 30!/5^40 = 2^14.8
+
+== item 6: partition entropies, Wagner, ISD ==
+  k=2  H_k = 247.2 bits  list 2^(H/(1+lg k)) = 2^123.6  solutions needed 2^0.0
+  k=4  H_k = 476.2 bits  list 2^(H/(1+lg k)) = 2^158.7  solutions needed 2^158.7
+  k=8  H_k = 689.7 bits  list 2^(H/(1+lg k)) = 2^172.4  solutions needed 2^689.7
+  unknowns 156816, checks 992, rate 0.9937, weight ratio 0.00163
+  Prange blocks: 2^(500.3 - 2217.7) = 2^-1717.4 ; generic 2^1870
+  regular vectors 2^2217.7 against syndrome space 257^992 = 2^7941.6 ; placements 2^1860.1
+
+== item 6: extreme pruning gain ==
+  delta   K | exact bits | d*z_K/ln2 + d^2/(2 ln2) + ln-corr | survey's d*sqrt(2lnK)/ln2 | K=1 at 50%% success
+  0.5       4 |   1.1 |   1.5 |   1.2 |  0.7
+  0.5     100 |   2.1 |   2.1 |   2.2 |  0.7
+  0.5    1000 |   2.6 |   2.6 |   2.7 |  0.7
+  0.5 1000000 |   3.7 |   3.8 |   3.8 |  0.7
+  1.4       4 |   3.7 |   4.4 |   3.4 |  2.6
+  1.4     100 |   6.7 |   6.8 |   6.1 |  2.6
+  1.4    1000 |   8.1 |   8.2 |   7.5 |  2.6
+  1.4 1000000 |  11.4 |  11.4 |  10.6 |  2.6
+  3.0       4 |  11.0 |  11.9 |   7.2 |  8.5
+  3.0     100 |  17.6 |  17.8 |  13.1 |  8.5
+  3.0    1000 |  20.8 |  20.8 |  16.1 |  8.5
+  3.0 1000000 |  27.7 |  27.8 |  22.8 |  8.5
+  gain in bits (all K runs paid, overall success 0.5), by correlation rho between presentations
+  delta=1.4   K  | rho=0   0.3   0.6   0.9   1.0
+             1 |   3.6    3.6    3.6    3.6    3.6
+             2 |   4.3    4.0    3.7    3.1    2.6
+             4 |   4.9    4.3    3.6    2.6    1.6
+           100 |   7.5    5.4    2.8   -0.5   -3.0
+          1000 |   8.9    5.6    1.8   -2.9   -6.3
+  delta=3.0   K  | rho=0   0.3   0.6   0.9   1.0
+             1 |   9.5    9.5    9.5    9.5    9.5
+             2 |  11.3   10.9   10.3    9.4    8.5
+             4 |  12.9   12.0   10.9    9.1    7.5
+           100 |  18.7   15.7   12.1    7.1    2.9
+          1000 |  21.7   17.4   12.1    5.1   -0.4

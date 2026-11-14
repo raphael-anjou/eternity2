@@ -1,0 +1,46 @@
+== A. named plans ==
+ quadrant TL: list 2^95.8, widest level of its own scan 2^95.8
+ quadrant TR: list 2^95.8, widest level of its own scan 2^95.8
+ quadrant BL: list 2^86.6, widest level of its own scan 2^87.6
+ quadrant BR: list 2^95.8, widest level of its own scan 2^95.8
+ top half = TL join TR: half list 2^130.6 ; seam key 30.9 bits ; seam-matched pairs 2^160.7 ; share of them with disjoint used sets 2^-30.1
+ bottom half = BL join BR: half list 2^122.0 ; seam key 30.9 bits ; seam-matched pairs 2^151.5 ; share of them with disjoint used sets 2^-29.5
+ left half = TL join BL: half list 2^122.0 ; seam key 30.9 bits ; seam-matched pairs 2^151.5 ; share of them with disjoint used sets 2^-29.5
+ right half = TR join BR: half list 2^130.6 ; seam key 30.9 bits ; seam-matched pairs 2^160.7 ; share of them with disjoint used sets 2^-30.1
+ Schroeppel-Shamir on the quadrants, any modulus width m: the inner joins output, summed over the 2^m guesses, every seam-matched pair once:
+   top|bottom grouping 2^160.7 ; left|right grouping 2^160.7 ; with a perfect disjoint join instead: 2^130.6 and 2^130.6 (the two half lists)
+ four bands of four rows: lists rows 0-3 2^84.7 rows 4-7 2^135.8 rows 8-11 2^126.7 rows 12-15 2^84.7 (inner bands exceed the whole tree)
+ guess the whole cross seam first (dissection style): 123.7 bits of seam, uniform, before any work per guess
+ Wagner k-tree needs about 2^(n/3) solutions for 4 lists and an n-bit condition; here the lists multiply to 2^374.0 and E[Z] = 2^-24.5, so n = 398.6 bits and the tree needs 2^132.9 solutions
+
+ share of pairs of tile sets that are disjoint, sizes a and b drawn from 256 (kinds ignored), -log2:
+     1 + 136: 1.1 bits;     4 + 136: 4.4 bits;    16 +  16: 1.5 bits;    16 + 112: 13.8 bits;    32 +  32: 6.6 bits;    32 +  96: 23.6 bits;    64 +  64: 31.3 bits;    96 +  96: 88.7 bits;   104 + 104: 112.3 bits;    64 + 128: 79.4 bits;
+
+== B. all guillotine plans ==  [0s]
+ (i) seam-keyed joins, disjointness tested pair by pair: best final cuts
+   column cut 9  cost 2^129.2 | lists 2^126.8, 2^122.9 | side plans: 2^129.2 by scan ; 2^124.4 by scan
+   row cut 7     cost 2^129.2 | lists 2^122.9, 2^126.8 | side plans: 2^124.4 by scan ; 2^129.2 by scan
+   column cut 10 cost 2^129.9 | lists 2^127.9, 2^112.6 | side plans: 2^129.9 by scan ; 2^113.9 by scan
+   row cut 6     cost 2^129.9 | lists 2^112.6, 2^127.9 | side plans: 2^113.9 by scan ; 2^129.9 by scan
+   column cut 11 cost 2^130.2 | lists 2^124.6, 2^99.7 | side plans: 2^130.2 by scan ; 2^101.0 by scan
+   column cut 12 cost 2^130.2 | lists 2^115.9, 2^84.7 | side plans: 2^130.2 by scan ; 2^85.9 by scan
+   [11s]
+ (ii) hypothetical output-sensitive disjoint join: best final cuts
+   column cut 1  cost 2^124.6 | lists 2^47.7, 2^10.3 | side plans: 2^47.7 by rows 2|14 ; 2^124.6 by cols 1|14
+   column cut 11 cost 2^124.6 | lists 2^124.6, 2^99.7 | side plans: 2^124.6 by rows 7|9 ; 2^99.7 by rows 2|14
+   column cut 12 cost 2^124.6 | lists 2^115.9, 2^84.7 | side plans: 2^124.6 by cols 11|1 ; 2^84.7 by rows 2|14
+   column cut 13 cost 2^124.6 | lists 2^99.9, 2^67.7 | side plans: 2^124.6 by cols 11|2 ; 2^67.7 by rows 2|14
+   column cut 14 cost 2^124.6 | lists 2^60.8, 2^67.9 | side plans: 2^124.6 by cols 11|3 ; 2^67.9 by rows 2|14
+   column cut 15 cost 2^124.6 | lists 2^10.3, 2^47.7 | side plans: 2^124.6 by cols 11|4 ; 2^47.7 by rows 2|14
+   [11s]
+ the cheapest plan under the hypothetical join, top three levels:
+     rows 0-0 cols 0-15: list 2^47.7, cost 2^47.7 by cols 2|14
+       rows 0-0 cols 0-1: list 2^5.5, cost 2^5.5 by scan
+       rows 0-0 cols 2-15: list 2^45.3, cost 2^45.3 by scan
+     rows 1-15 cols 0-15: list 2^10.3, cost 2^124.6 by rows 1|14
+       rows 1-1 cols 0-15: list 2^83.3, cost 2^83.3 by scan
+       rows 2-15 cols 0-15: list 2^60.8, cost 2^124.6 by rows 1|13
+         rows 2-2 cols 0-15: list 2^64.3, cost 2^64.3 by scan
+         rows 3-15 cols 0-15: list 2^99.9, cost 2^124.6 by rows 1|12
+           rows 3-3 cols 0-15: list 2^83.3, cost 2^83.3 by scan
+           rows 4-15 cols 0-15: list 2^115.9, cost 2^124.6 by rows 1|11

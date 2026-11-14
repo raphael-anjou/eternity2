@@ -1,0 +1,224 @@
+{
+ "end": "08:00",
+ "note": "No push tonight: every branch is local. Autonomous until 08:00; no new track will be started. machine-b and machine-c: idle. This Mac (10): judge 4.",
+ "tracks": [
+  {
+   "id": "t0",
+   "name": "Track 0. bb-mrv per-node cost, identical tree",
+   "label": "optimization",
+   "cores": 1,
+   "branch": "night/2026-11-12-t0-node-cost",
+   "state": "judged",
+   "planned_finish": "21:00",
+   "note": "Judged 20:30 (JUDGE.md 087b301). bb-mrv-fast is node-identical to bb-mrv on all 140 gate instances (judge hashed the original source itself) and 5.3x, 6.1x, 5.3x faster at 6x6, 7x7, 8x8. At 9x9 identity is only checked on capped runs.",
+   "verdict": "KEEP"
+  },
+  {
+   "id": "t1",
+   "name": "Track 1. 9x9 c=11 high-cap pilot, bb-mrv vs scb",
+   "label": "measurement",
+   "cores": 4,
+   "state": "judged",
+   "planned_finish": "23:10",
+   "note": "Judged 22:48 (JUDGE.md ba7d7b1). No evidence that bb-mrv's node ratio keeps shrinking at 9x9; the cap of 1e8 decided it (6 of 8 pairs uninformative), not a measured stop. Both informative pairs favour bb-mrv. 27.4 core-hours.",
+   "branch": "night/2026-11-12-t1-9x9-pilot",
+   "verdict": "KILL (underpowered)"
+  },
+  {
+   "id": "t2",
+   "name": "Track 2. A20 blocker eviction as backjump rule",
+   "label": "method",
+   "cores": 2,
+   "branch": "night/2026-11-12-t2-blocker-backjump",
+   "state": "judged",
+   "planned_finish": "21:35",
+   "note": "Judged 21:08 (JUDGE.md 5dd7adc). Blocker eviction needs 4.7x to 9.2x more nodes than the baselines at 6x6 and solves 5 of 30 at 7x7 against 16 and 23; no better than random eviction. Scope: this repair-search implementation, not backjumping with explanations or stored no-goods.",
+   "verdict": "KILL"
+  },
+  {
+   "id": "t3",
+   "name": "Track 3. A21 value order by propagation impact",
+   "label": "method",
+   "cores": 2,
+   "branch": "night/2026-11-12-t3-value-impact",
+   "state": "judged",
+   "planned_finish": "19:45",
+   "note": "Judged 19:16 (JUDGE.md 5c65f77). No node gain against bb-mrv at any rung: 1.075 at 6x6, 0.829 at 7x7, 1.096 at 8x8, all CIs span 1. Judge rerun of 210 rows node-identical.",
+   "verdict": "KILL"
+  },
+  {
+   "id": "t4",
+   "name": "Track 4. A17 rebaselined: Hall matching on bb-mrv",
+   "label": "method",
+   "cores": 2,
+   "state": "judged",
+   "planned_finish": "21:05",
+   "note": "Judged 20:41 (JUDGE.md 67059eb). Hall check on bb-mrv removes under 1% of nodes (0.992 to 1.000) and is slower at every rung where it prunes (wall 1.017 to 1.036). Judge rerun of 1,680 rows node-identical.",
+   "branch": "night/2026-11-12-t4-hall-on-mrv",
+   "verdict": "KILL"
+  },
+  {
+   "id": "t5",
+   "name": "Track 5. Baseline tournament",
+   "label": "measurement",
+   "cores": 0,
+   "state": "judged",
+   "planned_finish": "00:10",
+   "note": "Judged 23:36 (JUDGE.md 1f4e211). 47 entrants ranked at three rungs; anchors reproduce committed rows (0 mismatches on 1,310), tables recompute exactly. The top two places at R6 and 8x8 are within run-seed noise; at R7 two entrants solve more boards than bb-mrv and the adopted baseline (screening only). 19.1 h against 10 preregistered.",
+   "branch": "night/2026-11-12-t5-baseline-tournament",
+   "verdict": "KEEP"
+  },
+  {
+   "id": "t6",
+   "name": "Track 6. Dead-node refutation census (added 20:10)",
+   "label": "measurement",
+   "cores": 0,
+   "branch": "night/2026-11-12-t6-dead-node-census",
+   "state": "judged",
+   "planned_finish": "22:10",
+   "note": "Judged 21:26 (JUDGE.md f5f9b9a). Valid measurement, rerun of 13,247 node rows identical, no oracle ever killed a solvable state. Stage-0 kills that stand: cavity summaries (0.8% of dead-node weight), band consistency (0.2%), boundary-word lemmas (0 of 1,447). Cut-keyed partitioning: not decided (the census used a proxy).",
+   "verdict": "KEEP"
+  },
+  {
+   "id": "t7",
+   "name": "Track 7. Partial-match ladder, an instrument (added 20:10)",
+   "label": "measurement",
+   "cores": 0,
+   "branch": "night/2026-11-12-t7-partial-match-ladder",
+   "state": "judged",
+   "planned_finish": "23:50",
+   "note": "Judged 23:35 (JUDGE.md 226baf4). The instrument is not usable as preregistered: 2 of 5 entrants stall in the 2% to 4% band at the one calibrated rung, 3 were needed, and no 10x10 or 12x12 setting qualified. Covers this entrant pool and budget only.",
+   "verdict": "KILL (this pool only)"
+  },
+  {
+   "id": "t8",
+   "name": "Track 8. Score-bound gap for break-tolerant search (added 20:20)",
+   "label": "measurement",
+   "cores": 0,
+   "branch": "night/2026-11-12-t8-score-bound-gap",
+   "state": "judged",
+   "planned_finish": "01:15",
+   "note": "Judged 00:48 (JUDGE.md 11a2b91). The bound is sound and passes its kill rule exactly on the threshold (median gap 4 edges at 7x7 with 3 rows left); it loosens as boards grow (1, 2, 4 edges at 2 rows left for 6x6, 7x7, 8x8). Measured on deeply dead prefixes only. 31 thread-hours.",
+   "verdict": "KEEP (on the threshold)"
+  },
+  {
+   "id": "t9",
+   "name": "Track 9. Readable and resumable long runs (added 20:45)",
+   "label": "optimization",
+   "cores": 2,
+   "branch": "night/2026-11-12-t9-resumable-runs",
+   "state": "judged",
+   "planned_finish": "22:45",
+   "note": "Rejudged 21:55 (JUDGE.md 1ecac8b): every interruption case resumes node for node identical; overhead 1.008 [0.998, 1.011]; the altered-checkpoint defect is fixed (2,202 of 2,202 tampered files refused, plus 658 of 658 on the judge's own). Not measured: resuming a version 2 checkpoint on another machine.",
+   "verdict": "KEEP"
+  },
+  {
+   "id": "t10",
+   "name": "Track 10. Real 16x16 pieces: node profile by depth and tree-width sampling (added 21:46)",
+   "label": "measurement",
+   "cores": 4,
+   "branch": "night/2026-11-12-t10-real-puzzle-profile",
+   "state": "judged",
+   "planned_finish": "01:00",
+   "note": "Judged 00:35 (JUDGE.md d601250). Real pieces: the row-scan tree with five clues has 10^40.457 nodes (model 10^40.49), so the price model holds on the real puzzle. In the record-style engine 4.5e-7 of nodes are at or after the first break unlock at 1e10 nodes (budget-dependent; this schedule and port only). Scope narrowed at 01:15: a memo shows this port's colour keying differs from the published record engines, so the late-node share describes this port only.",
+   "verdict": "KEEP"
+  },
+  {
+   "id": "t11",
+   "name": "Track 11. Difference-map search: does the growth rate fall with band width? (added 22:45)",
+   "label": "method",
+   "cores": 4,
+   "branch": "night/2026-11-12-t11-difference-map-bands",
+   "state": "judged",
+   "planned_finish": "02:15",
+   "note": "Judged 01:51 (JUDGE.md 279118a). The difference-map search solved 0 of 30 near-critical boards at 7x7 and 8x8 at every band width; no band effect at 6x6; wider bands cost more and end further from a solution. No exponent measured. 6.8 core-hours.",
+   "verdict": "KILL (at this cap)"
+  },
+  {
+   "id": "t12",
+   "name": "Track 12. Cut-keyed partitioning: the deciding replay (added 00:30)",
+   "label": "method",
+   "cores": 0,
+   "branch": "night/2026-11-12-t12-cut-keyed-replay",
+   "state": "judged",
+   "planned_finish": "01:30",
+   "note": "Judged 01:04 (JUDGE.md 1828059). A random key with the same number of partitions beats the cut key on 30 of 30 instances at 7x7 (0.419 against 0.486 of bb-mrv's nodes), and the cut costs 1.21 times bb-mrv's propagation work. 2.13 core-hours.",
+   "verdict": "KILL"
+  },
+  {
+   "id": "t13",
+   "name": "Track 13. Real pieces: colour keying of the record-style engine, legal break path, staging (added 01:15)",
+   "label": "measurement",
+   "cores": 2,
+   "branch": "night/2026-11-12-t13-quota-keying",
+   "state": "judged",
+   "planned_finish": "03:30",
+   "note": "Judged 02:46 (JUDGE.md 17c5688). Real pieces: colour keying changes the node cost of reaching depth 201 by about nothing (1.31 with no clue, 0.74 with the centre clue) and is slower per second; a legal break path gives 4 to 11 times more legal deep nodes per node; the repo's Blackwood-style port differs from the published engine in six ways, one of them a defect. 16.1 thread-hours.",
+   "verdict": "KEEP"
+  },
+  {
+   "id": "t14",
+   "name": "Track 14. Real pieces, five clues: is colour keying a lever? (added 02:38)",
+   "label": "measurement",
+   "cores": 4,
+   "branch": "night/2026-11-12-t14-five-clue-keying",
+   "state": "judged",
+   "planned_finish": "04:40",
+   "note": "Judged 04:04 (JUDGE.md ee5391c8). Real pieces, five clues: none of 680 published-style keyings reaches legal depth 201 under the scaled quota (0 of 2,040 runs). The comparison with the default keying is confounded with quota slack; Track 15 separates them. 20.6 thread-hours.",
+   "verdict": "KILL (this family, this quota)"
+  },
+  {
+   "id": "t15",
+   "name": "Track 15. Real pieces, five clues: is it the quota curve or the port's defect? (added 03:58, last track)",
+   "label": "measurement",
+   "cores": 4,
+   "branch": "night/2026-11-12-t15-five-clue-quota",
+   "state": "closed: KEEP",
+   "planned_finish": "05:00",
+   "note": "Judged KEEP (c9088558), 8 reruns identical. Real pieces, five clues: quota slack explains Track 14, not colour. With a loose quota published-style keyings reach depth 201 on 12 to 14 of 16 openings; with a tight quota the default keying is dead. The port's orientation defect is fixed at no cost. 5.67 thread-hours."
+  },
+  {
+   "id": "ideas",
+   "name": "Idea slot. 13 proposals ranked, top five in IDEAS.md",
+   "label": "no compute",
+   "cores": 0,
+   "state": "done",
+   "planned_finish": "22:15",
+   "note": "Top: proof-number search, cavity summaries, trace partitioning, decision-diagram score bound, band transducers. Nothing from this slot runs tonight.",
+   "verdict": "IDEAS.md written"
+  },
+  {
+   "id": "audit",
+   "name": "Evidence audit of the dead-ends page and EXPLORED.md (added 20:10)",
+   "label": "no compute",
+   "cores": 0,
+   "state": "done",
+   "planned_finish": "20:40",
+   "note": "Dead-ends page, 36 entries: 1 measured, 10 reported, 25 argued. Explored map, 40 rows: 8 measured, 15 reported, 17 argued; 20 rows hide something material that the cited page states. Strict grade, lower bound on measured.",
+   "verdict": "EVIDENCE_AUDIT.md"
+  },
+  {
+   "id": "memos",
+   "name": "Fable thinking memos (added 20:50)",
+   "label": "no compute",
+   "cores": 0,
+   "state": "all done, every memo refereed",
+   "planned_finish": "02:45",
+   "note": "Twelve memos, six referee reports, every memo read twice. Seven of eight reviewed memo groups lost a headline claim; the theory referee kept all six of its rulings (site pages `entropy-area-law`, `parity-defect-floor`, `how-hard-is-this-instance` are wrong as written). Frame: no cheap information beyond the corners for the tests run; all-different on partial frames is open."
+  },
+  {
+   "id": "solve",
+   "name": "Solve paths: six independent Fable attempts (added 21:00)",
+   "label": "no compute",
+   "cores": 0,
+   "state": "6 of 6 done",
+   "planned_finish": "23:30",
+   "note": "Done, all negative on their own lens: counting and algebra; the designed instance; decompositions; the last ten edges (a 470 board is not a damaged solution: almost all are 246+ cells from any solution); the price (three independent estimates near 1e40 nodes, 17 to 22 orders out of reach). Shared positive fact: with the true frame known the interior costs about 70 core-days. Path 6 (a difference-map search) solves planted boards up to 8x8 but follows the backtracker's node count; its price of 10^47.7 was a script error (referee)."
+  }
+ ],
+ "remotes": [
+  "machine-b",
+  "machine-c"
+ ],
+ "ssh_config": "the remote machine"
+}

@@ -1,0 +1,54 @@
+== 1. totals
+strict arrangements            1860.1
+edge constraints               1856.1   (420 x 4.087 + 60 x 2.322)
+log2 E[Z], no clue                4.0
+colour-only arrangements       2217.7
+colour-only solutions           361.6
+each-tile-once deficit          357.6   (= bits by which a relaxed solution fails to be strict)
+
+== 2. interior surplus of a tile order that closes 2 interior edges per tile
+peak of sum log2(4r/289)        104.4 at 124 interior tiles placed (r = 72 left); end value 4.6
+same with axis known (2 options per tile)  peak   12.1; information supplied 196 bits
+same with orientation known                peak    0.0; information supplied 392 bits
+
+== 3. convexity of the check in the number of known sides of an interior cell
+sides known  expected candidates  P(domain non-empty)  check bits   bits committed (half an edge each side)
+   1              46.118            1.0000           -0.00          2.04
+   2               2.713            0.9336            0.10          4.09
+   3               0.160            0.1475            2.76          6.13
+   4               0.009            0.0093            6.74          8.17
+
+== 4. edge colourings, all left-right edges first (one edge closed per tile)
+bits committed (240 edges)      928.0
+log2 E[perfect matchings]         4.6; isolated-tile bound on P(matching) 2^-19.4
+boards matched left-right only (interior, first moment)    862.9
+
+== 5. colour coarsening (multigrid): solutions of the puzzle with interior colours merged
+classes  q=sum p^2   log2 abstract solutions (interior ledger + frame), no clue
+   17      0.0588         4.0
+   16      0.0657        71.4
+   15      0.0727       132.1
+   13      0.0865       237.7
+    9      0.1142       405.9
+    6      0.1696       645.5
+    4      0.2526       836.5
+    2      0.5017       476.1
+
+== 6. region first: pools
+split interior tiles in two halves        C(196,98)      =  191.9
+split in four quadrant pools of 49        196!/(49!)^4   =  380.6
+7x7 free-boundary block: strict fillings  118.3; pools  155.1; log2 E[tilings | pool]  -36.8; pools that tile =  118.3
+14x7 free-boundary block: strict fillings  184.1; pools  191.9; log2 E[tilings | pool]   -7.8; pools that tile =  184.1
+
+== 7. colour layers
+edges of one colour 24.7; ways to choose them 132.0; ways to seat ~49 tiles on them about 208.6; checks: 0
+
+== 8. orientation first
+bits committed 392; census equalities 2 x 16 independent, 3.55 bits each = 113; survivors 279
+
+== 9. sampling the colour-only relaxation
+P(strict | relaxed), first moment 2^-357.6; tile types absent from a relaxed solution about 94 of 256
+expected cells of a relaxed sample that agree with a given strict solution about 0.33
+
+== 10. row band is the isoperimetric optimum at the peak
+Bollobas-Leader: a k-subset of the n x n grid, n^2/4 <= k <= 3n^2/4, has at least n open edges; a band has exactly n = 16

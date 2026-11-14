@@ -1,0 +1,149 @@
+== 16x16, exact first moment over the colour-shuffle ensemble ==
+ k score  log10N(no clue)  starter  five clues | indep-edge  exact/indep | N(k)/N(k-1)
+ 0  480      7.06           4.17     -7.39   |     1.28        5.78  |       -
+ 1  479      -inf           -inf      -inf   |     5.12        -inf  |       -
+ 2  478     12.29           9.39     -2.16   |     8.66        3.63  |       -
+ 3  477     14.98          12.08      0.53   |    12.02        2.95  |    2.69
+ 4  476     17.81          14.92      3.36   |    15.26        2.55  |    2.84
+ 5  475     20.61          17.71      6.16   |    18.40        2.21  |    2.80
+ 6  474     23.39          20.50      8.95   |    21.46        1.93  |    2.79
+ 7  473     26.16          23.27     11.71   |    24.45        1.71  |    2.77
+ 8  472     28.92          26.02     14.47   |    27.38        1.53  |    2.75
+ 9  471     31.65          28.75     17.20   |    30.26        1.38  |    2.73
+10  470     34.36          31.47     19.91   |    33.10        1.26  |    2.71
+11  469     37.05          34.16     22.60   |    35.89        1.16  |    2.69
+12  468     39.73          36.83     25.28   |    38.64        1.08  |    2.67
+13  467     42.38          39.48     27.93   |    41.36        1.02  |    2.65
+14  466     45.00          42.11     30.56   |    44.04        0.96  |    2.63
+15  465     47.61          44.72     33.16   |    46.69        0.92  |    2.61
+16  464     50.20          47.30     35.75   |    49.32        0.88  |    2.59
+17  463     52.76          49.87     38.31   |    51.91        0.85  |    2.56
+18  462     55.31          52.41     40.86   |    54.48        0.82  |    2.54
+19  461     57.83          54.93     43.38   |    57.03        0.80  |    2.52
+20  460     60.33          57.44     45.88   |    59.55        0.78  |    2.50
+N(467)/N(480) = 10^35.31 (Owen, msg 6412, as quoted on build/reduce/edge-slipping.mdx: 2.05e35 = 10^35.31)
+Max formula 2^(N-1) C(420,N): 10^22.34 at N=10, 10^27.84 at N=13
+P(all 17 interior colours even | j breaks): 2:7.35e-03 4:6.62e-04 6:1.69e-04 8:7.04e-05 9:5.14e-05 10:3.99e-05 11:3.25e-05 12:2.77e-05 14:2.19e-05 20:1.65e-05
+
+== 16x16 row-scan search tree (first moment, no clue) ==
+strict: log10 nodes 50.03, peak depth 161 (log10 48.76), log10 boards 7.06, log10 nodes/board 42.97
+strict tree width log10 at depths 50,100,150,170,180,190,200,210,220,230,240,250,256: 27.6 41.7 48.5 48.3 47.6 45.7 43.6 40.6 35.4 29.3 17.6 10.6 7.1
+-- budget 10, different rules for where breaks may go --
+anywhere (<=2 per cell)            K=10  log10 boards   34.36  log10 nodes   79.80  log10 nodes/board   45.44  peak d=163  share of nodes at d>=201: 3.85e-06
+anywhere (<=1 per cell)            K=10  log10 boards   34.32  log10 nodes   79.73  log10 nodes/board   45.42  peak d=163  share of nodes at d>=201: 3.99e-06
+early only (first 56 cells)        K=10  log10 boards   26.18  log10 nodes   73.90  log10 nodes/board   47.72  peak d=161  share of nodes at d>=201: 3.1e-07
+free from depth 151                K=10  log10 boards   30.47  log10 nodes   70.93  log10 nodes/board   40.46  peak d=183  share of nodes at d>=201: 0.00352
+free from depth 201                K=10  log10 boards   27.15  log10 nodes   57.07  log10 nodes/board   29.93  peak d=215  share of nodes at d>=201: 1
+free from depth 231                K=10  log10 boards   22.38  log10 nodes   50.03  log10 nodes/board   27.65  peak d=161  share of nodes at d>=201: 3.19e-07
+Blackwood list                     K=10  log10 boards   26.69  log10 nodes   50.03  log10 nodes/board   23.34  peak d=161  share of nodes at d>=201: 0.000866
+Blackwood list shifted -40         K=10  log10 boards   29.88  log10 nodes   66.77  log10 nodes/board   36.89  peak d=201  share of nodes at d>=201: 0.68
+Blackwood list shifted -20         K=10  log10 boards   28.64  log10 nodes   58.53  log10 nodes/board   29.89  peak d=219  share of nodes at d>=201: 1
+Blackwood list shifted +8          K=10  log10 boards   25.39  log10 nodes   50.03  log10 nodes/board   24.64  peak d=161  share of nodes at d>=201: 4.32e-07
+-- price per point: nodes per board against the budget K --
+K= 0 score 480 | anywhere: nodes/board  42.97 (boards   7.06 nodes  50.03) | free>=201:  42.97 (boards   7.06 nodes  50.03) | cumulative list:  42.97 (boards   7.06 nodes  50.03)
+K= 1 score 479 | anywhere: nodes/board  46.60 (boards   7.06 nodes  53.66) | free>=201:  42.97 (boards   7.06 nodes  50.03) | cumulative list:  42.97 (boards   7.06 nodes  50.03)
+K= 2 score 478 | anywhere: nodes/board  44.71 (boards  12.29 nodes  56.99) | free>=201:  39.11 (boards  10.92 nodes  50.03) | cumulative list:  40.26 (boards   9.77 nodes  50.03)
+K= 3 score 477 | anywhere: nodes/board  45.17 (boards  14.98 nodes  60.15) | free>=201:  37.13 (boards  12.91 nodes  50.03) | cumulative list:  38.64 (boards  11.38 nodes  50.03)
+K= 4 score 476 | anywhere: nodes/board  45.37 (boards  17.81 nodes  63.18) | free>=201:  35.12 (boards  15.04 nodes  50.15) | cumulative list:  36.64 (boards  13.39 nodes  50.03)
+K= 5 score 475 | anywhere: nodes/board  45.51 (boards  20.61 nodes  66.11) | free>=201:  33.87 (boards  17.11 nodes  50.98) | cumulative list:  34.64 (boards  15.39 nodes  50.03)
+K= 6 score 474 | anywhere: nodes/board  45.58 (boards  23.40 nodes  68.97) | free>=201:  33.08 (boards  19.18 nodes  52.26) | cumulative list:  32.55 (boards  17.48 nodes  50.03)
+K= 7 score 473 | anywhere: nodes/board  45.59 (boards  26.16 nodes  71.76) | free>=201:  32.31 (boards  21.21 nodes  53.52) | cumulative list:  30.32 (boards  19.71 nodes  50.03)
+K= 8 score 472 | anywhere: nodes/board  45.57 (boards  28.92 nodes  74.49) | free>=201:  31.52 (boards  23.22 nodes  54.74) | cumulative list:  28.01 (boards  22.02 nodes  50.03)
+K= 9 score 471 | anywhere: nodes/board  45.52 (boards  31.65 nodes  77.17) | free>=201:  30.72 (boards  25.20 nodes  55.92) | cumulative list:  25.71 (boards  24.32 nodes  50.03)
+K=10 score 470 | anywhere: nodes/board  45.44 (boards  34.36 nodes  79.80) | free>=201:  29.93 (boards  27.15 nodes  57.07) | cumulative list:  23.34 (boards  26.69 nodes  50.03)
+K=11 score 469 | anywhere: nodes/board  45.34 (boards  37.05 nodes  82.40) | free>=201:  29.13 (boards  29.07 nodes  58.20) | cumulative list:  21.01 (boards  29.11 nodes  50.12)
+K=12 score 468 | anywhere: nodes/board  45.23 (boards  39.73 nodes  84.95) | free>=201:  28.34 (boards  30.96 nodes  59.30) | cumulative list:  20.32 (boards  31.50 nodes  51.82)
+K=13 score 467 | anywhere: nodes/board  45.09 (boards  42.38 nodes  87.47) | free>=201:  27.55 (boards  32.82 nodes  60.37) | cumulative list:  20.33 (boards  33.95 nodes  54.28)
+K=14 score 466 | anywhere: nodes/board  44.95 (boards  45.01 nodes  89.96) | free>=201:  26.78 (boards  34.64 nodes  61.43) | cumulative list:  20.35 (boards  36.43 nodes  56.77)
+-- model-optimal cumulative unlock lists (coordinate descent, step 2) --
+K= 7 best list [186, 199, 205, 213, 219, 223, 229]  log10 nodes/board 28.43 (boards 21.70, nodes 50.13)
+K= 8 best list [185, 198, 205, 213, 219, 223, 227, 231]  log10 nodes/board 26.42 (boards 23.74, nodes 50.16)
+K= 9 best list [186, 199, 206, 213, 217, 221, 227, 231, 233]  log10 nodes/board 24.48 (boards 25.66, nodes 50.14)
+K=10 best list [185, 198, 205, 212, 217, 221, 227, 229, 233, 235]  log10 nodes/board 22.58 (boards 27.64, nodes 50.23)
+K=11 best list [186, 197, 206, 213, 218, 221, 227, 229, 231, 235, 235]  log10 nodes/board 20.75 (boards 29.43, nodes 50.18)
+K=12 best list [186, 197, 205, 214, 218, 221, 225, 229, 231, 233, 235, 237]  log10 nodes/board 18.98 (boards 31.24, nodes 50.22)
+K=13 best list [185, 198, 206, 213, 218, 221, 225, 229, 231, 233, 236, 237, 239]  log10 nodes/board 17.24 (boards 32.97, nodes 50.21)
+-- completions per perfect depth-d0 prefix against the number of colours left in the tail (K=10, Blackwood list) --
+d0=155 tail joints 168 interior + 28 ring, 17 interior colours, 5 ring colours: log10 completions per prefix -23.81
+d0=155 tail joints 168 interior + 28 ring, 16 interior colours, 5 ring colours: log10 completions per prefix -19.56
+d0=155 tail joints 168 interior + 28 ring, 15 interior colours, 5 ring colours: log10 completions per prefix -15.11
+d0=155 tail joints 168 interior + 28 ring, 15 interior colours, 4 ring colours: log10 completions per prefix -13.03
+d0=155 tail joints 168 interior + 28 ring, 14 interior colours, 4 ring colours: log10 completions per prefix -8.28
+d0=155 tail joints 168 interior + 28 ring, 13 interior colours, 4 ring colours: log10 completions per prefix -3.11
+   ensemble average for comparison: log10 (boards / depth-155 strict prefixes) = -21.91
+d0=180 tail joints 124 interior + 24 ring, 17 interior colours, 5 ring colours: log10 completions per prefix -22.95
+d0=180 tail joints 124 interior + 24 ring, 16 interior colours, 5 ring colours: log10 completions per prefix -19.92
+d0=180 tail joints 124 interior + 24 ring, 15 interior colours, 5 ring colours: log10 completions per prefix -16.67
+d0=180 tail joints 124 interior + 24 ring, 15 interior colours, 4 ring colours: log10 completions per prefix -14.94
+d0=180 tail joints 124 interior + 24 ring, 14 interior colours, 4 ring colours: log10 completions per prefix -11.49
+d0=180 tail joints 124 interior + 24 ring, 13 interior colours, 4 ring colours: log10 completions per prefix -7.72
+   ensemble average for comparison: log10 (boards / depth-180 strict prefixes) = -20.87
+d0=200 tail joints 87 interior + 22 ring, 17 interior colours, 5 ring colours: log10 completions per prefix -19.16
+d0=200 tail joints 87 interior + 22 ring, 16 interior colours, 5 ring colours: log10 completions per prefix -17.00
+d0=200 tail joints 87 interior + 22 ring, 15 interior colours, 5 ring colours: log10 completions per prefix -14.85
+d0=200 tail joints 87 interior + 22 ring, 15 interior colours, 4 ring colours: log10 completions per prefix -13.27
+d0=200 tail joints 87 interior + 22 ring, 14 interior colours, 4 ring colours: log10 completions per prefix -10.91
+d0=200 tail joints 87 interior + 22 ring, 13 interior colours, 4 ring colours: log10 completions per prefix -8.35
+   ensemble average for comparison: log10 (boards / depth-200 strict prefixes) = -16.90
+-- tail of the 16x16 after depth d0: fewest breaks with E[#completions] >= 1, real pool against pool with reuse --
+d0=120 cells left 136 | 17+5 colours: true 17  reuse  0  (log10 E reuse at b=0:   10.6, distinct at b=10:  -15.3) | 15+4 colours: true 11  reuse  0
+d0=150 cells left 106 | 17+5 colours: true 19  reuse  2  (log10 E reuse at b=0:   -5.6, distinct at b=10:  -19.8) | 15+4 colours: true 14  reuse  0
+d0=170 cells left  86 | 17+5 colours: true 20  reuse  5  (log10 E reuse at b=0:  -14.1, distinct at b=10:  -20.8) | 15+4 colours: true 16  reuse  2
+d0=184 cells left  72 | 17+5 colours: true 21  reuse  7  (log10 E reuse at b=0:  -18.8, distinct at b=10:  -20.4) | 15+4 colours: true 17  reuse  4
+d0=192 cells left  64 | 17+5 colours: true 20  reuse  8  (log10 E reuse at b=0:  -20.3, distinct at b=10:  -19.1) | 15+4 colours: true 17  reuse  5
+d0=200 cells left  56 | 17+5 colours: true 20  reuse  9  (log10 E reuse at b=0:  -22.4, distinct at b=10:  -18.5) | 15+4 colours: true 17  reuse  6
+d0=208 cells left  48 | 17+5 colours: true 20  reuse 10  (log10 E reuse at b=0:  -22.7, distinct at b=10:  -16.2) | 15+4 colours: true 17  reuse  7
+d0=216 cells left  40 | 17+5 colours: true 19  reuse 11  (log10 E reuse at b=0:  -23.4, distinct at b=10:  -14.5) | 15+4 colours: true 17  reuse  8
+d0=224 cells left  32 | 17+5 colours: true 17  reuse 10  (log10 E reuse at b=0:  -21.8, distinct at b=10:  -10.8) | 15+4 colours: true 16  reuse  8
+d0=232 cells left  24 | 17+5 colours: true 16  reuse 10  (log10 E reuse at b=0:  -19.9, distinct at b=10:   -7.3) | 15+4 colours: true 14  reuse  9
+d0=240 cells left  16 | 17+5 colours: true 11  reuse  7  (log10 E reuse at b=0:  -11.3, distinct at b=10:   -0.4) | 15+4 colours: true 10  reuse  6
+d0=244 cells left  12 | 17+5 colours: true  9  reuse  6  (log10 E reuse at b=0:   -9.1, distinct at b=10:    1.3) | 15+4 colours: true  8  reuse  5
+d0=248 cells left   8 | 17+5 colours: true  7  reuse  5  (log10 E reuse at b=0:   -6.3, distinct at b=10:    2.2) | 15+4 colours: true  7  reuse  4
+d0=252 cells left   4 | 17+5 colours: true  5  reuse  4  (log10 E reuse at b=0:   -3.5, distinct at b=10:    0.8) | 15+4 colours: true  5  reuse  3
+-- ideal reuse bound (frontier exact, distinctness dropped, free of charge) inside the search, K=10 --
+   d=192: log10 E[reuse completions with <= b breaks], b=2,4,6,8,10: -14.1 -8.7 -3.8 0.9 5.3
+   d=200: log10 E[reuse completions with <= b breaks], b=2,4,6,8,10: -16.4 -11.1 -6.3 -1.8 2.5
+   d=208: log10 E[reuse completions with <= b breaks], b=2,4,6,8,10: -16.8 -11.7 -7.1 -2.7 1.4
+   d=216: log10 E[reuse completions with <= b breaks], b=2,4,6,8,10: -17.7 -12.8 -8.3 -4.2 -0.2
+   d=224: log10 E[reuse completions with <= b breaks], b=2,4,6,8,10: -16.4 -11.7 -7.5 -3.6 0.0
+   d=232: log10 E[reuse completions with <= b breaks], b=2,4,6,8,10: -14.7 -10.4 -6.6 -3.0 0.3
+   d=240: log10 E[reuse completions with <= b breaks], b=2,4,6,8,10: -7.8 -4.1 -0.8 2.1 4.7
+   d=248: log10 E[reuse completions with <= b breaks], b=2,4,6,8,10: -5.0 -1.9 0.5 2.5 4.1
+   Blackwood list                     log10 nodes/board: plain 23.34, with the ideal reuse bound 23.34
+   model-optimal list without bound   log10 nodes/board: plain 22.58, with the ideal reuse bound 22.44
+   list re-optimised WITH the ideal reuse bound: [185, 194, 195, 196, 197, 197, 199, 199, 201, 211]  log10 nodes/board 21.84 (the same list without the bound: 32.61)
+-- perfect bound from depth d0 and all 10 breaks free after d0: log10 nodes per board --
+d0=141: boards 10^30.88, nodes per board 10^17.68
+d0=151: boards 10^30.47, nodes per board 10^18.89
+d0=161: boards 10^29.95, nodes per board 10^19.81
+d0=171: boards 10^29.40, nodes per board 10^20.59
+d0=181: boards 10^28.81, nodes per board 10^21.22
+d0=191: boards 10^27.99, nodes per board 10^22.04
+d0=201: boards 10^27.15, nodes per board 10^22.88
+d0=211: boards 10^26.11, nodes per board 10^23.92
+d0=221: boards 10^24.47, nodes per board 10^25.56
+d0=231: boards 10^22.38, nodes per board 10^27.65
+-- bounds on the Blackwood-list tree (K=10) --
+perfect bound from depth 170: nodes divided by 10^0.05
+perfect bound from depth 201: nodes divided by 10^0.00
+perfect bound from depth 216: nodes divided by 10^0.00
+perfect bound from depth 229: nodes divided by 10^0.00
+perfect bound from depth 240: nodes divided by 10^0.00
+parity bound (odd colours <= 2 x remaining budget), interior breaks only: nodes divided by 10^0.00
+   same bound, nodes at depth >= 201 only: divided by 10^0.02
+   depth 215: share of nodes kept by the parity bound 1
+   depth 225: share of nodes kept by the parity bound 0.917
+   depth 235: share of nodes kept by the parity bound 0.101
+   depth 245: share of nodes kept by the parity bound 0.000171
+Blackwood-list tree width log10 at depths 170,190,200,205,210,215,220,225,230,235,240,245,250,256: 48.3 45.7 43.6 44.1 45.0 45.1 44.7 45.6 45.1 42.6 39.8 37.1 33.1 26.7
+
+== small framed boards (balanced painter), corner pinned: first k with E[N(<=k)] >= 1 ==
+5x5 C=13 (interior  8): k* = 7 ; log10 E[N(<=k)] k=0..10: -9.1 -9.1 -6.3 -4.9 -3.4 -2.0 -0.6 0.7 2.0 3.2 4.3
+5x5 C= 9 (interior  4): k* = 2 ; log10 E[N(<=k)] k=0..10: -2.4 -2.4 0.3 1.5 2.9 4.0 5.2 6.3 7.3 8.3 9.3
+6x6 C=14 (interior  9): k* = 7 ; log10 E[N(<=k)] k=0..10: -11.3 -11.3 -8.1 -6.5 -4.8 -3.1 -1.5 0.1 1.7 3.2 4.6
+6x6 C=10 (interior  5): k* = 2 ; log10 E[N(<=k)] k=0..10: -1.8 -1.8 1.4 2.8 4.5 6.0 7.4 8.8 10.1 11.3 12.5
+7x7 C=15 (interior 10): k* = 8 ; log10 E[N(<=k)] k=0..10: -13.4 -13.4 -9.8 -8.0 -6.1 -4.2 -2.4 -0.6 1.2 2.9 4.6
+6x6 C=10 (interior  5): k* = 2 ; log10 E[N(<=k)] k=0..10: -1.8 -1.8 1.4 2.8 4.5 6.0 7.4 8.8 10.1 11.3 12.5
+7x7 C=11 (interior  6): k* = 2 ; log10 E[N(<=k)] k=0..10: -0.6 -0.6 2.9 4.6 6.4 8.2 9.9 11.5 13.0 14.6 16.0
+8x8 C=13 (interior  8): k* = 2 ; log10 E[N(<=k)] k=0..10: -3.7 -3.7 0.1 2.0 4.1 6.0 8.0 9.9 11.7 13.5 15.2
+python3 -I model.py  6,32s user 0,01s system 99% cpu 6,346 total

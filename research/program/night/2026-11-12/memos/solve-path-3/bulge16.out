@@ -1,0 +1,88 @@
+pieces by rim sides: {2: 4, 1: 56, 0: 196}
+frame colour half-edge counts: [24, 24, 24, 24, 24]
+interior colour half-edge counts: [48, 48, 48, 48, 48, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+inward colours of the 56 edge pieces: [(6, 4), (7, 5), (8, 3), (9, 3), (10, 1), (11, 1), (12, 2), (13, 3), (14, 4), (15, 6), (16, 4), (17, 2), (18, 3), (19, 6), (20, 4), (21, 3), (22, 2)]
+H_int=840 p_int(sum f^2)=0.058844 (1/17=0.058824)
+hints (row, col, piece): [(8, 7, 138), (13, 2, 180), (2, 2, 207), (13, 13, 248), (2, 13, 254)]
+log10 P_int(420)=-514.362  naive 420*log10(1/17)=-516.789
+log10 P_frame(60)=-38.518 naive=-41.938
+per-edge cost in digits, interior, at e=1,100,200,300,400,420:  ['1.239', '1.237', '1.236', '1.235', '1.225', '0.000']
+
+== centre clue only ==
+rows top-down    log10 S=4.167  peak log10 N=47.09 at depth 135 (row 8)  log10 sum_d N=47.83  log10 N(128)=45.69  first depth with N>1e18: 24
+rows bottom-up   log10 S=4.167  peak log10 N=45.86 at depth 161 (row 10)  log10 sum_d N=47.15  log10 N(128)=43.10  first depth with N>1e18: 24
+cols left-right  log10 S=4.167  peak log10 N=45.86 at depth 161 (row 10)  log10 sum_d N=47.15  log10 N(128)=43.10  first depth with N>1e18: 24
+cols right-left  log10 S=4.167  peak log10 N=47.18 at depth 136 (row 8)  log10 sum_d N=47.92  log10 N(128)=45.69  first depth with N>1e18: 24
+
+== all five clues ==
+rows top-down    log10 S=-7.388  peak log10 N=40.66 at depth 135 (row 8)  log10 sum_d N=41.38  log10 N(128)=39.31  first depth with N>1e18: 24
+rows bottom-up   log10 S=-7.388  peak log10 N=39.20 at depth 161 (row 10)  log10 sum_d N=40.52  log10 N(128)=36.73  first depth with N>1e18: 24
+cols left-right  log10 S=-7.388  peak log10 N=39.20 at depth 161 (row 10)  log10 sum_d N=40.53  log10 N(128)=36.73  first depth with N>1e18: 24
+cols right-left  log10 S=-7.388  peak log10 N=40.74 at depth 136 (row 8)  log10 sum_d N=41.47  log10 N(128)=39.31  first depth with N>1e18: 24
+
+log10 N after each full row, all five clues, rows top-down:
+14.4 20.4 20.4 25.5 30.0 33.9 37.0 39.3 38.2 38.5 37.5 34.9 30.1 18.3 3.1 -7.4
+log10 N after each full row, centre clue only, rows top-down:
+14.4 20.6 26.3 31.5 36.1 40.0 43.3 45.7 44.7 45.2 44.4 42.0 37.5 29.8 14.7 4.2
+
+== seam meet in the middle (tops = rows 0..r-1, bottoms = rows r..15) ==
+centre clue only  r= 1  list sizes: tops 14.4 bottoms 14.7 | generation cost: 14.8 + 47.1 = 47.15 | DFS 47.15 | gain 0.00 digits | seam-matching pairs 29.0
+centre clue only  r= 2  list sizes: tops 20.6 bottoms 29.8 | generation cost: 21.2 + 47.1 = 47.15 | DFS 47.15 | gain 0.00 digits | seam-matching pairs 50.4
+centre clue only  r= 3  list sizes: tops 26.3 bottoms 37.5 | generation cost: 27.0 + 47.1 = 47.15 | DFS 47.15 | gain 0.00 digits | seam-matching pairs 63.8
+centre clue only  r= 4  list sizes: tops 31.5 bottoms 42.0 | generation cost: 32.2 + 47.1 = 47.15 | DFS 47.15 | gain 0.00 digits | seam-matching pairs 73.5
+centre clue only  r= 5  list sizes: tops 36.1 bottoms 44.4 | generation cost: 36.9 + 47.1 = 47.13 | DFS 47.15 | gain 0.01 digits | seam-matching pairs 80.5
+centre clue only  r= 6  list sizes: tops 40.0 bottoms 45.2 | generation cost: 40.9 + 46.9 = 46.89 | DFS 47.15 | gain 0.25 digits | seam-matching pairs 85.2
+centre clue only  r= 7  list sizes: tops 43.3 bottoms 44.7 | generation cost: 44.2 + 46.1 = 46.10 | DFS 47.15 | gain 1.05 digits | seam-matching pairs 87.9
+centre clue only  r= 8  list sizes: tops 45.7 bottoms 43.1 | generation cost: 46.8 + 45.6 = 46.80 | DFS 47.15 | gain 0.35 digits | seam-matching pairs 88.8
+centre clue only  r= 9  list sizes: tops 44.7 bottoms 43.3 | generation cost: 47.7 + 44.2 = 47.74 | DFS 47.15 | gain -0.59 digits | seam-matching pairs 87.9
+centre clue only  r=10  list sizes: tops 45.2 bottoms 40.0 | generation cost: 47.8 + 40.9 = 47.79 | DFS 47.15 | gain -0.64 digits | seam-matching pairs 85.2
+centre clue only  r=11  list sizes: tops 44.4 bottoms 36.1 | generation cost: 47.8 + 36.9 = 47.83 | DFS 47.15 | gain -0.68 digits | seam-matching pairs 80.5
+centre clue only  r=12  list sizes: tops 42.0 bottoms 31.5 | generation cost: 47.8 + 32.2 = 47.83 | DFS 47.15 | gain -0.68 digits | seam-matching pairs 73.5
+centre clue only  r=13  list sizes: tops 37.5 bottoms 26.3 | generation cost: 47.8 + 27.0 = 47.83 | DFS 47.15 | gain -0.68 digits | seam-matching pairs 63.8
+centre clue only  r=14  list sizes: tops 29.8 bottoms 20.6 | generation cost: 47.8 + 21.2 = 47.83 | DFS 47.15 | gain -0.68 digits | seam-matching pairs 50.4
+centre clue only  r=15  list sizes: tops 14.7 bottoms 14.4 | generation cost: 47.8 + 14.8 = 47.83 | DFS 47.15 | gain -0.68 digits | seam-matching pairs 29.0
+all five clues    r= 1  list sizes: tops 14.4 bottoms 3.1 | generation cost: 14.8 + 40.5 = 40.52 | DFS 40.52 | gain 0.00 digits | seam-matching pairs 17.5
+all five clues    r= 2  list sizes: tops 20.4 bottoms 18.3 | generation cost: 21.1 + 40.5 = 40.52 | DFS 40.52 | gain 0.00 digits | seam-matching pairs 38.7
+all five clues    r= 3  list sizes: tops 20.4 bottoms 30.1 | generation cost: 23.1 + 40.5 = 40.52 | DFS 40.52 | gain 0.00 digits | seam-matching pairs 50.5
+all five clues    r= 4  list sizes: tops 25.5 bottoms 34.9 | generation cost: 26.2 + 40.5 = 40.52 | DFS 40.52 | gain 0.00 digits | seam-matching pairs 60.4
+all five clues    r= 5  list sizes: tops 30.0 bottoms 37.5 | generation cost: 30.8 + 40.5 = 40.51 | DFS 40.52 | gain 0.01 digits | seam-matching pairs 67.5
+all five clues    r= 6  list sizes: tops 33.9 bottoms 38.5 | generation cost: 34.7 + 40.3 = 40.33 | DFS 40.52 | gain 0.18 digits | seam-matching pairs 72.4
+all five clues    r= 7  list sizes: tops 37.0 bottoms 38.2 | generation cost: 38.0 + 39.7 = 39.69 | DFS 40.52 | gain 0.83 digits | seam-matching pairs 75.2
+all five clues    r= 8  list sizes: tops 39.3 bottoms 36.7 | generation cost: 40.4 + 39.3 = 40.44 | DFS 40.52 | gain 0.08 digits | seam-matching pairs 76.0
+all five clues    r= 9  list sizes: tops 38.2 bottoms 37.0 | generation cost: 41.3 + 38.0 = 41.33 | DFS 40.52 | gain -0.81 digits | seam-matching pairs 75.2
+all five clues    r=10  list sizes: tops 38.5 bottoms 33.9 | generation cost: 41.4 + 34.7 = 41.36 | DFS 40.52 | gain -0.84 digits | seam-matching pairs 72.4
+all five clues    r=11  list sizes: tops 37.5 bottoms 30.0 | generation cost: 41.4 + 30.8 = 41.38 | DFS 40.52 | gain -0.86 digits | seam-matching pairs 67.5
+all five clues    r=12  list sizes: tops 34.9 bottoms 25.5 | generation cost: 41.4 + 26.2 = 41.38 | DFS 40.52 | gain -0.86 digits | seam-matching pairs 60.4
+all five clues    r=13  list sizes: tops 30.1 bottoms 20.4 | generation cost: 41.4 + 23.1 = 41.38 | DFS 40.52 | gain -0.86 digits | seam-matching pairs 50.5
+all five clues    r=14  list sizes: tops 18.3 bottoms 20.4 | generation cost: 41.4 + 21.1 = 41.38 | DFS 40.52 | gain -0.86 digits | seam-matching pairs 38.7
+all five clues    r=15  list sizes: tops 3.1 bottoms 14.4 | generation cost: 41.4 + 14.8 = 41.38 | DFS 40.52 | gain -0.86 digits | seam-matching pairs 17.5
+
+== 8x8 corner quadrant lists ==
+centre clue only  top-left     log10 N(quadrant)=32.10 (peak along scan 32.10)
+centre clue only  top-right    log10 N(quadrant)=32.10 (peak along scan 32.40)
+centre clue only  bottom-left  log10 N(quadrant)=29.33 (peak along scan 31.31)
+centre clue only  bottom-right log10 N(quadrant)=32.10 (peak along scan 34.53)
+all five clues    top-left     log10 N(quadrant)=28.84 (peak along scan 28.84)
+all five clues    top-right    log10 N(quadrant)=28.84 (peak along scan 29.13)
+all five clues    bottom-left  log10 N(quadrant)=26.08 (peak along scan 28.05)
+all five clues    bottom-right log10 N(quadrant)=28.84 (peak along scan 31.27)
+log10 P(two independent quadrant piece sets are disjoint) = -9.37
+log10 P(two independent half-board piece sets are complementary) = -74.42
+log10 P(four independent quadrant sets partition the pieces) = -93.16
+seam key space: full row seam 17^14*5^2 = 10^18.6 ; 8-edge quadrant seam 17^7*5 = 10^9.3
+clue arithmetic: early clue cuts the count by 4*pool: log10(4*191)=2.88 digits = 9.6 bits
+
+== interior given the correct frame (frame cells pre-filled, not counted) ==
+centre clue only   log10(#frames)=37.71 ; interior peak log10 N=20.41 at interior depth 97 ; log10 sum=21.13 ; end=-33.55
+all five clues     log10(#frames)=37.71 ; interior peak log10 N=14.03 at interior depth 97 ; log10 sum=14.78 ; end=-45.10
+
+== partition ledger (all five clues): pools restricted to the true half ==
+top 8 rows, free pool : peak log10 N=39.77, end log10 N=39.31
+top 8 rows, exact pool: peak log10 N=9.94, end log10 N=-33.61
+log10 number of top/bottom splits of the free pieces: interior 56.26, edge 15.88, corner 0.78
+checkerboard: log10 C(196,98)=57.76
+relaxation that forgets distinctness on r=16 pieces inflates counts by 10^5.9
+relaxation that forgets distinctness on r=32 pieces inflates counts by 10^12.7
+relaxation that forgets distinctness on r=48 pieces inflates counts by 10^19.6
+relaxation that forgets distinctness on r=72 pieces inflates counts by 10^29.9
+relaxation that forgets distinctness on r=150 pieces inflates counts by 10^63.7

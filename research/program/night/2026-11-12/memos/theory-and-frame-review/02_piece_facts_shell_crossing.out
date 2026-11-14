@@ -1,0 +1,31 @@
+== official set, bag counts ==
+  near-twin pairs up to rotation: interior 50, edge 73, corner 2, total 125
+  near-twin pairs in the stored orientation (3 of 4 same-position sides): 114
+  interior tiles with a turn that keeps exactly two sides: 23 (half turn 23, quarter turn 3); (tile, turn) moves: 29
+  page: 50 + 23 + 3 = 76 as an upper bound; memo: at least 125 + 29 = 154
+
+== fixed-orientation cap (why-e2-is-hard, 307 of 480) ==
+  stored orientation: 307
+  2000 random orientations of every piece: mean 402.3, sd 9.3, min 370, max 436
+  stored orientation: interior pieces with their smallest colour on top 196 of 196 ; edge pieces with grey on top 56 of 56
+
+== 478 shell around a solution: brute force on fresh painted 16x16 boards (5 frame colours, 17 interior) ==
+  board | turn neighbours at 478 | bag (tile, turn) moves | swap neighbours at 478 (non-adjacent + adjacent) | bag near-twin pairs up to rotation (interior, edge, corner)
+  seed 11 | 28 | 28 | 154 + 6 = 160 | 160 (62, 96, 2)   => shell size 188, page-style count 'interior twins + half-turn tiles + quarter-turn tiles' = 85
+  seed 12 | 14 | 14 | 134 + 9 = 143 | 143 (54, 87, 2)   => shell size 157, page-style count 'interior twins + half-turn tiles + quarter-turn tiles' = 68
+  seed 13 | 25 | 25 | 129 + 11 = 140 | 137 (50, 86, 1)   => shell size 165, page-style count 'interior twins + half-turn tiles + quarter-turn tiles' = 71
+
+== expected-one-solution crossing at 17 interior + 5 frame colours (how-hard-is-this-instance) ==
+  N | page formula m! 4^m / 17^j, j = 2(N-2)(N-3) | same with the 4(N-2) seam joints and the frame, independent joints | refereed fixed-census model on a generated balanced board (rv_lib)
+  10 |   -10.2 |   -37.9 | no clue   -32.4 ; five clues   -44.4
+  11 |    -7.7 |   -37.0 | no clue   -31.4 ; five clues   -43.9
+  12 |    -3.3 |   -34.0 | no clue   -28.4 ; five clues   -41.4
+  13 |     3.1 |   -28.8 | no clue   -23.1 ; five clues   -36.5
+  14 |    11.6 |   -21.3 | no clue   -15.6 ; five clues   -29.3
+  15 |    22.5 |   -11.4 | no clue    -5.5 ; five clues   -19.7
+  16 |    35.8 |     1.2 | no clue     7.1 ; five clues    -7.4
+  (log10 of the expected number of solutions; the planted solution itself is not counted)
+
+== sigma-cycles: largest cycle of a uniform class-preserving permutation (196 + 56 + 4) ==
+  median 119, 5% 65, 95% 187, mean 122.6 ; page: corpus largest loop 6 to 195, median 119
+[2s]

@@ -1,0 +1,46 @@
+== 1. One unlock fewer, two ways (row scan, per perfect depth-160 prefix, log10) ==
+   list: 10 = Blackwood ; 9a = first entry dropped (the memo) ; 9b = last entry dropped
+   17 + 5: boards 10: -23.27, 9a: -25.65 (x10^-2.39), 9b: -25.08 (x10^-1.82) ; nodes at depth >= 201: 10: -2.36, 9a: -4.69, 9b: -2.36
+          471 / 470 cost at a measured late share s (head nodes unchanged): s=0.08: 9a x224, 9b x66 ; s=0.20: 9a x195, 9b x66 ; s=0.46: 9a x132, 9b x66
+   16 + 4: boards 10: -17.35, 9a: -19.72 (x10^-2.37), 9b: -19.15 (x10^-1.80) ; nodes at depth >= 201: 10: 1.00, 9a: -1.38, 9b: 1.00
+          471 / 470 cost at a measured late share s (head nodes unchanged): s=0.08: 9a x217, 9b x64 ; s=0.20: 9a x189, 9b x64 ; s=0.46: 9a x128, 9b x64
+   15 + 4: boards 10: -13.06, 9a: -15.42 (x10^-2.36), 9b: -14.85 (x10^-1.79) ; nodes at depth >= 201: 10: 4.16, 9a: 1.77, 9b: 4.16
+          471 / 470 cost at a measured late share s (head nodes unchanged): s=0.08: 9a x209, 9b x61 ; s=0.20: 9a x182, 9b x61 ; s=0.46: 9a x123, 9b x61
+   14 + 4: boards 10: -8.55, 9a: -10.89 (x10^-2.34), 9b: -10.32 (x10^-1.77) ; nodes at depth >= 201: 10: 7.63, 9a: 5.26, 9b: 7.63
+          471 / 470 cost at a measured late share s (head nodes unchanged): s=0.08: 9a x201, 9b x59 ; s=0.20: 9a x175, 9b x59 ; s=0.46: 9a x118, 9b x59
+
+== 2. Is "1 / (1 - late share)" a cap on what a device after depth 201 can buy? Model rows, K = 9 and 10 ==
+   15 + 4, c0 = 10^2, K = 10: late share 0.972, so the memo's cap is 35.57 ; perfect knowledge from 201 buys x101.6 ; of which more boards per prefix x2.9
+   15 + 4, c0 = 10^2, K =  9: late share 0.125, so the memo's cap is 1.14 ; perfect knowledge from 201 buys x8.7 ; of which more boards per prefix x7.6
+   15 + 4, c0 = 10^3, K = 10: late share 0.916, so the memo's cap is 11.89 ; perfect knowledge from 201 buys x34.0 ; of which more boards per prefix x2.9
+   15 + 4, c0 = 10^3, K =  9: late share 0.043, so the memo's cap is 1.05 ; perfect knowledge from 201 buys x8.0 ; of which more boards per prefix x7.6
+   16 + 4, c0 = 10^2, K = 10: late share 0.053, so the memo's cap is 1.06 ; perfect knowledge from 201 buys x3.0 ; of which more boards per prefix x2.9
+   16 + 4, c0 = 10^2, K =  9: late share 0.000, so the memo's cap is 1.00 ; perfect knowledge from 201 buys x7.6 ; of which more boards per prefix x7.6
+   16 + 5, c0 = 10^2, K = 10: late share 0.012, so the memo's cap is 1.01 ; perfect knowledge from 201 buys x2.9 ; of which more boards per prefix x2.9
+   16 + 5, c0 = 10^2, K =  9: late share 0.000, so the memo's cap is 1.00 ; perfect knowledge from 201 buys x7.6 ; of which more boards per prefix x7.6
+
+== 3. The published order of the last 80 cells (rows 0..10 row scan, then five rows filled in columns) ==
+   cell classes 201..255, row scan      : iiiiiieeiiiiiiiiiiiiiieeiiiiiiiiiiiiiieceeeeeeeeeeeeeec
+   cell classes 201..255, published order: iiiieiiiieiiiieiiiieiiiieiiiieiiiieiiieiiieiieiieieieec
+   border and corner cells after depth 239: row scan 16, published order 7
+   colours  order      boards K10  boards K9 arrivals@201   tail nodes   late, c0=1e2        q K10       q K9
+   17 + 5   row scan       -23.27     -25.65        -4.28        -2.36       3.36e-05        25.38      27.76
+   17 + 5   published      -22.73     -25.12        -3.95        -2.39        3.1e-05        24.85      27.23
+   16 + 4   row scan       -17.35     -19.72        -1.85         1.00         0.0534        19.62      21.96
+   16 + 4   published      -16.82     -19.19        -1.22         1.38          0.092        19.23      21.56
+   15 + 4   row scan       -13.06     -15.42         0.32         4.16          0.972        17.23      18.09
+             where a board is lost, per arrival: 201 -> peak (depth 229) +3.09 ; peak -> 240 -4.79 ; 240 -> 256 -11.68
+   15 + 4   published      -12.53     -14.89         0.68         4.46          0.926        17.02      18.27
+             where a board is lost, per arrival: 201 -> peak (depth 229) +2.94 ; peak -> 240 -0.91 ; 240 -> 256 -15.25
+   14 + 4   row scan        -8.55     -10.89         2.58         7.63              1        16.17      16.15
+   14 + 4   published       -8.02     -10.35         2.67         7.90          0.999        15.92      15.98
+
+== 4. Independent joints against the exact law (perfect completions of a tail by ONE head, log10) ==
+   17 + 5: bottom strip from 200: exact -38.9, independent -44.0 ; rim row from 240: exact -12.5, independent -16.5 ; 7x8 pocket: exact -45.2, independent -47.7 ; pocket minus strip: exact -6.3, independent -3.7
+   15 + 4: bottom strip from 200: exact -32.9, independent -37.1 ; rim row from 240: exact -11.4, independent -14.3 ; 7x8 pocket: exact -38.6, independent -40.8 ; pocket minus strip: exact -5.8, independent -3.7
+
+== 5. The tail model's joint law against the price review's rv_lib (independent code), log10 P(first e joints all match) ==
+   17 + 5 (tail from 160: 159 interior joints, 27 ring joints): interior e=10: -12.512 / -12.512 ; e=40: -49.981 / -49.981 ; e=72: -89.861 / -89.861 ; e=120: -149.563 / -149.563 ; e=159: -193.177 / -193.177 ; ring f=5: -3.454 / -3.454 ; f=12: -8.177 / -8.177 ; f=27: -16.085 / -16.085
+   15 + 4 (tail from 160: 159 interior joints, 27 ring joints): interior e=10: -11.942 / -11.942 ; e=40: -47.711 / -47.711 ; e=72: -85.789 / -85.789 ; e=120: -142.801 / -142.801 ; e=159: -184.843 / -184.843 ; ring f=5: -2.983 / -2.983 ; f=12: -7.073 / -7.073 ; f=27: -14.072 / -14.072
+   14 + 4 (tail from 160: 159 interior joints, 27 ring joints): interior e=10: -11.630 / -11.630 ; e=40: -46.467 / -46.467 ; e=72: -83.556 / -83.556 ; e=120: -139.092 / -139.092 ; e=159: -180.239 / -180.239 ; ring f=5: -2.983 / -2.983 ; f=12: -7.073 / -7.073 ; f=27: -14.072 / -14.072
+   largest difference: 0.0000 decades

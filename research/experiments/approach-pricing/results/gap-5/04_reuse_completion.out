@@ -1,0 +1,51 @@
+restart 0 done, 2s
+restart 1 done, 3s
+restart 2 done, 5s
+restart 3 done, 6s
+restart 4 done, 8s
+restart 5 done, 10s
+restart 6 done, 11s
+restart 7 done, 12s
+restart 8 done, 13s
+restart 9 done, 15s
+restart 10 done, 16s
+restart 11 done, 18s
+restart 12 done, 20s
+restart 13 done, 22s
+restart 14 done, 23s
+restart 15 done, 25s
+== version A ==
+depth  16: {'filled': 16}
+depth  32: {'filled': 16}
+depth  48: {'filled': 16}
+depth  64: {'filled': 16}
+depth  80: {'filled': 16}
+depth  96: {'filled': 16}
+depth 112: {'filled': 16}
+depth 128: {'filled': 16}
+depth 144: {'filled': 16}
+depth 160: {'filled': 16}
+depth 176: {'filled': 16}
+depth 192: {'filled': 8}
+== version B ==
+depth  16: {'filled': 12, 'cap': 4}
+depth  32: {'filled': 11, 'cap': 5}
+depth  48: {'cap': 5, 'filled': 11}
+depth  64: {'cap': 5, 'filled': 11}
+depth  80: {'filled': 10, 'cap': 6}
+depth  96: {'cap': 11, 'filled': 5}
+depth 112: {'filled': 4, 'cap': 10, 'none exists': 2}
+depth 128: {'cap': 13, 'none exists': 3}
+depth 144: {'cap': 7, 'none exists': 9}
+depth 160: {'none exists': 16}
+depth 176: {'none exists': 16}
+depth 192: {'none exists': 8}
+== version B refutations: nodes to exhaust with reuse, and nodes of the exact subtree
+   (each tile once, same order) under the same prefix ==
+depth 112: n  2  reuse median   4497 max   4497 | exact median   2332 max   2332
+depth 128: n  3  reuse median      6 max    953 | exact median      6 max    577
+depth 144: n  9  reuse median     96 max   1092 | exact median     66 max    107
+depth 160: n 16  reuse median     24 max  25716 | exact median     17 max    100
+depth 176: n 16  reuse median     20 max     59 | exact median     19 max     58
+depth 192: n  8  reuse median     19 max     28 | exact median     17 max     22
+nice -n 10 python3 -I 04_reuse_completion.py 16 200000 200000  24,21s user 0,17s system 99% cpu 24,617 total

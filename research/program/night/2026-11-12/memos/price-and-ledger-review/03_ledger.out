@@ -1,0 +1,56 @@
+PART 1. Official set, pooled exact model.
+1a. path 3 closes the joints of a clue only when the scan reaches the clue cell (model.py profile()).
+    A solver has the clue on the board from the start. Both conventions, five clues:
+    r=0 first (path 3 'top-down')    deferred: total 10^41.38 peak 10^40.66 at 135 | clue on board: total 10^40.62 peak 10^39.34 at 134
+    r=15 first (path 3 'bottom-up')  deferred: total 10^40.52 peak 10^39.20 at 161 | clue on board: total 10^40.49 peak 10^39.20 at 161
+    log10 N after each full row, r=0 first, deferred : 14.4 20.4 20.4 25.5 30.0 33.9 37.0 39.3 38.2 38.5 37.5 34.9 30.1 18.3 3.1 -7.4
+    log10 N after each full row, r=0 first, on board : 14.4 18.0 20.4 25.5 30.0 33.9 37.0 38.1 38.2 38.5 37.5 34.9 27.6 18.3 3.1 -7.4
+
+1b. frame-first search: all 60 frame cells, then the interior. Per-frame figures are means over all valid frames.
+    five clues  interior r=1 first  deferred log10 frames 37.71 | interior per frame: peak 10^14.03, sum 10^14.78 | frame-first total 10^52.49 | completions per frame 10^-45.10
+    five clues  interior r=1 first  on board log10 frames 37.71 | interior per frame: peak 10^13.25, sum 10^14.09 | frame-first total 10^51.80 | completions per frame 10^-45.10
+    five clues  interior r=14 first deferred log10 frames 37.71 | interior per frame: peak 10^13.25, sum 10^13.99 | frame-first total 10^51.70 | completions per frame 10^-45.10
+    five clues  interior r=14 first on board log10 frames 37.71 | interior per frame: peak 10^12.01, sum 10^13.04 | frame-first total 10^50.75 | completions per frame 10^-45.10
+    centre clue interior r=1 first  deferred log10 frames 37.71 | interior per frame: peak 10^20.41, sum 10^21.13 | frame-first total 10^58.85 | completions per frame 10^-33.55
+    centre clue interior r=1 first  on board log10 frames 37.71 | interior per frame: peak 10^19.50, sum 10^20.39 | frame-first total 10^58.10 | completions per frame 10^-33.55
+    centre clue interior r=14 first deferred log10 frames 37.71 | interior per frame: peak 10^19.50, sum 10^20.26 | frame-first total 10^57.97 | completions per frame 10^-33.55
+    centre clue interior r=14 first on board log10 frames 37.71 | interior per frame: peak 10^18.27, sum 10^19.33 | frame-first total 10^57.05 | completions per frame 10^-33.55
+    committed exact frame count 10^37.608; model 10^37.714 (ratio 0.78)
+    frames x mean refutation cost, exact frame count: 10^50.64 ; row scan: 10^40.49 ; frame-first is 10^10.1 times dearer
+    break-even: frame-first matches row scan only if the mean cost per frame is 10^2.89 nodes
+
+1c. where the row-scan width sits: partial frames times interior fills per partial frame (five clues, r=15 first)
+    after  16 free cells: width 10^14.35 = partial frames (16 cells) 10^14.35 x interior fills per partial frame 10^0.00
+    after  64 free cells: width 10^26.68 = partial frames (23 cells) 10^20.66 x interior fills per partial frame 10^6.02
+    after 112 free cells: width 10^36.74 = partial frames (29 cells) 10^25.62 x interior fills per partial frame 10^11.11
+    after 160 free cells: width 10^39.12 = partial frames (35 cells) 10^30.08 x interior fills per partial frame 10^9.03
+    after 208 free cells: width 10^26.02 = partial frames (41 cells) 10^33.92 x interior fills per partial frame 10^-7.90
+    after 251 free cells: width 10^-7.39 = partial frames (60 cells) 10^37.71 x interior fills per partial frame 10^-45.10
+
+1d. top/bottom split given (five clues): top 8 rows, pool = the pieces of the true top half
+    free pool: peak 10^38.75 end 10^38.08 | exact pool: peak 10^9.11, sum 10^9.79, end 10^-34.84 | splits: 10^72.92
+
+1e. seam join with the clue on the board (five clues). tops: rows 0..r-1 scanned r=0 first; bottoms: rows r..15 scanned r=15 first
+    seam r= 5: tops 10^30.0 bottoms 10^37.5 | generation 10^40.49 | row scan 10^40.49 | gain 0.01 digits
+    seam r= 6: tops 10^33.9 bottoms 10^38.5 | generation 10^40.30 | row scan 10^40.49 | gain 0.20 digits
+    seam r= 7: tops 10^37.0 bottoms 10^38.2 | generation 10^39.50 | row scan 10^40.49 | gain 1.00 digits
+    seam r= 8: tops 10^38.1 bottoms 10^36.7 | generation 10^39.52 | row scan 10^40.49 | gain 0.97 digits
+    seam r= 9: tops 10^38.2 bottoms 10^35.8 | generation 10^40.14 | row scan 10^40.49 | gain 0.35 digits
+    seam r=10: tops 10^38.5 bottoms 10^33.9 | generation 10^40.49 | row scan 10^40.49 | gain 0.01 digits
+
+1f. piece-set statistic behind the '36% of perfect frames cannot start the interior' report
+    ordered colour pairs carried by two clockwise-adjacent sides of some interior piece: 269 of 289
+    P(an inner-corner cell has no candidate | independent inward colours) = 0.0941 ; P(at least one of four) = 0.326 ; Poisson with mean 784/289: 0.0664
+[0s]
+
+PART 2. Small planted boards, exact. Every valid frame is enumerated and the interior tree under each is measured.
+  6x6 (4/6) seed 1: frames 110080 (model 5.14e+04) | interior tree per frame: mean 17.1 (model 15.5), median 10, 90th pct 44, max 188, zero-node frames 17% | true frame 35 (solutions under it 1)
+        frame-first total 3697280 nodes (frame part 1811282, interior part 1885998; model 10^6.26) | row scan 420864 (model 10^5.37) | share of interior nodes under the heaviest 1% of frames 6%   [4s]
+  6x6 (4/6) seed 2: frames 71808 (model 7.19e+04) | interior tree per frame: mean 37.5 (model 25.3), median 29, 90th pct 79, max 250, zero-node frames 4% | true frame 89 (solutions under it 1)
+        frame-first total 4102957 nodes (frame part 1411630, interior part 2691327; model 10^6.51) | row scan 904838 (model 10^5.80) | share of interior nodes under the heaviest 1% of frames 4%   [10s]
+  6x6 (4/6) seed 3: frames 46208 (model 7.7e+04) | interior tree per frame: mean 45.3 (model 37.3), median 24, 90th pct 126, max 366, zero-node frames 8% | true frame 103 (solutions under it 2)
+        frame-first total 3400139 nodes (frame part 1306747, interior part 2093392; model 10^6.64) | row scan 1042561 (model 10^6.09) | share of interior nodes under the heaviest 1% of frames 6%   [14s]
+  6x6 (4/5) seed 1: frames 59904 (model 7.19e+04) | interior tree per frame: mean 540.2 (model 302.6), median 171, 90th pct 1515, max 5247, zero-node frames 14% | true frame 1995 (solutions under it 16)
+        frame-first total 33634935 nodes (frame part 1277359, interior part 32357576; model 10^7.36) | row scan above 8e6 (model 10^7.45) (model 10^7.45) | share of interior nodes under the heaviest 1% of frames 7%   [66s]
+  6x6 (4/5) seed 2: frames 49408 (model 5.14e+04) | interior tree per frame: mean 141.4 (model 89.6), median 74, 90th pct 368, max 1747, zero-node frames 5% | true frame 154 (solutions under it 4)
+        frame-first total 7999249 nodes (frame part 1014411, interior part 6984838; model 10^6.75) | row scan 6683880 (model 10^6.64) | share of interior nodes under the heaviest 1% of frames 8%   [86s]

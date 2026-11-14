@@ -1,0 +1,35 @@
+interior half-edge counts per colour: [48, 48, 48, 48, 48, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+frame half-edge counts per colour: [24, 24, 24, 24, 24]
+row scan, all valid fillings      : 10^40.49 = 2^134.5   peak 10^39.20 at 158 free cells filled
+row scan, forward-checking alive  : 10^40.27 = 2^133.8   (gain 0.75 bits)
+min over staircase shapes of N(S) : 10^40.48 = 2^134.5   (gain 0.03 bits)
+min over staircase shapes of A(S) : 10^40.16 = 2^133.4   (gain over row scan 1.11 bits, over row scan with FC 0.36 bits), up to 4 open rows
+
+which shapes win near the peak (k, row-scan log10 N, log10 A row, best log10 A, best shape (full rows, partial lengths)):
+  k=134  N_row 38.27  A_row 38.10  A_min 38.10  (8, (9,))
+  k=138  N_row 38.54  A_row 38.36  A_min 38.35  (7, (15, 14))
+  k=142  N_row 38.89  A_row 38.71  A_min 38.69  (8, (15, 2))
+  k=146  N_row 39.04  A_row 38.85  A_min 38.80  (8, (15, 6))
+  k=150  N_row 39.10  A_row 38.89  A_min 38.82  (8, (15, 10))
+  k=154  N_row 39.06  A_row 38.84  A_min 38.75  (8, (15, 14))
+  k=158  N_row 39.20  A_row 38.97  A_min 38.87  (9, (15, 2))
+  k=162  N_row 39.01  A_row 38.77  A_min 38.58  (9, (6, 6, 5, 4))
+  k=166  N_row 38.72  A_row 38.46  A_min 37.98  (9, (8, 7, 6, 4))
+  k=170  N_row 38.31  A_row 38.03  A_min 37.27  (10, (5, 4, 3, 1))
+  k=174  N_row 38.19  A_row 37.89  A_min 36.46  (10, (7, 5, 4, 1))
+  k=178  N_row 37.59  A_row 36.97  A_min 35.78  (10, (8, 7, 5, 1))
+  k=182  N_row 36.86  A_row 36.18  A_min 34.63  (10, (15, 5, 4, 1))
+
+corner trade near the peak (uniform reading): one extra open row costs one interior joint.
+  mu of the next row-scan cell at f=9, length 8: 1.014 ; survival 1-exp(-mu) = 0.637 ; sqrt(17) = 4.12 ; product 2.63
+
+tile-centred: expected number of places for one free interior tile (lambda) against the row-scan cell's expected domain (mu):
+   2 full rows + 8: free interior tiles 171  lambda interior tile 585.36  lambda edge tile 37.41  mu next cell 2.287
+   6 full rows + 8: free interior tiles 116  lambda interior tile 376.90  lambda edge tile 29.41  mu next cell 1.562
+   9 full rows + 8: free interior tiles  75  lambda interior tile 216.90  lambda edge tile 23.42  mu next cell 1.014
+  10 full rows + 8: free interior tiles  61  lambda interior tile 160.90  lambda edge tile 21.42  mu next cell 0.825
+  12 full rows + 8: free interior tiles  33  lambda interior tile 67.08  lambda edge tile 17.43  mu next cell 0.447
+  14 full rows + 8: free interior tiles   7  lambda interior tile 1.42  lambda edge tile 7.63  mu next cell 0.096
+  15 full rows + 8: free interior tiles   0  lambda interior tile 0.00  lambda edge tile 0.61  mu next cell 0.170
+
+annealed min-domain order (smallest expected domain anywhere, clues on board): total 10^40.79 = 2^135.5, peak 10^39.50 at depth 160 ; against row scan -1.00 bits
