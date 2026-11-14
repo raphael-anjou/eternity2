@@ -8,7 +8,7 @@ description: >-
 metaDescription: "La frontière ouverte d'Eternity II sur un tableau : l'écart de 470 à 480, la cible stricte à cinq indices, le 10x10 sans indice set_2 d'Owen non résolu, franchir un bassin de rigidité, le mur mémoire du meet-in-the-middle, un axe de diversité au-delà du parallel tempering."
 kind: reference
 order: 35
-updated: 2026-11-13
+updated: 2026-11-14
 topics: []
 sources:
   - label: "Archive de la liste de diffusion eternity2 (groups.io) : où les cibles ouvertes sont annoncées et discutées"
@@ -21,6 +21,14 @@ related:
   - /research/build/benchmarks
   - /research/build/exact/meet-in-the-middle
   - /research/contribute
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
 ---
 
 Voici le tableau des angles ouverts : une ligne par direction qui mérite encore
@@ -38,6 +46,12 @@ a été attaqué puis a tenu.
 
 Pour l'état de l'art, le score vit sur la page
 [records](/research/records) ; cette page ne montre que ce qui reste ouvert.
+
+La [série résolution complète](/research/lab/experiments/raphael-anjou/full-solve) chiffre une recherche exhaustive sur les
+vraies pièces et tranche plusieurs questions qui figuraient sur cette
+frontière. Elles sont marquées ci-dessous comme répondues ou chiffrées ; les
+questions que la série laisse ouvertes suivent, chacune avec ce qui la
+trancherait et un coût approximatif.
 
 ## L'écart de 470 à 480
 
@@ -279,6 +293,119 @@ pas prouvé et n'est affirmé nulle part sur le site.
 **Étiquette.** Difficile, bien cartographié, et proche de la question de
 diversité ci-dessus : une preuve que la même géométrie de cycle régit la
 saturation constructive unifierait deux plafonds observés indépendamment.
+
+## Répondu ou chiffré par la série résolution complète
+
+| Question | Où on en est | Page |
+|---|---|---|
+| Quelle taille a l'arbre complet du balayage ligne par ligne sur les vraies pièces ? | Répondu par estimation : environ 2^134,4 nœuds avec les cinq indices (10^40,457), en accord avec le modèle du premier moment. L'écart est de 56 à 73 bits face à des budgets de 2^78 et 2^61,5 nœuds, et d'environ 84 bits face à une course modeste d'environ 10^15 nœuds. | [prix d'une recherche complète](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search) |
+| Peut-on réfuter à bas coût un mauvais cadre ? | Non pour les cadres entiers (accélérations médianes de 0,89, 0,12 et 1,00 face à un seuil de 100) et non pour les cadres partiels (un arc coûte 2,2 à 2,5 bits de plus qu'il n'économise). L'information bon marché sur le cadre, environ 17,4 bits, se trouve aux quatre coins d'indice. Cadres éloignés des coins : indécis, voir plus bas. | [cadre et coins](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners) |
+| Un ordre de remplissage statique bat-il le balayage ligne par ligne ? | Aucun des 18 ordres n'est montré meilleur : 15 sont montrés moins bons, 3 sont indécis, voir plus bas. | [approches chiffrées](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Une relaxation semi-définie est-elle exacte sur de petits plateaux ? | Chiffré, négatif, plateaux jouets seulement : propre sur 3 plateaux 5x5 générés sur 5, inexacte sur un, indécise sur un, aucune lecture en 6x6, et 119 GiB ou plus en 16x16. Sa forme de petit rang est une recherche aléatoire que le recuit simple bat de 8 à 35 fois en 5x5. | [relaxations sur petits plateaux](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards) |
+| Que vaut une tuile connue, et quels filtres pourraient compter ? | Chiffré : les épingles sont sous-additives, et un filtre qui ne mord que tard ne peut pas combler l'écart. | [valeur d'une tuile connue](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile), [filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters) |
+
+Sept familles d'approches ont été chiffrées au total ; le plus grand gain qui
+a résisté à la revérification est d'environ 5,5 bits, face à l'écart ci-dessus
+([approches chiffrées](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)).
+
+## Ce que la série laisse ouvert
+
+Chaque point ci-dessous est énoncé tel que la série le laisse. Aucun n'est une
+revendication de record, et les points sur plateaux jouets ne sont pas un
+progrès sur Eternity II.
+
+### Les cadres éloignés des coins d'indice
+
+**Question.** Un mauvais cadre dont la réfutation bon marché ne vient pas d'un
+coin d'indice peut-il être réfuté pour moins que la recherche qu'il épargne ?
+**État.** Indécis. Sur les vraies pièces, les cadres éloignés ont une médiane de
+75,12 bits, d'intervalle [42,64 ; inf] (16 sur 37 censurés), et un jeu éloigné
+supplémentaire en a laissé 29 sur 52 censurés ; une part de cette censure est un
+échec du comptage, non du réfuteur. La médiane globale ne passe qu'une condition
+nécessaire. **Ce qui trancherait.** Les coûts de réfutation des cadres éloignés
+avec la censure résolue, ou une borne les plaçant au-dessus du seuil de
+rentabilité. **Coût.** Non chiffré ; le jeu supplémentaire seul a pris 1,1 heure
+avec un plafond de 600 s. Un résultat favorable rouvrirait la recherche de cadre
+guidée par des noyaux appris ([cadre et coins](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners)).
+
+### Les trois ordres de remplissage recuits
+
+**Question.** L'un des trois ordres statiques recuits est-il moins cher que le
+balayage ligne par ligne ? **État.** Indécis dans les deux sens. La population
+de l'estimateur meurt à la profondeur libre 38 à 48 sur ces ordres, contre 191 à
+198 pour le balayage, donc les estimations sont des bornes inférieures de
+l'arbre, non des tailles. **Ce qui trancherait.** Un estimateur qui tienne en
+profondeur sur ces ordres, ou un dénombrement exact sur une reproduction plus
+petite. **Coût.** Non chiffré. Un certificat que le balayage est le meilleur
+ordre statique n'a pas non plus été écrit ; ce serait une preuve, non un gain
+([approches chiffrées](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)).
+
+### Exactitude du relèvement convexe en 6x6
+
+**Question.** Le relèvement de degré 2 avec positivité reste-t-il exact (aucun
+poids sur des placements qu'aucune solution n'utilise) en 6x6 ? **État.** Aucune
+lecture. Trois solutions à fuite maximale se sont arrêtées sans converger, avec
+0,73 à 0,87 de la masse par case hors des solutions, sans évolution, ce qui ne
+décide rien. En 5x5, la graine 0 est indécise et la graine 3 fuit (une seule
+famille de solveurs). **Ce qui trancherait.** Une solution convergée à fuite
+maximale sur les trois plateaux 6x6, et une seconde famille de solveurs sur la
+graine 3. **Coût.** 6 à 170 heures-cœur pour la première (une borne inférieure de
+13 à 24 heures par plateau a été observée), environ 20 minutes-cœur pour la
+seconde. Même si l'exactitude tenait, cela ne vaut à soi seul que 0 bit ; cela
+justifierait des essais en 7x7 et 8x8
+([relaxations sur petits plateaux](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards)).
+
+### Apprentissage de clauses contre propagation seule, sur des sous-arbres de vraies pièces
+
+**Question.** L'avance d'un solveur qui apprend sur un témoin à propagation
+seule croît-elle avec la profondeur et la taille ? **État.** Plateaux jouets
+seulement, revérifié indépendamment : l'apprentissage économise +1,31 bit en 5x5
+et +2,03 en 6x6, il n'y a pas de valeur en 7x7 (le bras avec apprentissage a
+fini 0 plateau sur 10), et le seuil d'arrêt fixé d'avance est indécidable sur
+ces données. L'estimation pour le puzzle complet est de 0 à 2 bits en temps.
+**Ce qui trancherait.** La partie sur vraies pièces : 40 préfixes faux à des
+profondeurs libres de 112 à 88, avec le témoin à propagation seule. **Coût.**
+Environ 10 heures-cœur pour cette partie ; non lancée.
+
+### Croissance des solveurs hors arbre face à l'arbre
+
+**Question.** Sur les mêmes plateaux, le travail du recuit, d'une carte de
+différences, d'une forme de petit rang ou du passage de messages croît-il moins
+vite avec la taille que l'arbre ? **État.** Partiel. La forme de petit rang
+demande 62 fois plus d'évaluations par solution de 5x5 à 6x6 (exposant 4,2 en
+nombre de placements, 3,4 à 5,1) ; un lot plus grand donne 4,54, non vérifié
+indépendamment. Deux tailles ne séparent pas une puissance d'une exponentielle.
+Les bandes de la carte de différences ont résolu 0 plateau sur 30 en 7x7. **Ce
+qui trancherait.** Le travail jusqu'à la solution de 5x5 à 7x7 pour chaque bras,
+face à l'arbre sur les mêmes plateaux. **Coût.** Environ 120 heures-cœur.
+L'audit qui l'a listé donne 5 pour cent de chances qu'un bras survive et 0,5 à 1
+pour cent pour un gain de 10 bits (des paris, non vérifiés indépendamment).
+
+## Quand rouvrir les pistes fermées
+
+Le chiffrage garde une règle : ne rouvrir une piste que pour un prix de 10 bits
+ou plus et une expérience réfutante de moins d'une journée. Les conditions qui
+le justifieraient ([chiffrage des approches](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing)) :
+
+1. Une méthode publiée montre un gain de classe. La chiffrer d'abord face à
+   l'index des pistes et au tableau des plafonds : un contrôle qui ne mord
+   qu'après la profondeur 128 ne peut pas passer ([filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters)).
+2. Des tuiles de la solution deviennent disponibles hors de la recherche. Une
+   tuile épinglée vaut environ 10 bits au mieux et environ 6 à la médiane sur
+   des plateaux peints, et une course d'environ 10^15 nœuds demanderait plus de
+   10 épingles réparties, probablement 16 à 24
+   ([valeur d'une tuile connue](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile)).
+3. Le matériel progresse de 15 ordres de grandeur ou plus. Tous les multiplicateurs
+   crédibles réunis valent environ 2,5 ordres.
+4. Une exécution ou une revérification renverse une fermeture : le relèvement
+   convexe est exact en 6x6 ; les cadres éloignés passent sous le seuil de
+   rentabilité ; le travail d'un solveur hors arbre croît de moins de 0,75 fois
+   celui de l'arbre de 6x6 à 7x7 ; l'avance d'un solveur apprenant sur la
+   propagation seule augmente avec la taille.
+
+Deux points plus petits sont des preuves, non des gains : une seconde lecture de
+la borne de 2 bits sur une esquisse saine, et le certificat sur le balayage
+ci-dessus.
 
 ## D'où viennent ces problèmes, et où en écrire un
 

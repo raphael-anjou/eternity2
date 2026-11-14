@@ -25,7 +25,7 @@ repro:
   kind: seeded
   cmd: just experiments single-core-benchmark
 order: 10
-updated: 2026-11-11
+updated: 2026-11-14
 date: 2026-07
 topics: [speed, construction, backtracking]
 related:
@@ -33,6 +33,8 @@ related:
   - /research/build/construct/beam-search
   - /research/lab/experiments/single-core-benchmark/csp-presets
   - /research/records
+  - /research/lab/experiments/raphael-anjou/full-solve/port-fidelity
+  - /research/lab/experiments/raphael-anjou/full-solve
 sources:
   - label: "Runnable engine + committed results + scripts (this experiment's backing directory)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
@@ -71,7 +73,9 @@ in its own right, on its [own page](/research/lab/experiments/single-core-benchm
 
 The two record backtrackers dominate this budget. Our Verhaard-style engine
 reaches a mean of **440.8** (best 451) and our Blackwood-style engine **436.4**
-(best 440), exploring 24 and 41 million search-nodes per second. Nothing else
+(best 440; this row was measured with the earlier port's defaults, before the
+fidelity fixes described on the [port fidelity](/research/lab/experiments/raphael-anjou/full-solve/port-fidelity) page, so it
+measures the earlier port), exploring 24 and 41 million search-nodes per second. Nothing else
 comes close: naive DFS lands at **365.6** at about 274 thousand nodes per
 second, and the best CSP preset at about **183**.
 
@@ -159,7 +163,7 @@ keeps the two regimes and their current numbers.
 |:--|--:|:--|
 | Community strict five-clue record | [records](/research/records) | the same 5 clues these variants pin, without the 3 extra corners |
 | This grid's best (Verhaard-style) | 451 | one thread, 60 s (mean 440.8 over 10 variants) |
-| Blackwood-style in this grid | 440 | one thread, 60 s (mean 436.4 over 10 variants) |
+| Blackwood-style in this grid (earlier port, pre-fix defaults) | 440 | one thread, 60 s (mean 436.4 over 10 variants); not re-run with the fixed defaults |
 | Community starter-only record | [records](/research/records) | Blackwood, ~1 month on a single PC; respects only the mandatory centre clue (1 of 5), a looser regime than these variants |
 
 ## Method and reproducibility
@@ -194,13 +198,19 @@ canonical scorer.
 
 Profiling put 96.6 percent of the CSP family's time in one heavily pre-optimised
 AC-3 loop, so the benchmark speeds are that engine's real speeds, not an
-implementation gap. Separately, the community's Blackwood constants do not
-transfer across colour labelings as published: in a three-seed comparison on our
-labeling, his privileged colours `{13, 16, 10}` scored 387 against 435 for the
-re-fitted `{22, 21, 20}` that our Blackwood now uses, while every structural
-element of the published spec is kept. The re-fit was chosen on that same
-comparison, so 435 is an in-sample figure; a check on held-out variants has not
-been run.
+implementation gap. Separately, an earlier version of this page reported that the community's
+Blackwood constants do not transfer across colour labelings, from a three-seed
+comparison in which the colours `{13, 16, 10}` scored 387 against 435 for the
+re-fitted `{22, 21, 20}` (a figure chosen on that same comparison, so
+in-sample). That finding is withdrawn. In this repository's numbering the
+published privileged set is `{5, 20, 7}`, not `{13, 16, 10}`: the colours
+compared were three interior colours, which is not his set, so the comparison
+does not test whether his constants transfer. The only supported reading is that
+three interior colours scored below a re-fitted set on those seeds. The
+published set, with its quota curve read as a share of its sides, is now the
+engine's default, and it has not been measured against `{22, 21, 20}` under this
+page's protocol (ten corner variants, 60 s); whether the constants transfer is
+open. Details and the seven fixes are on the [port fidelity](/research/lab/experiments/raphael-anjou/full-solve/port-fidelity) page.
 
 ## Open work
 

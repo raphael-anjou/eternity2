@@ -11,7 +11,7 @@ metaDescription: "Apprentissage des no-goods sur Eternity II : un sous-arbre éc
 kind: concept
 order: 190
 group: Reduce the search
-updated: 2026-11-13
+updated: 2026-11-14
 topics: [search-space, exact-methods]
 sources:
   - label: "Le schéma d'index de frontière de Max : 16 arêtes non appariées plus un bitmap de pièces (groups.io message 6137, 2008)"
@@ -65,6 +65,8 @@ related:
   - /research/build/exact/sat-csp-encodings
   - /research/build/faster/solver-engineering
   - /research/lab/experiments/joshua-blackwood/solver
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
 repro:
   kind: prose
 ---
@@ -328,6 +330,41 @@ Le motif commun aux trois cas : personne n'a réfuté le théorème. Les sous-ar
 pour qu'une table couvre une fraction utile des états : les doublons exacts
 restent vers 1 %, tandis que les tables croissent sans limite et que chaque
 sonde paie la latence mémoire.
+
+## L'apprentissage de clauses contre la seule propagation, mesuré sur de petites planches
+
+Un test plus net que les taux de succès des archives : apprendre des clauses
+bat-il un solveur qui se contente de propager ? Sur des planches encadrées
+générées (dix par taille, un coin posé ; planches jouets, jamais un progrès sur
+Eternity II), un solveur à apprentissage de clauses a été comparé au même
+solveur sans apprentissage et avec le même ordre de cellules, en comptant les
+conflits. L'apprentissage vaut +1,31 bit en 5×5 (intervalle à 95 % : +1,06 à
++1,49) et +2,03 bits en 6×6 (+1,33 à +2,26), en différences appariées et
+exhaustives. Il n'y a pas de valeur en 7×7 : le bras avec apprentissage n'a
+terminé aucune de ses dix planches. Les deux bras diffèrent aussi par le
+backjumping, les redémarrages et l'effacement de clauses, et la taille est
+confondue avec la dureté (le nombre de couleurs augmentait avec la planche).
+
+En temps réel, le signe s'inverse : l'apprentissage était environ 3 bits plus
+lent en 6×6 et sur les trois paires 7×7 terminées, son débit de conflits
+passant de 1 454 à 256 par seconde entre le 6×6 et le 7×7. Le seuil d'arrêt
+fixé à l'avance (une avance sur la seule propagation qui ne gagne pas 2 bits du
+6×6 au 7×7, ni 3 bits de la profondeur 104 à 88) est indécidable sur ces
+données : la clause de profondeur n'a aucune donnée, et la clause de taille
+laisse une hausse d'au plus +2,09 bits contre un seuil de 2, sans borne
+inférieure. La revérification indépendante de cette série chiffre
+l'apprentissage à 0 à 2 bits en temps pour le puzzle complet.
+
+L'étude sur dossier qui a chiffré la famille concorde, avec une portée
+réduite après sa propre revérification : un stockage parfait et gratuit de
+raisons d'au plus 61 bits retirerait 1,9 à 2,1 bits de nœuds du balayage par
+lignes, et aucun stockage de raisons tirées de réfutations d'au plus 32
+cellules de haut n'en retire plus de 6,6. Dix bits exigeraient des raisons pour
+des sous-arbres plus hauts à la profondeur libre 128 ou avant, et aucune n'a
+été mesurée : « vide » est donc une preuve d'absence à l'échelle jouet, pas une
+démonstration. Une mesure sur des sous-arbres de pièces réelles n'est pas
+encore rapportée. Compte rendu :
+[apprendre contre propager](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation).
 
 ## Où elle paie vraiment
 

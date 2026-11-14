@@ -8,7 +8,7 @@ description: >-
 metaDescription: "La frontera abierta de Eternity II en un tablero: la brecha de 470 a 480, la marca estricta de cinco pistas, el 10x10 sin pistas set_2 de Owen sin resolver, cruzar una cuenca de rigidez, el muro de memoria del meet-in-the-middle y un eje de diversidad tras el parallel tempering."
 kind: reference
 order: 35
-updated: 2026-11-13
+updated: 2026-11-14
 topics: []
 sources:
   - label: "Archivo de la lista de correo eternity2 (groups.io): donde se anuncian y discuten los objetivos abiertos"
@@ -21,6 +21,14 @@ related:
   - /research/build/benchmarks
   - /research/build/exact/meet-in-the-middle
   - /research/contribute
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
 ---
 
 Este es el tablero de los ángulos abiertos: una fila por cada dirección que
@@ -37,6 +45,11 @@ de uno que fue atacado y resistió.
 
 Para el estado del arte, la puntuación vive en la página de
 [records](/research/records); esta página solo muestra lo que sigue abierto.
+
+La [serie de resolución completa](/research/lab/experiments/raphael-anjou/full-solve) pone precio a una búsqueda completa sobre
+las piezas reales y resuelve varias preguntas que figuraban en esta frontera.
+Abajo se marcan como respondidas o valoradas; después vienen las preguntas que
+la serie deja abiertas, cada una con lo que la resolvería y un coste aproximado.
 
 ## La brecha de 470 a 480
 
@@ -278,6 +291,118 @@ no se afirma en ninguna parte del sitio.
 **Etiqueta.** Difícil, bien cartografiado, y cercano a la pregunta de diversidad
 de arriba: una prueba de que la misma geometría de ciclo gobierna la saturación
 constructiva unificaría dos techos observados de forma independiente.
+
+## Respondido o valorado por la serie de resolución completa
+
+| Pregunta | En qué punto está | Página |
+|---|---|---|
+| ¿Qué tamaño tiene el árbol completo del barrido fila a fila sobre las piezas reales? | Respondida por estimación: unos 2^134,4 nodos con las cinco pistas (10^40,457), de acuerdo con el modelo del primer momento. La brecha es de 56 a 73 bits frente a presupuestos de 2^78 y 2^61,5 nodos, y de unos 84 bits frente a una ejecución modesta de unos 10^15 nodos. | [precio de una búsqueda completa](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search) |
+| ¿Se puede refutar barato un marco equivocado? | No para marcos enteros (aceleraciones medianas de 0,89, 0,12 y 1,00 frente a una línea de 100) y no para marcos parciales (un arco cuesta de 2,2 a 2,5 bits más de lo que ahorra). La información barata sobre el marco, unos 17,4 bits, está en las cuatro esquinas con pista. Marcos lejos de las esquinas: indecisos, véase abajo. | [marco y esquinas](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners) |
+| ¿Un orden de relleno estático supera al barrido fila a fila? | Ninguno de los 18 órdenes se muestra mejor: 15 se muestran peores, 3 son indecisos, véase abajo. | [enfoques valorados](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| ¿Es exacta una relajación semidefinida en tableros pequeños? | Valorada, negativa, solo tableros de juguete: limpia en 3 de 5 tableros 5x5 generados, inexacta en uno, indecisa en uno, sin lectura en 6x6, y 119 GiB o más en 16x16. Su forma de rango bajo es una búsqueda aleatoria que el recocido simple supera de 8 a 35 veces en 5x5. | [relajaciones en tableros pequeños](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards) |
+| ¿Qué vale una ficha conocida y qué filtros podrían importar? | Valorado: los anclajes son subaditivos, y un filtro que solo actúa tarde no puede cerrar la brecha. | [valor de una ficha conocida](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile), [filtros tardíos](/research/lab/experiments/raphael-anjou/full-solve/late-filters) |
+
+En total se valoraron siete familias de enfoques; la mayor ganancia que
+sobrevivió a la revisión es de unos 5,5 bits, frente a la brecha de arriba
+([enfoques valorados](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)).
+
+## Lo que la serie deja abierto
+
+Cada punto de abajo se enuncia como la serie lo deja. Ninguno es una
+afirmación de récord, y los puntos sobre tableros de juguete no son progreso en
+Eternity II.
+
+### Marcos lejos de las esquinas con pista
+
+**Pregunta.** ¿Puede refutarse un marco equivocado cuya refutación barata no
+viene de una esquina con pista por menos de lo que ahorra la búsqueda?
+**Estado.** Indeciso. Sobre las piezas reales, los marcos lejanos tienen una
+mediana de 75,12 bits con intervalo [42,64; inf] (16 de 37 censurados), y un
+conjunto lejano adicional dejó 29 de 52 censurados; parte de esa censura es un
+fallo del conteo, no del refutador. La mediana global solo pasa una condición
+necesaria. **Qué lo resolvería.** Costes de refutación de marcos lejanos con la
+censura resuelta, o una cota que los sitúe por encima del punto de equilibrio.
+**Coste.** Sin valorar; solo el conjunto adicional tomó 1,1 horas con un tope de
+600 s. Un resultado favorable reabriría la búsqueda de marco guiada por núcleos
+aprendidos ([marco y esquinas](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners)).
+
+### Los tres órdenes de relleno recocidos
+
+**Pregunta.** ¿Es alguno de los tres órdenes estáticos recocidos más barato que
+el barrido fila a fila? **Estado.** Indeciso en ambos sentidos. La población del
+estimador muere a profundidad libre 38 a 48 en esos órdenes, frente a 191 a 198
+en el barrido, así que las estimaciones son cotas inferiores del árbol, no
+tamaños. **Qué lo resolvería.** Un estimador que aguante en profundidad en esos
+órdenes, o un recuento exacto en una reproducción menor. **Coste.** Sin valorar.
+Tampoco se ha escrito un certificado de que el barrido sea el mejor orden
+estático; sería una prueba, no una ganancia
+([enfoques valorados](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)).
+
+### Exactitud de la elevación convexa en 6x6
+
+**Pregunta.** ¿Sigue siendo exacta la elevación de grado 2 con no negatividad
+(sin peso en colocaciones que ninguna solución usa) en 6x6? **Estado.** Sin
+lectura. Tres resoluciones de máxima fuga terminaron sin converger, con 0,73 a
+0,87 de la masa por casilla fuera de las soluciones y sin cambio, lo que no
+decide nada. En 5x5, la semilla 0 está indecisa y la semilla 3 fuga (una sola
+familia de solvers). **Qué lo resolvería.** Una resolución convergida de máxima
+fuga en los tres tableros 6x6, y una segunda familia de solvers en la semilla 3.
+**Coste.** De 6 a 170 horas-núcleo para la primera (se vio una cota inferior de
+13 a 24 horas por tablero), unos 20 minutos-núcleo para la segunda. Aunque la
+exactitud se sostuviera, eso por sí solo vale 0 bits; justificaría pruebas en
+7x7 y 8x8 ([relajaciones en tableros pequeños](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards)).
+
+### Aprendizaje de cláusulas frente a propagación sola, en subárboles de piezas reales
+
+**Pregunta.** ¿Crece la ventaja de un solver que aprende sobre un control de
+solo propagación con la profundidad y el tamaño? **Estado.** Solo tableros de
+juguete, revisado de forma independiente: aprender ahorra +1,31 bits en 5x5 y
++2,03 en 6x6, no hay valor en 7x7 (el brazo con aprendizaje terminó 0 de 10
+tableros), y la línea de parada fijada de antemano es indecidible con esos
+datos. La estimación para el puzle completo es de 0 a 2 bits en tiempo. **Qué lo
+resolvería.** La parte con piezas reales: 40 prefijos erróneos a profundidades
+libres de 112 a 88, con el control de solo propagación. **Coste.** Unas 10
+horas-núcleo para esa parte; no se ejecutó.
+
+### Crecimiento de los solvers sin árbol frente al árbol
+
+**Pregunta.** En los mismos tableros, ¿crece más despacio con el tamaño el
+trabajo del recocido, de un mapa de diferencias, de una forma de rango bajo o
+del paso de mensajes que el del árbol? **Estado.** Parcial. La forma de rango
+bajo necesita 62 veces más evaluaciones por solución de 5x5 a 6x6 (exponente 4,2
+en el número de colocaciones, de 3,4 a 5,1); un lote mayor da 4,54, no revisado
+de forma independiente. Dos tamaños no distinguen una potencia de una
+exponencial. Las bandas del mapa de diferencias resolvieron 0 de 30 en 7x7. **Qué
+lo resolvería.** El trabajo hasta la solución de 5x5 a 7x7 para cada brazo,
+frente al árbol en los mismos tableros. **Coste.** Unas 120 horas-núcleo. La
+auditoría que lo listó da un 5 por ciento de que un brazo sobreviva y de 0,5 a 1
+por ciento para una ganancia de 10 bits (conjeturas, no revisadas de forma
+independiente).
+
+## Cuándo reabrir las vías cerradas
+
+La valoración mantiene una regla: reabrir una vía solo por un precio de 10 bits
+o más y un experimento refutador de menos de un día. Las condiciones que lo
+justificarían ([valoración de enfoques](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing)):
+
+1. Un método publicado muestra una ganancia de clase. Valorarlo primero frente al
+   índice de vías y la tabla de techos: una comprobación que solo actúa pasada la
+   profundidad 128 no puede pasar ([filtros tardíos](/research/lab/experiments/raphael-anjou/full-solve/late-filters)).
+2. Se dispone de fichas de la solución desde fuera de la búsqueda. Una ficha
+   anclada vale unos 10 bits como mucho y unos 6 en la mediana en tableros
+   pintados, y una ejecución de unos 10^15 nodos necesitaría más de 10 anclajes
+   repartidos, probablemente de 16 a 24
+   ([valor de una ficha conocida](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile)).
+3. El hardware mejora 15 órdenes de magnitud o más. Todos los multiplicadores
+   creíbles juntos valen unos 2,5 órdenes.
+4. Una ejecución o una revisión derriba un cierre: la elevación convexa es exacta
+   en 6x6; los marcos lejanos caen por debajo del punto de equilibrio; el
+   trabajo de un solver sin árbol crece menos de 0,75 veces el del árbol de 6x6
+   a 7x7; la ventaja de un solver que aprende sobre la propagación sola crece con
+   el tamaño.
+
+Dos puntos menores son pruebas, no ganancias: una segunda lectura de la cota de
+2 bits sobre un esbozo sólido, y el certificado sobre el barrido de arriba.
 
 ## De dónde salieron, y dónde escribir uno
 

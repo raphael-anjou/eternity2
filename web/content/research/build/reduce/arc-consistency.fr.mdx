@@ -10,7 +10,7 @@ metaDescription: "Cohérence d'arc sur Eternity II : AC-3, AC-2001 et l'AC à co
 kind: concept
 order: 10
 group: Reduce the search
-updated: 2026-11-11
+updated: 2026-11-14
 topics: [search-space]
 rigor: measured
 complexity:
@@ -43,6 +43,8 @@ related:
   - /research/build/reduce/alldiff-regin
   - /research/build/dead-ends
   - /research/lab/experiments/raphael-anjou/dfs-study/findings
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
 repro:
   kind: prose
 ---
@@ -271,6 +273,33 @@ cache finissent par compter autant que l'exposant sur $d$.
   5× ici est une lecture de la littérature, pas une mesure. Et la croyance qu'AC-3
   dominait le profil d'exécution n'a elle-même jamais été confirmée par un
   profileur. Mesurer avant de porter.
+
+## Ce que la série sur la résolution complète a mesuré sous le balayage par lignes
+
+Chiffrée contre l'arbre du balayage par lignes des pièces réelles avec cinq
+indices (voir [approches chiffrées](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)), la
+cohérence d'arc est la seule propagation dont la valeur est mesurée. Son gain
+est d'environ 5,5 bits de nœuds en branches essayées (6,1 sur les nœuds
+survivants), estimé directement sur les pièces officielles ; sur des planches
+jouets générées de côté 5 à 10, près du nombre critique de couleurs, il est de
+4,5 à 4,8 bits, sans pente avec la taille. Ce chiffre a été revérifié de façon
+indépendante. Son coût par nœud est l'autre face : l'étude sur dossier chiffre
+un test à environ 13 bits par nœud, valeur non vérifiée de façon indépendante,
+si bien que le bilan est une perte.
+
+Elle ne réfute les mauvaises planches que tard. Sur des planches 16×16
+générées avec le recensement officiel des couleurs (planches jouets, jamais un
+progrès sur Eternity II), la cohérence d'arc lancée seule sur des préfixes
+tirés du balayage par lignes acceptait encore 0,427 des mauvais préfixes à la
+profondeur libre 96, 0,096 à 112 et 0,179 à 128, soit 57, 90 et 82 pour cent
+réfutés ; elle en réfutait 94 pour cent à 144, 99 à 152 et tous à 160, sans
+jamais réfuter le vrai préfixe. Ce prolongement n'a **pas été vérifié de
+façon indépendante**. Une passe plus grossière, reproduite indépendamment, a
+trouvé tous les préfixes échantillonnés réfutés dans 189 des 192 lignes
+planche-direction à la profondeur 160, et dans les 192 à la profondeur 176. Une
+part réfutée n'est pas une économie : une coupe parfaite et gratuite à la
+profondeur 144 économiserait au plus 2,4 bits de nœuds, comme le calcule
+[filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
 
 ## La réserve sur la correction
 

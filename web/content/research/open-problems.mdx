@@ -7,7 +7,7 @@ description: >-
 metaDescription: "The open frontier of Eternity II on one board: the 470-to-480 gap, the strict five-clue target, Owen's unsolved hint-free 10x10 set_2, crossing a rigidity basin, the meet-in-the-middle memory wall, and a diversity axis beyond parallel tempering. Each angle paired with its wall."
 kind: reference
 order: 35
-updated: 2026-11-13
+updated: 2026-11-14
 topics: []
 sources:
   - label: "eternity2 mailing-list archive (groups.io): where the open targets are announced and discussed"
@@ -20,6 +20,14 @@ related:
   - /research/build/benchmarks
   - /research/build/exact/meet-in-the-middle
   - /research/contribute
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
 ---
 
 This is the board of open angles: one row per direction still worth a run.
@@ -34,6 +42,11 @@ nobody is actively working, distinct from one that has been attacked and held.
 
 For the state of the art the score lives on the [records](/research/records)
 page; this page is only the part that is still open.
+
+The [full-solve series](/research/lab/experiments/raphael-anjou/full-solve) prices a complete search of the real pieces and
+settles several questions that used to sit on this frontier. They are marked
+below as answered or priced, and the questions the series leaves open follow
+them, each with what would settle it and a rough cost.
 
 ## The 470-to-480 gap
 
@@ -263,6 +276,110 @@ than only the local-repair one, is unproven and asserted nowhere on-site.
 **Entry tag.** Hard, well-mapped, and close to the diversity question above: a
 proof that the same cycle geometry governs constructive saturation would unify
 two independently observed ceilings.
+
+## Answered or priced by the full-solve series
+
+| Question | Where it stands | Page |
+|---|---|---|
+| How big is the full row-scan tree on the real pieces? | Answered by estimate: about 2^134.4 nodes with the five clues (10^40.457), in agreement with the first-moment model. The gap is 56 to 73 bits against budgets of 2^78 and 2^61.5 nodes, and about 84 bits against a modest run of about 10^15 nodes. | [price of a full search](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search) |
+| Can a wrong frame be refuted cheaply? | No for full frames (median speed-ups of 0.89, 0.12 and 1.00 against a line of 100) and no for partial frames (arcs cost 2.2 to 2.5 bits more than they save). The cheap frame information, about 17.4 bits, sits at the four clue corners. Frames away from the corners: undecided, see below. | [frame and corners](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners) |
+| Does a static fill order beat row scan? | Not shown for any of 18 orders: 15 are shown not to, 3 are undecided, see below. | [approaches priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Is a semidefinite relaxation exact on small boards? | Priced, negative, toy boards only: clean on 3 of 5 generated 5x5 boards, not exact on one, undecided on one, no reading at 6x6, and 119 GiB or more at 16x16. Its low-rank form is a random search that plain annealing beats 8 to 35 times at 5x5. | [relaxations on small boards](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards) |
+| What does a known tile buy, and which filters could matter? | Priced: pins are sub-additive, and a filter that only bites late cannot recover the gap. | [worth of a known tile](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile), [late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters) |
+
+Seven families of approach were priced in all; the largest gain that survived
+re-checking is about 5.5 bits, against the gap above
+([approaches priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)).
+
+## What the series leaves open
+
+Each item below is stated as the series leaves it. None is a record claim, and
+the toy-board items are not Eternity II progress.
+
+### Frames away from the clue corners
+
+**Question.** Can a wrong frame whose cheap refutation does not come from a
+clue corner be refuted for less than the search it saves?
+**Status.** Undecided. On the real pieces the far frames have a median of 75.12
+bits with an interval of [42.64, inf] (16 of 37 censored), and an extra far set
+left 29 of 52 censored; part of that censoring is a counting failure, not a
+refuter failure. The overall median passes a necessary condition only.
+**What would settle it.** Refutation costs on far frames with the censoring
+resolved, or a bound showing they sit above break-even. **Cost.** Not costed;
+the extra far set alone took 1.1 hours at a 600 s cap. A pass would reopen frame
+search driven by learned cores
+([frame and corners](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners)).
+
+### The three annealed fill orders
+
+**Question.** Is any of the three annealed static orders cheaper than row scan?
+**Status.** Undecided in both directions. The estimator's population dies at
+free depth 38 to 48 on those orders, against 191 to 198 for row scan, so the
+estimates are lower bounds on the tree, not sizes. **What would settle it.** An
+estimator that survives to depth on those orders, or an exact count on a
+smaller reproduction. **Cost.** Not costed. A certificate that row scan is the
+best static order has not been written either; it would be a proof, not a gain
+([approaches priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)).
+
+### Exactness of the convex lift at 6x6
+
+**Question.** Does the degree-2 lift with nonnegativity stay exact (no weight
+on placements that no solution uses) at 6x6? **Status.** No reading. Three
+largest-leak runs ended unconverged, with 0.73 to 0.87 of the mass per cell off
+solutions and flat, which decides nothing. At 5x5, seed 0 is undecided and
+seed 3 leaks (one solver family only). **What would settle it.** A converged
+largest-leak solve on the three 6x6 boards, and a second solver family on
+seed 3. **Cost.** 6 to 170 core-hours for the first (a lower bound of 13 to 24
+hours per board was seen), about 20 core-minutes for the second. Even if
+exactness held, that alone is worth 0 bits; it would justify 7x7 and 8x8 tests
+([relaxations on small boards](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards)).
+
+### Clause learning against propagation on real-piece subtrees
+
+**Question.** Does the lead of a learning solver over a propagation-only control
+rise with depth and with size? **Status.** Toy boards only, independently
+re-checked: learning saves +1.31 bits at 5x5 and +2.03 at 6x6, there is no 7x7
+value (the learning arm finished 0 of 10 boards), and the pre-stated stop line
+is undecidable on that data. The estimate for the full puzzle is 0 to 2 bits in
+time. **What would settle it.** The real-piece part: 40 wrong prefixes at free
+depths 112 to 88, with the propagation-only control. **Cost.** About 10
+core-hours for that part; not run.
+
+### Growth of non-tree solvers against the tree
+
+**Question.** On the same boards, does the work of annealing, a difference map,
+a low-rank form or message passing grow more slowly with size than the tree?
+**Status.** Partial. The low-rank form needs 62 times more evaluations per
+solution from 5x5 to 6x6 (exponent 4.2 in the number of placements, 3.4 to 5.1);
+a larger batch gives 4.54, not independently checked. Two sizes cannot separate
+a power from an exponential. The difference-map bands solved 0 of 30 at 7x7.
+**What would settle it.** Work-to-solution on 5x5 to 7x7 for each arm, against
+the tree on the same boards. **Cost.** About 120 core-hours. The audit that
+listed it puts one arm surviving at 5 percent and a gain of 10 bits at 0.5 to 1
+percent (guesses, not independently checked).
+
+## When to reopen the closed routes
+
+The pricing keeps one rule: reopen a route only for a price of 10 bits or more
+and a falsifying experiment that takes under a day. The conditions that would
+justify it ([approach pricing](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing)):
+
+1. A published method shows a class-level gain. Price it against the routes
+   index and the ceiling table first: a check that only bites after depth 128
+   cannot pass ([late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters)).
+2. Tiles of the solution become available from outside the search. A pinned
+   tile is worth about 10 bits at best and about 6 at the median on painted
+   boards, and a run of about 10^15 nodes would need more than 10 spread pins,
+   probably 16 to 24 ([worth of a known tile](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile)).
+3. Hardware improves by 15 orders of magnitude or more. Every credible
+   multiplier together is about 2.5 orders.
+4. A run or a re-check overturns a closure: the convex lift is exact at 6x6; the
+   far frames resolve below break-even; a non-tree solver's work grows by less
+   than 0.75 of the tree's from 6x6 to 7x7; a learning solver's lead over
+   propagation alone rises with size.
+
+Two smaller items are proofs rather than gains: a second reading of the 2-bit
+bound on a sound sketch, and the certificate for row scan above.
 
 ## Where these came from, and where to write one up
 

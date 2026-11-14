@@ -12,7 +12,7 @@ contribution: negative
 rigor: measured
 tier: 1
 order: 10
-updated: 2026-11-13
+updated: 2026-11-14
 topics: [speed, search-space, backtracking]
 sources:
   - label: Article, source et résultats sur GitHub (research/topics/prune-vs-speed)
@@ -28,6 +28,8 @@ related:
   - /research/why/phase-transition
   - /research/why/rigidity-wall
   - /research/build/reduce/arc-consistency
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks
 repro:
   kind: exact
   cmd: just research-prune-vs-speed
@@ -137,6 +139,19 @@ qui ont fait bouger le score ont changé la forme de la recherche : un ordre
 de parcours différent, un a priori appris sur l'emplacement des pièces, une
 région confinée pour les défauts d'appariement. Et beaucoup d'impasses sont,
 au fond, un élagage que la structure globale du casse-tête refuse d'honorer.
+
+Les deux versants de cet arbitrage ont depuis été mesurés sur l'arbre complet
+du balayage par lignes (résultats sur petites planches et dérivés, pas un
+progrès sur Eternity II). Le gain d'un filtre a un plafond fixé par la
+profondeur à partir de laquelle il mord : une coupe parfaite et gratuite à
+partir de la profondeur libre 144 économiserait au plus 2,4 bits des 134,4 que
+coûte le balayage, et le plus gros gain chiffré pour un filtre est d'environ
+5,5 bits de nœuds ([filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters)). Un solveur qui ne
+change que sa représentation et reproduit la séquence de nœuds de l'original
+est allé 5,3, 6,1 et 5,3 fois plus vite en 6×6, 7×7 et 8×8, revérifié de façon
+indépendante ([pistes de moteur de recherche](/research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks),
+expérience `mrv-node-cost`) : environ 2,6 bits au mieux, un diviseur constant
+comme plus haut.
 
 ## La communauté a abouti là aussi, à la dure
 

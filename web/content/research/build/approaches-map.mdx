@@ -9,7 +9,7 @@ metaDescription: "A survey of every family of attack tried on Eternity II: syste
 kind: page
 order: 5
 group: Start here
-updated: 2026-11-13
+updated: 2026-11-14
 sources:
   - label: "The community's own summary of two decades of effort: 1.6 TFlops, 10^19 CPU operations, no solution (groups.io message 3511)"
     url: https://groups.io/g/eternity2/message/3511
@@ -21,6 +21,12 @@ related:
   - /research/build/techniques
   - /research/build/solvers
   - /research/why
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
 ---
 
 People who work on Eternity II eventually ask the same question: is there one
@@ -40,6 +46,13 @@ method's inventor and cites the original paper. What the deep pages add is how
 each behaves when pointed at this particular puzzle, with the project's own
 measurements where they exist and a plain "unmeasured" where they do not. The
 [technique shelf](/research/build/techniques) is the index to those pages.
+
+Exact search for a full solution is a separate question from record hunting, and
+it is priced separately. The [series on the price of a full search](/research/lab/experiments/raphael-anjou/full-solve) measures
+the row-scan tree and prices approaches against it in bits; the families below
+that were priced there carry their price and status in
+a section near the end of this page.
+Records, which need no full solution, stay on [the records page](/research/records).
 
 ## What the map shows across families
 
@@ -216,6 +229,32 @@ community knows where the walls are.
   calibrated within about a factor of two on small boards where exhaustive
   counts exist. It estimates the average over random puzzles with the same piece
   statistics, not this instance's count.
+
+## Families priced against an exact search
+
+Ten families were priced in bits against the row-scan tree of the full puzzle:
+[the table of seven families](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out), plus relaxations, frame-first search, and
+pins or outside knowledge of tiles on their own pages. The gap to close is
+56 to 73 bits (fixed numbers on the [series hub](/research/lab/experiments/raphael-anjou/full-solve)). A gain is the largest
+that survived an independent re-check; results on generated boards are toys, never
+Eternity II progress.
+
+| Family | Price in bits | Status | Deep page |
+|---|---|---|---|
+| Search that learns | About 2 bits (ceiling 6.6); 0 to 2 bits in time on toy boards | "Empty" is unproven: it holds only for reasons attached to row-scan nodes, used one at a time | [priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out), [learning against propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation) |
+| Lossy representations | Two-list join 3.0 bits; a sound sketch saves at most 2.0 | Empty for colour-blind sketches and rectangular region lists; the 2.0-bit bound has no second reader | [priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Shape of the tree | 1 to 3 bits with oracle cutoffs; a loss when blind | Empty for blind restarts and portfolios | [priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Adaptive orders | Under 3 bits (arc consistency 5.5 bits of nodes, at about 13 bits per node) | Empty for row-shaped rules; free smallest-domain rules are 13 to 49 bits worse | [priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Tile-set structure | 0 bits before depth 192 | Empty: no colour automorphism | [priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Algebraic reformulation | None found among fifteen reformulations | Not a barrier, only none found; the linearisation run is not independently checked | [priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Search-space reformulation | Row scan is within 0.24 bit of the best static order | Empty for static reformulations; no certificate that row scan is the best order | [priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Relaxations (semidefinite) | Not priced in bits: clean on three of five toy 5x5 boards, not run at 16x16 | Negative on toy boards | [relaxations on small boards](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards) |
+| Frame-first search | About 17.4 bits of cheap information about the frame, all at the four clue corners; not a saving in nodes | A wrong frame is not cheap to refute; frames away from the corners undecided | [frame and corners](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners) |
+| Pins, outside knowledge of tiles | 1 to 10 bits per known tile by position (median 5.8); several tiles are worth less than the sum | Measured on painted boards, not the real puzzle | [worth of a known tile](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile) |
+
+The largest surviving gain is about 5.5 bits. That is far below the gap, and it
+does not prove that no approach exists; the [price page](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) says which closures
+are weak.
 
 ## Dead ends
 

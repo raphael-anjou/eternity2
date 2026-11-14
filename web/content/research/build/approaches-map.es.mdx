@@ -9,7 +9,7 @@ metaDescription: "Un panorama de cada familia de ataque probada en Eternity II: 
 kind: page
 order: 5
 group: Start here
-updated: 2026-11-13
+updated: 2026-11-14
 sources:
   - label: "El balance que la propia comunidad hace de dos décadas de esfuerzo: 1,6 TFlops, 10^19 operaciones de CPU, ninguna solución (groups.io, mensaje 3511)"
     url: https://groups.io/g/eternity2/message/3511
@@ -21,6 +21,12 @@ related:
   - /research/build/techniques
   - /research/build/solvers
   - /research/why
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
 ---
 
 Quienes trabajan en Eternity II acaban planteándose siempre la misma pregunta:
@@ -42,6 +48,14 @@ las páginas de fondo añaden es cómo se comporta cada uno cuando se apunta a e
 puzzle concreto, con las mediciones propias del proyecto allí donde existen y un
 simple «no medido» allí donde faltan. El
 [estante de técnicas](/research/build/techniques) es el índice de esas páginas.
+
+La búsqueda exacta de una solución completa es una pregunta distinta de la caza
+de récords, y se valora por separado. La [serie sobre el precio de una búsqueda
+completa](/research/lab/experiments/raphael-anjou/full-solve) mide el árbol del barrido fila a fila y valora en bits los enfoques
+frente a él; las familias de abajo que se valoraron allí llevan su precio y su
+estado en una sección hacia el final de esta página.
+Los récords, que no exigen ninguna solución completa, siguen en
+[la página de récords](/research/records).
 
 ## Lo que el mapa muestra de una familia a otra
 
@@ -231,6 +245,33 @@ dónde están los muros.
   pequeños donde existen conteos exhaustivos. Estima la media sobre puzzles
   aleatorios con las mismas estadísticas de piezas, no el número de soluciones de
   este puzzle concreto.
+
+## Familias valoradas frente a una búsqueda exacta
+
+Diez familias se valoraron en bits frente al árbol del barrido fila a fila del
+puzzle completo: [la tabla de siete familias](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out), más las relajaciones, la
+búsqueda con el marco primero y las piezas conocidas o el conocimiento externo
+sobre ellas, cada una en su página. La brecha por cerrar es de 56 a 73 bits
+(cifras de referencia en el [hub de la serie](/research/lab/experiments/raphael-anjou/full-solve)). Una ganancia es la mayor que
+sobrevivió a una revisión independiente; los resultados sobre tableros generados
+son juguetes, nunca avance en Eternity II.
+
+| Familia | Precio en bits | Estado | Página de fondo |
+|---|---|---|---|
+| Búsqueda que aprende | Unos 2 bits (techo 6,6); 0 a 2 bits en tiempo en tableros de juguete | «Vacía» no está demostrado: solo vale para razones ligadas a nodos del barrido, usadas de una en una | [valoradas](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out), [aprender frente a la propagación](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation) |
+| Representaciones con pérdida | Unión de dos listas 3,0 bits; un esbozo correcto ahorra como mucho 2,0 | Vacía para esbozos ciegos al color y listas de regiones rectangulares; la cota de 2,0 bits no tiene segundo lector | [valoradas](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Forma del árbol | 1 a 3 bits con cortes de oráculo; una pérdida a ciegas | Vacía para reinicios y carteras a ciegas | [valoradas](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Órdenes adaptativos | Menos de 3 bits (consistencia de arco 5,5 bits de nodos, a unos 13 bits por nodo) | Vacía para reglas en forma de filas; las reglas libres de menor dominio son 13 a 49 bits peores | [valoradas](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Estructura del juego de piezas | 0 bits antes de la profundidad 192 | Vacía: ningún automorfismo de colores | [valoradas](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Reformulación algebraica | Ninguna hallada entre quince reformulaciones | No es una barrera, solo que no se halló ninguna; la linealización no está verificada de forma independiente | [valoradas](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Reformulación del espacio de búsqueda | El barrido por filas está a 0,24 bit del mejor orden estático | Vacía para reformulaciones estáticas; sin certificado de que el barrido por filas sea el mejor orden | [valoradas](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) |
+| Relajaciones (semidefinidas) | No valoradas en bits: limpias en tres de cinco tableros 5x5 de juguete, no ejecutadas en 16x16 | Negativo en tableros de juguete | [relajaciones en tableros pequeños](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards) |
+| Búsqueda con el marco primero | Unos 17,4 bits de información barata sobre el marco, todos en las cuatro esquinas con pista; no es un ahorro de nodos | Un marco erróneo no se refuta barato; marcos lejos de las esquinas, indecisos | [marco y esquinas](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners) |
+| Piezas conocidas, conocimiento externo | 1 a 10 bits por pieza conocida según la posición (mediana 5,8); varias piezas valen menos que la suma | Medido en tableros pintados, no en el puzzle real | [lo que vale una pieza conocida](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile) |
+
+La mayor ganancia superviviente es de unos 5,5 bits. Está muy lejos de la brecha
+y no demuestra que no exista ningún enfoque; la [página de precios](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) indica
+qué cierres son débiles.
 
 ## Callejones sin salida
 

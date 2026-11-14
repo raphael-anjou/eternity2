@@ -26,7 +26,7 @@ repro:
   kind: seeded
   cmd: just experiments single-core-benchmark
 order: 10
-updated: 2026-11-11
+updated: 2026-11-14
 date: 2026-07
 topics: [speed, construction, backtracking]
 related:
@@ -34,6 +34,8 @@ related:
   - /research/build/construct/beam-search
   - /research/lab/experiments/single-core-benchmark/csp-presets
   - /research/records
+  - /research/lab/experiments/raphael-anjou/full-solve/port-fidelity
+  - /research/lab/experiments/raphael-anjou/full-solve
 sources:
   - label: "Moteur exécutable + résultats commités + scripts (le répertoire de support de cette expérience)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
@@ -76,8 +78,10 @@ préréglages est une étude à part entière, sur sa
 
 Les deux backtrackers record dominent ce budget. Notre moteur de style Verhaard
 atteint une moyenne de **440,8** (meilleur 451) et notre moteur de style
-Blackwood **436,4** (meilleur 440), à 24 et 41 millions de nœuds de recherche par
-seconde. Rien d'autre n'en approche : le DFS naïf se pose à **365,6**, à environ
+Blackwood **436,4** (meilleur 440 ; cette ligne a été mesurée avec les réglages par défaut
+de l'ancien portage, avant les corrections décrites sur la page de
+[fidélité du portage](/research/lab/experiments/raphael-anjou/full-solve/port-fidelity), donc elle mesure l'ancien portage), à 24 et 41
+millions de nœuds de recherche par seconde. Rien d'autre n'en approche : le DFS naïf se pose à **365,6**, à environ
 274 mille nœuds par seconde, et le meilleur préréglage CSP à environ **183**.
 
 Sur les lignes publiées ici, les deux backtrackers rapides gagnent largement,
@@ -171,7 +175,7 @@ régimes et leurs chiffres à jour.
 |:--|--:|:--|
 | Record communautaire strict à cinq indices | [records](/research/records) | les 5 mêmes indices que ces variantes épinglent, sans les 3 coins supplémentaires |
 | Meilleur de cette grille (style Verhaard) | 451 | un thread, 60 s (moyenne 440,8 sur 10 variantes) |
-| Style Blackwood dans cette grille | 440 | un thread, 60 s (moyenne 436,4 sur 10 variantes) |
+| Style Blackwood dans cette grille (ancien portage, réglages d'avant correction) | 440 | un thread, 60 s (moyenne 436,4 sur 10 variantes) ; non relancé avec les réglages corrigés |
 | Record communautaire à pièce de départ seule | [records](/research/records) | Blackwood, ~1 mois sur un seul PC ; ne respecte que l'indice central obligatoire (1 sur 5), un régime plus souple que ces variantes |
 
 ## Méthode et reproductibilité
@@ -208,15 +212,21 @@ plateau est re-noté par l'unique scoreur canonique.
 
 Le profilage a placé 96,6 pour cent du temps de la famille CSP dans une seule
 boucle AC-3 lourdement pré-optimisée : les vitesses du benchmark sont donc les
-vraies vitesses de ce moteur, non un écart d'implémentation. Par ailleurs, les
-constantes Blackwood de la communauté ne se transfèrent pas telles quelles d'un
-étiquetage de couleurs à l'autre : dans une comparaison à trois graines sur notre
-étiquetage, ses couleurs privilégiées `{13, 16, 10}` ont obtenu 387 contre 435
-pour le ré-ajustement `{22, 21, 20}` qu'utilise désormais notre Blackwood, tous
-les éléments structurels de la spécification publiée étant conservés. Le
-ré-ajustement a été choisi sur cette même comparaison : 435 est donc un chiffre
-intra-échantillon, et aucune vérification sur des variantes tenues à l'écart n'a
-été faite.
+vraies vitesses de ce moteur, non un écart d'implémentation. Par ailleurs, une version antérieure de cette page affirmait que les constantes
+Blackwood de la communauté ne se transfèrent pas d'un étiquetage de couleurs à
+l'autre, d'après une comparaison à trois graines où les couleurs `{13, 16, 10}`
+obtenaient 387 contre 435 pour le ré-ajustement `{22, 21, 20}` (chiffre choisi
+sur cette même comparaison, donc intra-échantillon). Ce constat est retiré. Dans
+la numérotation de ce dépôt, l'ensemble privilégié publié est `{5, 20, 7}` et
+non `{13, 16, 10}` : les couleurs comparées étaient trois couleurs intérieures,
+ce qui n'est pas son ensemble, et la comparaison ne teste donc pas si ses
+constantes se transfèrent. Seule lecture permise : trois couleurs intérieures ont
+obtenu moins qu'un ensemble ré-ajusté sur ces graines. L'ensemble publié, avec sa
+courbe de quota lue comme une part de ses côtés, est désormais le réglage par
+défaut du moteur ; il n'a pas été mesuré face à `{22, 21, 20}` avec le protocole
+de cette page (dix variantes de coins, 60 s). Le transfert des constantes reste
+ouvert. Le détail et les sept corrections sont sur la page de
+[fidélité du portage](/research/lab/experiments/raphael-anjou/full-solve/port-fidelity).
 
 ## Travaux ouverts
 

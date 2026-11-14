@@ -12,7 +12,7 @@ contribution: negative
 rigor: measured
 tier: 1
 order: 10
-updated: 2026-11-13
+updated: 2026-11-14
 topics: [speed, search-space, backtracking]
 sources:
   - label: Artículo, código y resultados en GitHub (research/topics/prune-vs-speed)
@@ -28,6 +28,8 @@ related:
   - /research/why/phase-transition
   - /research/why/rigidity-wall
   - /research/build/reduce/arc-consistency
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks
 repro:
   kind: exact
   cmd: just research-prune-vs-speed
@@ -136,6 +138,19 @@ cambiaron la forma de la búsqueda: un orden de recorrido distinto, un a
 priori aprendido sobre dónde se sitúan las piezas, una región confinada para
 los desajustes. Y muchos callejones sin salida son, en el fondo, una poda que
 la estructura global del puzzle se niega a honrar.
+
+Los dos lados de este intercambio se han medido ya sobre el árbol completo del
+barrido por filas (resultados en tableros pequeños y derivados, no un avance en
+Eternity II). La ganancia de un filtro tiene un techo fijado por la
+profundidad a partir de la cual muerde: un corte perfecto y gratuito desde la
+profundidad libre 144 ahorraría como mucho 2,4 bits de los 134,4 que cuesta el
+barrido, y la mayor ganancia valorada para un filtro es de unos 5,5 bits de
+nodos ([filtros tardíos](/research/lab/experiments/raphael-anjou/full-solve/late-filters)). Un solucionador que solo
+cambia su representación y reproduce la secuencia de nodos del original fue
+5,3, 6,1 y 5,3 veces más rápido en 6×6, 7×7 y 8×8, revisado de forma
+independiente ([pistas de motores de búsqueda](/research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks),
+experimento `mrv-node-cost`): unos 2,6 bits como mucho, un divisor constante
+como arriba.
 
 ## La comunidad también llegó aquí, por las malas
 

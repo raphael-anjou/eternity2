@@ -2,15 +2,15 @@
 title: Impasses et affirmations non vérifiées
 description: >-
   Des approches qui n'ont pas fait bouger le score sur Eternity II, chacune
-  classée selon la solidité de sa preuve. Treize verdicts reposent sur des
+  classée selon la solidité de sa preuve. Vingt verdicts reposent sur des
   données versées dans le dépôt, une source publique nommée ou une dérivation ;
   vingt-deux autres sont énoncés sans preuve qu'un lecteur puisse ouvrir, et
-  figurent à part avec l'expérience qui trancherait chacun.
-metaDescription: "Des approches d'Eternity II sans effet sur le score, chacune avec son niveau de preuve (mesuré, rapporté, argumenté, ou affirmation sans preuve dans le dépôt) et la portée de son verdict : treize impasses établies et vingt-deux affirmations non vérifiées avec l'expérience qui trancherait chacune."
+  figurent à part avec l'expérience qui trancherait chacun, plus une question mesurée qui reste indécise.
+metaDescription: "Des approches d'Eternity II sans effet sur le score, chacune avec son niveau de preuve (mesuré, rapporté, argumenté, ou affirmation sans preuve dans le dépôt) et la portée de son verdict : vingt impasses établies, vingt-deux affirmations non vérifiées avec l'expérience qui trancherait chacune, et une question indécise."
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-11-13
+updated: 2026-11-14
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "Fermeture d'eternity2.net : 1,6 TFlops, 10^19 opérations CPU, aucune solution (groups.io message 3511)"
@@ -48,17 +48,25 @@ related:
   - /research/build/exact/sat-csp-encodings
   - /research/build/hardware/gpu-solving
   - /research/lab/experiments/raphael-anjou/repair-study/findings
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks
+  - /research/lab/experiments/raphael-anjou/full-solve/keying-experiments
 ---
 
 Des approches séduisantes qui n'ont pas fait bouger le score sur Eternity II,
 chacune avec la solidité de sa preuve. Aucune n'est une mauvaise idée en soi.
-La plupart des verdicts ci-dessous ne sont pas encore établis : sur 35
-entrées, 4 sont mesurées sur des données versées dans le dépôt, 5 sont
-rapportées par une source publique nommée, 4 sont argumentées par une
-dérivation, et 22 reposent sur des essais dont les données ne sont pas
-versées. Seuls les trois premiers groupes sont appelés impasses ici ; le
-quatrième figure à part, entrée par entrée, avec l'expérience qui le
-trancherait.
+Environ la moitié des verdicts ci-dessous ne sont pas encore établis : sur 43
+entrées, 10 sont mesurées sur des données versées dans le dépôt, 5 sont
+rapportées par une source publique nommée, 5 sont argumentées par une
+dérivation, 22 reposent sur des essais dont les données ne sont pas versées,
+et 1 est mesurée mais indécise. Seuls les trois premiers groupes sont appelés
+impasses ici ; le quatrième figure à part, entrée par entrée, avec
+l'expérience qui le trancherait, et l'entrée indécise a sa propre courte
+section juste après.
 
 ## Niveaux de preuve
 
@@ -93,6 +101,13 @@ verdict (tailles de plateau, budgets, moteurs) quand la preuve en donne une.
 | Macro-tuiles 2×2 | Rapporté | blocs 2×2 comme réduction de domaine, 2008 |
 | Élagage par offre de bordure | Rapporté | recherche stricte sur un 8×8, 2008 ; recherche tolérant les discordances non testée |
 | Élagage par motifs interdits | Argumenté | recherche stricte sur les bords |
+| Réfuter à bas coût les mauvaises bordures | Mesuré | pièces réelles, cinq indices, trois réfutateurs ; bordures loin des coins à indice indécises |
+| Un ordre statique qui bat le balayage rangée par rangée | Mesuré | 18 ordres statiques sur les pièces réelles, cinq indices ; 3 indécis |
+| Filtres tardifs sur le balayage rangée par rangée | Argumenté | plafond par profondeur, dérivé d'un profil mesuré ; deux vérifications sur plateaux jouets |
+| Relaxation semi-définie | Mesuré | plateaux jouets de 4×4 à 6×6 ; pas de lecture à 6×6 |
+| Forme de rang faible de la relaxation | Mesuré | plateaux jouets 5×5 et 6×6 (7×7 pour un témoin) |
+| Petites modifications d'un moteur complet | Mesuré | plateaux générés de 6×6 à 9×9, cinq expériences |
+| Expériences de clés et de bandes | Mesuré | plateaux générés, et pièces réelles pour les essais de clés |
 | Survey propagation | Affirmation sans preuve dans le dépôt | un 4×4 généré, trois réglages |
 | Ordonner par propagation de croyances | Affirmation sans preuve dans le dépôt | non précisée |
 | Trier par flexibilité future | Affirmation sans preuve dans le dépôt | plateau officiel, un fil, 10 s × 3 |
@@ -115,10 +130,11 @@ verdict (tailles de plateau, budgets, moteurs) quand la preuve en donne une.
 | Anneaux concentriques | Affirmation sans preuve dans le dépôt | un programme, un essai par budget |
 | Table de transposition partagée | Affirmation sans preuve dans le dépôt | un essai de huit travailleurs |
 | Fermeture eulérienne de la bordure | Affirmation sans preuve dans le dépôt | un test sur un million de bordures partielles |
+| Apprentissage de clauses face à la propagation | Mesuré, verdict indécis | plateaux générés de 5×5 à 7×7 ; aucun essai sur pièces réelles |
 
 ## Impasses établies, avec leur niveau de preuve
 
-Ces treize verdicts reposent sur des données versées, une source publique
+Ces vingt verdicts reposent sur des données versées, une source publique
 nommée ou une dérivation. Chacun tient dans la portée qu'il énonce, et pas
 au-delà.
 
@@ -396,6 +412,8 @@ plafonne loin sous les meilleurs bassins.
 
 Portée : un seul producteur intérieur, qui plafonne vers 440 ; on ne sait pas si un producteur proche des records verrait un effet de la bordure.
 
+Une mesure ultérieure sur les pièces réelles avec les cinq indices situe le rejet bon marché d'une bordure aux quatre coins à indice : une bordure passe les quatre tests de blocs d'indice avec une probabilité d'environ 2^-17,4, et celles qui les passent ne se réfutent pas à bas coût (voir [réfuter à bas coût les mauvaises bordures](#réfuter-à-bas-coût-les-mauvaises-bordures) et [bordure et coins](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners)). Les 47 pour cent et le « essentiellement toutes » ci-dessus sont ceux de l'essai non versé, et ne se lisent pas contre cette mesure.
+
 ### Partir du centre et croître vers l'extérieur
 
 *Le centre a le plus de liberté de rotation : partir de là et laisser les
@@ -420,6 +438,8 @@ plus rapide. À la place : la page
 ordres qui aident vraiment.
 
 Portée : recherche en profondeur stricte, 60 secondes sur un cœur, dix variantes à coins épinglés du casse-tête officiel. Les chiffres sur petits plateaux ci-dessus sont ceux de l'essai non versé.
+
+Le centre-vers-l'extérieur est l'un des dix-huit ordres de remplissage statiques mesurés ensuite sur les pièces réelles avec les cinq indices : quinze des dix-huit ne battent pas le balayage rangée par rangée, trois sont indécis (voir [un ordre statique qui bat le balayage rangée par rangée](#un-ordre-statique-qui-bat-le-balayage-rangée-par-rangée) et [approches chiffrées](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)).
 
 ### Précalculer des macro-tuiles 2×2 (ou plus grandes)
 
@@ -516,6 +536,74 @@ l'entrée lollypop : un élagage qui se déclenche après vos vérifications
 existantes vaut exactement zéro.
 
 Preuve : l'argument est dans cette entrée, et les dénombrements du théorème sont versés ([feasibility.json](https://github.com/raphael-anjou/eternity2/blob/main/research/topics/forbidden-patterns/results/feasibility.json)). Portée : recherche stricte qui ne complète un 2×2 qu'après avoir fait concorder ses bords internes.
+
+### Réfuter à bas coût les mauvaises bordures
+
+*Fixer d'abord les 60 pièces de bordure et remplir l'intérieur ensuite, en comptant sur le fait que les mauvaises bordures meurent vite.*
+
+**Mesuré**, sur les pièces réelles avec les cinq indices, revérifié indépendamment. La stratégie ne paie que si réfuter une mauvaise bordure coûte moins que la recherche qu'elle épargne. Sur 60 bordures qui passent les quatre tests de blocs d'indice (la strate qui contient la vraie bordure), la réfutation bon marché d'une bordure entière est morte : l'accélération médiane inférieure par rapport à la recherche simple a été de 0,89, 0,12 et 1,00 (un test de concordance en ordre rangées, en ordre spirale, et le solveur SAT Glucose avec la bordure en hypothèses) pour un seuil de 100. Le SAT réfute une bordure d'emblée ou jamais (46 bordures en moins de 0,35 s, les autres butent sur le plafond de 600 s), et la recherche simple a été censurée sur 25 bordures sur 60. Réfuter un arc de bordure ne s'amortit pas non plus : pour des arcs de 44, 42, 40 et 38 cases le coût imbriqué est de 27,7, 31,4, 35,4 et 39,5 bits pour des budgets de 25,5, 29,0, 32,9 et 37,0. L'information bon marché sur une bordure se trouve aux quatre coins à indice, environ 17,4 bits en tout. Les bordures loin des coins sont **indécises** : 37 bordures lointaines, 16 censurées, médiane 75,12 bits, intervalle [42,64 ; inf]. L'intérieur sous une bordure qui passe les coins est une valeur de modèle d'environ 10^13,6 nœuds en moyenne, qui remplace un 10^8,3 antérieur.
+
+Preuve : [frame-cores](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/frame-cores) ; la page de la série est [bordure et coins](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners). Portée : les pièces réelles avec cinq indices et ces réfutateurs ; aucune économie n'est revendiquée pour une recherche bordure d'abord, et les résultats sur les trois plateaux générés de contrôle sont des jouets, pas un progrès sur Eternity II.
+
+### Un ordre statique qui bat le balayage rangée par rangée
+
+*Trouver un ordre de remplissage fixe dont l'arbre soit plus petit que celui du balayage rangée par rangée.*
+
+**Mesuré**, sur les pièces officielles avec les cinq indices : dix-huit ordres statiques, chacun une estimation par population de l'arbre complet avec cinq répétitions ([orders-and-pins](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins), partie A). Quinze des dix-huit ne battent pas le balayage rangée par rangée : ils sont mesurés, ou minorés par une borne de Markov, au-dessus des 10^40,453 de ce balayage. Trois sont **indécis**, les trois ordres recuits : la population de l'estimateur meurt à la profondeur libre 38 à 48 alors que celle du balayage meurt à 191 à 198, de sorte que leurs estimations sont des minorants de l'arbre, pas des tailles, et que les données ne les montrent ni moins chers ni plus chers. Le meilleur balayage linéaire est le balayage rangée par rangée en partant du bas ; le pire, du haut à droite vers la gauche, est 1,10 bit au-dessus. Une analyse séparée place le balayage à 0,24 bit du meilleur ordre statique qu'elle ait trouvé, sans certificat que ce soit le meilleur.
+
+Preuve : [orders-and-pins](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins) ; les pages de la série sont [approches chiffrées](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) et [le prix d'une recherche complète](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search). Portée : ordres statiques seulement ; les ordres adaptatifs sont chiffrés sur la première page, et les trois ordres recuits restent ouverts.
+
+### Filtres tardifs sur le balayage rangée par rangée
+
+*Ajouter au balayage une vérification bon marché qui écarte les mauvais plateaux avant que l'arbre ne grossisse.*
+
+**Argumenté**, par un calcul sur un profil mesuré (le tableau est une somme sur le profil par niveau de l'arbre du balayage, recalculée par une seconde analyse ; ce n'est pas une expérience). Un filtre qui écarte tout nœud faux à partir de la profondeur libre d, gratuitement et sans fausse coupe, économise au plus 57,1 bits dès la profondeur 52, 29,8 dès 80, 17,1 dès 96, 6,8 dès 128, 2,4 dès 144 et 0,5 dès 158. Les vérifications essayées mordent tard. Sur des plateaux générés (des jouets), la cohérence d'arc employée seule réfute 57 pour cent des préfixes faux échantillonnés à la profondeur libre 96 et 90 pour cent à 112 (un prolongement non vérifié indépendamment), et son économie chiffrée est d'environ 5,5 bits de nœuds alors qu'une vérification coûte environ 13 bits par nœud. Un élagage par recensement des couleurs à la profondeur 144, sur un seul sens de balayage, gagne 1,02 bit [0,72 ; 1,27] pour un plafond de 2,35 à cet endroit ; avec deux sens le gain est de -0,04, avec quatre de -1,88 (revérifié indépendamment). Un filtre rentable devrait mordre avant la profondeur 96 et ne presque rien coûter ; aucun n'a été trouvé.
+
+Preuve : [approach-pricing](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing) et [prefix-statistics](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/prefix-statistics) ; la page de la série est [filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters). Portée : les deux vérifications ci-dessus, sur plateaux générés ; aucun filtre mordant avant la profondeur 96 n'a été construit sur les pièces réelles, et l'élagage à plusieurs profondeurs à la fois n'a pas été mesuré.
+
+### Relaxation semi-définie sur petits plateaux
+
+*Relaxer le problème de placement en programme semi-défini (une variable par tuile, rotation et case, élevée en matrice) et en tirer une solution, ou une voie vers une solution.*
+
+**Mesuré**, sur des plateaux jouets générés de 4×4 à 6×6, avec une lecture négative et des points indécis. La relaxation compte 478 placements à 5×5, 1 290 à 6×6 et 156 816 à 16×16. À 5×5 elle n'admet que des mélanges de vraies solutions sur les graines 1, 2 et 4 (revérifié indépendamment), reste indécise sur la graine 0 (la résolution à plus grande fuite n'a pas convergé) et n'est pas exacte sur la graine 3, qui a 403 solutions : environ 0,042 par case repose sur dix placements qu'aucune solution n'utilise (une seule famille de solveurs). Les trois essais 6×6 n'ont pas convergé : il n'existe donc aucune lecture à 6×6. Une résolution 5×5 a pris 400 à 1 100 s sur des plateaux qu'une recherche en profondeur boucle en 0,1 s au plus. À 16×16, une copie dense de la matrice fait 183 GiB, et le facteur plus les multiplicateurs de positivité environ 119 GiB (revérifié indépendamment). Les affirmations faites en chemin que la relaxation est exacte à 5×5, et les probabilités qu'elle le soit aux tailles supérieures, ont été retirées.
+
+Preuve : [relaxation-small-boards](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/relaxation-small-boards) ; la page de la série est [relaxations sur petits plateaux](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards). Portée : plateaux jouets, une famille de solveurs ; une décomposition en relaxations locales, seule voie qui rendrait la forme convexe abordable, n'a pas été essayée. Rien ici n'est un progrès sur Eternity II.
+
+### La forme de rang faible de la relaxation
+
+*Remplacer la matrice élevée par un facteur de rang faible, assez bon marché pour tourner à plus grande taille.*
+
+**Mesuré**, sur des plateaux jouets générés, négatif. À 5×5, 200 essais sur 200 ont abouti sur 15 plateaux, à environ 5 200 évaluations par solution (revérifié indépendamment), mais c'est une recherche aléatoire avec un test d'acceptation exact, pas un solveur de la relaxation : la même forme sans positivité en a résolu 46 sur 50, et avec un facteur positif 0 départ sur 50 dans chacune de quatre variantes (non revérifié indépendamment ; la dérivation l'a été). Le recuit simulé avec redémarrages coûte 8 à 35 fois moins par solution à 5×5 (revérifié indépendamment) et 3,6 à 63 fois moins à 6×6 (un seul passage, intervalles qui se recouvrent sur trois plateaux) ; à 7×7 le recuit n'a rien trouvé en 210 essais, taux inférieur à 26 pour cent par essai, sans qu'on ait montré qu'il soit nul. Le coût est multiplié par 62 de 5×5 à 6×6 (30 à 155), soit un exposant de 4,2 en nombre de placements ; sur le lot complet 6×6 (22 départs sur 50 résolus) il est de 460 416 évaluations par solution contre 5 083 (exposant 4,54, bootstrap 3,97 à 5,31, non revérifié indépendamment). Deux tailles ne séparent pas une puissance d'une exponentielle ; lu naïvement à 16×16, le lot complet donne environ 1,3e15 évaluations par solution, une extrapolation à partir de deux points, pas une mesure.
+
+Preuve : [relaxation-small-boards](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/relaxation-small-boards) ; page de la série [relaxations sur petits plateaux](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards). Portée : deux tailles pour les chiffres de croissance ; rien ici n'est un progrès sur Eternity II.
+
+### Petites modifications d'un moteur de recherche complet
+
+*Ajouter à une recherche complète avec propagation une règle de retour arrière, un ordre de valeurs, un test d'appariement ou un meilleur instrument, et réduire son arbre.*
+
+**Mesuré**, sur des plateaux générés de 6×6 à 9×9 (des jouets, jamais les pièces d'Eternity II), chaque expérience préenregistrée et revérifiée indépendamment. La référence est `bb-mrv`, une recherche complète qui remplit d'abord la case la plus contrainte ; une méthode ne passe qu'avec un rapport médian apparié de nœuds de 0,5 ou moins. Abandonnés :
+
+- **Retour arrière sur le bloqueur** (évincer la case qui bloque la case en échec, avec tabou) : 4,68 fois les nœuds de la référence plus forte `scb` à 6×6 (IC 2,40 à 6,55), et 4 résolus sur 30 à 7×7 contre 16 sur 30 ; un jumeau à éviction aléatoire en a résolu 3 sur 30. L'abandon porte sur cette recherche de réparation incomplète, pas sur un retour arrière dirigé par les conflits avec nogoods.
+- **Ordre par impact des valeurs** (essayer les valeurs selon les options que leur propagation retire) : rapports de nœuds de 1,075 [0,779 ; 1,931], 0,829 [0,544 ; 1,316] et 1,096 [0,669 ; 1,871], et il perd contre un ordre aléatoire parmi les mêmes options sondées à 6×6 (1,297). L'abandon porte sur cette mesure d'impact seulement.
+- **Test de Hall par-dessus la propagation** : il retire moins de 1 pour cent des nœuds à la paire médiane (rapport de nœuds de 0,992 à 0,999) pour 2 à 5 pour cent de temps réel ; la propagation impose déjà les cas de taille un. Un gain de 10 pour cent à 6×6, mesuré antérieurement contre `scb`, ne survit pas à `bb-mrv`.
+- **Échelle d'appariement partiel** (un instrument de score à travail fixé sur plateaux plantés) : 2 concurrents sur 5 dans la bande de 2 à 4 pour cent requise ; abandonnée pour ce lot de concurrents et ce budget seulement, comme instrument, pas comme verdict sur une méthode.
+- **Pilote de passage à l'échelle de MRV** (le rapport à `scb` continue-t-il de baisser à 9×9 ?) : censuré pour les deux dans 6 paires sur 8 à cause du plafond ; il se lit « pas de preuve », pas « le rapport s'est arrêté ».
+
+La seule modification utile ne touche que le coût : une réécriture de représentation seule rend un nœud 5,3 à 6,1 fois moins cher, avec la même suite de nœuds (0 écart sur 140), soit environ 2,6 bits (dérivé), et un nœud plus rapide ne réduit jamais l'arbre.
+
+Preuve : [blocker-backjump](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/blocker-backjump), [value-impact-order](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/value-impact-order), [hall-on-mrv](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hall-on-mrv), [partial-match-ladder](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/partial-match-ladder), [mrv-scaling-pilot](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/mrv-scaling-pilot) ; la page de la série est [pistes de moteurs de recherche](/research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks). Portée : 6×6 à 8×8 pour les rapports de nœuds, une famille de moteurs ; rien sur le 16×16.
+
+### Expériences de clés et de bandes
+
+*Mémoriser les impasses, ou indexer la recherche sur quelques couleurs ou arêtes de coupe, pour reconnaître plus tôt une branche morte.*
+
+**Mesuré**, avec trois abandons, chacun préenregistré et revérifié indépendamment.
+
+- **Bandes de la carte de différence** (projections exactes sur des bandes ajoutées à une carte de différence, sur plateaux générés) : aucune instance résolue, quelle que soit la largeur, à 7×7 (0 sur 30 pour chaque largeur, contre 23 sur 30 pour `bb-mrv`), donc aucun exposant de croissance ; à 6×6 les rapports d'itérations à la largeur 0 ont pour intervalles [0,41 ; 1,36], [0,43 ; 1,30] et [0,77 ; +inf], tous contenant 1, et une largeur coûte 3 à 33 fois plus par itération. Abandon de cette méthode à ce plafond.
+- **Rejeu indexé sur la coupe** (propagation partitionnée sur deux arêtes de coupe, rejouée sur les arbres exacts de `bb-mrv` de 60 plateaux générés) : la clé de coupe garde 0,486 [0,469 ; 0,500] des nœuds à 7×7, une clé aléatoire hors de la coupe en garde 0,419, et le travail est 1,211 fois celui de `bb-mrv`. L'élagage vient du partitionnement en général, pas de la coupe.
+- **Clés à cinq indices** (680 clés à un anneau sur les pièces réelles avec les cinq indices) : aucun des 2 240 essais n'a posé de nœud légal à la profondeur 201 ou plus, contre 9 758 pour la clé par défaut sur les mêmes ouvertures. Abandon, mais confondu : la clé par défaut différait aussi par son jeu de quota. Un prolongement (**quota à cinq indices**) a séparé les deux : avec les mêmes cinq indices, des clés à un anneau soumises à la même part de quota de 79 pour cent atteignent la profondeur 201 sur 14 ouvertures sur 16 pour le triplet publié, alors que la clé par défaut sous un quota de 147 sur 150 l'atteint sur 0 sur 16. Le jeu de quota, pas l'ensemble de couleurs, expliquait l'abandon précédent ; l'affirmation qui reste est étroite : aucune clé à un anneau sous le quota mis à l'échelle ne fonctionne.
+
+Preuve : [difference-map-bands](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/difference-map-bands), [cut-keyed-replay](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/cut-keyed-replay), [five-clue-keying](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/five-clue-keying), [five-clue-quota](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/five-clue-quota) ; la page de la série est [expériences de clés](/research/lab/experiments/raphael-anjou/full-solve/keying-experiments). Portée : 1e9 nœuds par essai sur les pièces réelles, 6×6 à 8×8 sur plateaux générés, sans redémarrages ni clé de coupe dans un solveur par balayage.
 
 ## Affirmé mais pas établi
 
@@ -641,6 +729,8 @@ entiers à région restreinte et à corpus restreint fonctionnent, eux, et c'est
 là que ces solveurs gagnent leur pain.
 
 **Ce qui trancherait :** la résolution PL conditionnelle avec la bordure d'un bon plateau fixée, et l'essai MIP avec son journal de solveur, versés pour qu'on puisse revérifier le plafond et le statut du solveur.
+
+Les relaxations semi-définies, une famille plus serrée que la linéaire ci-dessus, ont été essayées sur des plateaux jouets et sont notées dans leurs propres entrées plus bas (voir [relaxations sur petits plateaux](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards)).
 
 ### Les bases de données de motifs (l'heuristique du Rubik's Cube)
 
@@ -1141,6 +1231,22 @@ vérifications déjà en place.
 
 **Ce qui trancherait :** le moteur mono-cœur a déjà un propagateur eulérien de bordure ; le lancer sur l'échelle difficile générée face au même solveur sans lui, et verser les nombres de nœuds.
 
+## Mesuré, verdict indécis
+
+Une question a des données versées et aucun verdict. Ce n'est pas une impasse.
+
+### Apprentissage de clauses face à la propagation
+
+*Ajouter l'apprentissage de clauses à un solveur pour qu'il retienne pourquoi des branches sont mortes.*
+
+**Mesuré, verdict indécis**, sur des plateaux jouets générés à bordure de 5×5 à 7×7 (dix par taille, un fil, limite de 3 500 s), revérifié indépendamment. Le travail se compte en conflits pour les solveurs qui apprennent et en nœuds ou branches pour ceux qui ne font que propager, en bits de log2 (nœuds du balayage sur travail). Apparié sur le même ordre statique, apprendre contre ne pas apprendre rapporte **1,31** bit à 5×5 (95 % de 1,06 à 1,49) et **2,03** bits à 6×6 (1,33 à 2,26). Il n'y a pas de valeur à 7×7 : le bras qui apprend a fini 0 plateau sur 10, et les entrées du tableau 7×7 calculées sur des essais coupés à la limite sont des majorants, pas des mesures. Le seuil d'arrêt fixé à l'avance (l'avance sur le témoin sans apprentissage doit croître de 2 bits de 6×6 à 7×7 et de 3 bits de la profondeur 104 à 88) est **indécidable sur ces données** : la clause de profondeur exige une partie sur pièces réelles qui n'a jamais été lancée, et la clause de taille autorise une hausse d'au plus 2,09 pour un seuil de 2, sans borne inférieure. Un défaut relevé par la revérification, un plateau 7×7 écarté que CaDiCaL a fini en 430 s et qui est le meilleur cas du solveur qui apprend, fait que le chiffre de la première note ne borne que les 8 plateaux utilisés. La taille est confondue avec la tension (4, 5 et 7 couleurs intérieures). Chiffré pour le casse-tête complet à **0 à 2 bits en temps** (l'estimation de la revérification) ; en secondes, l'apprentissage est environ 3 bits plus lent à 6×6.
+
+Ce n'est pas une impasse close et elle n'est pas notée comme telle. Elle ne dit rien de l'apprentissage à 8×8, sur des préfixes de pièces réelles, avec un solveur à cardinalité, ou au-delà de 3 500 s.
+
+**Ce qui trancherait :** la partie sur pièces réelles (40 préfixes faux aux profondeurs libres 112 à 88), un échelon 8×8, et des essais au-delà de 3 500 s, avec un témoin qui ne fait que propager.
+
+Preuve : [learning-vs-propagation](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/learning-vs-propagation) ; la page de la série est [apprendre face à la propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation). Rien ici n'est un progrès sur Eternity II.
+
 ## Ce que les impasses établies ont en commun
 
 Deux leçons reviennent parmi les entrées mesurées, rapportées et argumentées.
@@ -1155,6 +1261,8 @@ sur la recherche stricte sans discordance, alors que les moteurs des records
 tolèrent des discordances, et elles ne disent rien d'un matériel plus rapide
 pour la chasse aux records, question encore ouverte
 ([résolution sur GPU](/research/build/hardware/gpu-solving)).
+
+La série sur le balayage rangée par rangée ajoute une troisième leçon, à portée limitée. L'arbre est mince avant la profondeur où agissent les tests qui réfutent les mauvais plateaux : une vérification qui ne mord qu'après la profondeur 96 a un plafond de 17,1 bits, et après 128 de 6,8 ([filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters)) ; le plus grand gain chiffré dans toute la série est d'environ 5,5 bits de nœuds, pour un écart de 56 à 73 bits.
 
 La seconde section est la plus longue. Lisez chacune de ses entrées comme une
 hypothèse assortie d'un moyen de la tester, pas comme une porte fermée. Pour

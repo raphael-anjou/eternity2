@@ -9,7 +9,7 @@ metaDescription: "Arc consistency on Eternity II: Mackworth's AC-3, AC-2001 and 
 kind: concept
 order: 10
 group: Reduce the search
-updated: 2026-11-11
+updated: 2026-11-14
 topics: [search-space]
 rigor: measured
 complexity:
@@ -41,6 +41,8 @@ related:
   - /research/build/reduce/alldiff-regin
   - /research/build/dead-ends
   - /research/lab/experiments/raphael-anjou/dfs-study/findings
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
 repro:
   kind: prose
 ---
@@ -247,6 +249,30 @@ behaviour end up mattering as much as the exponent on $d$.
   literature, not a measurement. And the belief that AC-3 dominated the
   runtime profile was itself never confirmed by a profiler. Measure before
   porting.
+
+## What the full-solve series measured under row scan
+
+Priced against the row-scan tree of the real pieces with five clues (see
+[approaches priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)), arc consistency is the
+one propagation with a measured worth. Its gain is about 5.5 bits of nodes in
+branches tried (6.1 on surviving nodes), estimated directly on the official
+pieces; on generated toy boards of side 5 to 10 near the critical colour count
+it is 4.5 to 4.8 bits, flat with size. That figure was independently
+re-checked. Its cost per node is the other side: the desk study prices one
+check at about 13 bits per node, a figure not independently checked, so the
+net is a loss.
+
+Where it refutes wrong boards is late. On generated 16×16 boards with the
+official colour census (toy boards, never Eternity II progress), arc
+consistency run alone on prefixes sampled from the row scan still accepted
+0.427 of the wrong prefixes at free depth 96, 0.096 at 112 and 0.179 at 128,
+that is it refuted 57, 90 and 82 percent; it refuted 94 percent at 144, 99 at
+152 and all at 160, and it never refuted the true prefix. This follow-up was
+**not independently checked**. A coarser run, independently reproduced, found
+every sampled prefix refuted in 189 of 192 board-direction rows at depth 160
+and in all 192 at depth 176. A share refuted is not a saving: a perfect free
+cut at depth 144 would save at most 2.4 bits of nodes, as
+[late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters) works out.
 
 ## The soundness caveat
 

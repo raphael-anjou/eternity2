@@ -10,7 +10,7 @@ metaDescription: "Consistencia de arco en Eternity II: AC-3, AC-2001 y el AC con
 kind: concept
 order: 10
 group: Reduce the search
-updated: 2026-11-11
+updated: 2026-11-14
 topics: [search-space]
 rigor: measured
 complexity:
@@ -43,6 +43,8 @@ related:
   - /research/build/reduce/alldiff-regin
   - /research/build/dead-ends
   - /research/lab/experiments/raphael-anjou/dfs-study/findings
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
 repro:
   kind: prose
 ---
@@ -264,6 +266,33 @@ exponente de $d$.
   2 a 5× aquí es una lectura de la literatura, no una medición. Y la creencia de
   que AC-3 dominaba el perfil de ejecución nunca la confirmó un profiler. Medir
   antes de portar.
+
+## Lo que midió la serie de resolución completa bajo el barrido por filas
+
+Valorada frente al árbol del barrido por filas de las piezas reales con cinco
+pistas (véase [enfoques descartados por precio](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)),
+la consistencia de arco es la única propagación con un valor medido. Su
+ganancia es de unos 5,5 bits de nodos en ramas probadas (6,1 sobre nodos
+supervivientes), estimada directamente sobre las piezas oficiales; en tableros
+de juguete generados de lado 5 a 10, cerca del número crítico de colores, es de
+4,5 a 4,8 bits, sin pendiente con el tamaño. Esa cifra se revisó de forma
+independiente. Su coste por nodo es la otra cara: el estudio de escritorio
+valora una comprobación en unos 13 bits por nodo, cifra no comprobada de forma
+independiente, de modo que el balance es una pérdida.
+
+Solo refuta los tableros malos tarde. En tableros 16×16 generados con el censo
+oficial de colores (tableros de juguete, nunca un avance en Eternity II), la
+consistencia de arco ejecutada sola sobre prefijos muestreados del barrido por
+filas aún aceptaba 0,427 de los prefijos erróneos a profundidad libre 96, 0,096
+a 112 y 0,179 a 128, es decir, refutaba el 57, el 90 y el 82 por ciento;
+refutaba el 94 por ciento a 144, el 99 a 152 y todos a 160, y nunca refutó el
+prefijo verdadero. Este seguimiento **no se ha comprobado de forma
+independiente**. Una pasada más gruesa, reproducida de forma independiente,
+halló todos los prefijos muestreados refutados en 189 de 192 filas
+tablero-dirección a profundidad 160 y en las 192 a profundidad 176. Una
+proporción refutada no es un ahorro: un corte perfecto y gratuito a profundidad
+144 ahorraría como mucho 2,4 bits de nodos, como calcula
+[filtros tardíos](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
 
 ## La salvedad sobre la corrección
 

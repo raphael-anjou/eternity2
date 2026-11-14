@@ -11,7 +11,7 @@ contribution: negative
 rigor: measured
 tier: 1
 order: 10
-updated: 2026-11-13
+updated: 2026-11-14
 topics: [speed, search-space, backtracking]
 sources:
   - label: Article, source and results on GitHub (research/topics/prune-vs-speed)
@@ -27,6 +27,8 @@ related:
   - /research/why/phase-transition
   - /research/why/rigidity-wall
   - /research/build/reduce/arc-consistency
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks
 repro:
   kind: exact
   cmd: just research-prune-vs-speed
@@ -123,6 +125,17 @@ that moved the score changed the shape of the search: a different scan
 order, a learned prior over where pieces sit, a confined region for the
 mismatches. And many dead ends are, at heart, a prune that the puzzle's
 global structure refuses to honour.
+
+Both sides of this trade have since been measured on the full row-scan tree
+(small-board and derived results, not Eternity II progress). A filter's gain has
+a ceiling set by the depth at which it starts to bite: a perfect free cut from
+free depth 144 would save at most 2.4 bits of the 134.4 the scan costs, and the
+largest gain priced for any filter is about 5.5 bits of nodes
+([late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters)). A solver that changes only its
+representation and reproduces the original's node sequence ran 5.3, 6.1 and 5.3
+times faster at 6×6, 7×7 and 8×8, independently re-checked
+([search-engine tracks](/research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks), experiment
+`mrv-node-cost`): about 2.6 bits at best, a constant divisor as above.
 
 ## The community landed here too, the hard way
 

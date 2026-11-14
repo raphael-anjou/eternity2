@@ -27,7 +27,7 @@ repro:
   kind: seeded
   cmd: just experiments single-core-benchmark
 order: 10
-updated: 2026-11-11
+updated: 2026-11-14
 date: 2026-07
 topics: [speed, construction, backtracking]
 related:
@@ -35,6 +35,8 @@ related:
   - /research/build/construct/beam-search
   - /research/lab/experiments/single-core-benchmark/csp-presets
   - /research/records
+  - /research/lab/experiments/raphael-anjou/full-solve/port-fidelity
+  - /research/lab/experiments/raphael-anjou/full-solve
 sources:
   - label: "Motor ejecutable + resultados commiteados + scripts (el directorio de soporte de este experimento)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
@@ -76,8 +78,10 @@ estudio por derecho propio, en su
 
 Los dos backtrackers récord dominan este presupuesto. Nuestro motor de estilo
 Verhaard alcanza una media de **440,8** (mejor 451) y nuestro motor de estilo
-Blackwood **436,4** (mejor 440), a 24 y 41 millones de nodos de búsqueda por
-segundo. Nada más se acerca: el DFS ingenuo se posa en **365,6**, a unos 274 mil
+Blackwood **436,4** (mejor 440; esta fila se midió con los valores por defecto del
+portado anterior, antes de las correcciones descritas en la página de
+[fidelidad del portado](/research/lab/experiments/raphael-anjou/full-solve/port-fidelity), así que mide el portado anterior), a 24 y 41
+millones de nodos de búsqueda por segundo. Nada más se acerca: el DFS ingenuo se posa en **365,6**, a unos 274 mil
 nodos por segundo, y el mejor preajuste CSP en torno a **183**.
 
 En las filas publicadas aquí, los dos backtrackers rápidos ganan con holgura,
@@ -172,7 +176,7 @@ cifras actuales.
 |:--|--:|:--|
 | Récord comunitario estricto de cinco pistas | [récords](/research/records) | las mismas 5 pistas que fijan estas variantes, sin las 3 esquinas adicionales |
 | Mejor de esta cuadrícula (estilo Verhaard) | 451 | un hilo, 60 s (media 440,8 sobre 10 variantes) |
-| Estilo Blackwood en esta cuadrícula | 440 | un hilo, 60 s (media 436,4 sobre 10 variantes) |
+| Estilo Blackwood en esta cuadrícula (portado anterior, valores previos a la corrección) | 440 | un hilo, 60 s (media 436,4 sobre 10 variantes); no repetida con los valores corregidos |
 | Récord comunitario solo con la pieza inicial | [récords](/research/records) | Blackwood, ~1 mes en un solo PC; solo respeta la pista central obligatoria (1 de 5), un régimen más laxo que estas variantes |
 
 ## Método y reproducibilidad
@@ -211,13 +215,21 @@ puntuar con el único puntuador canónico.
 El perfilado situó el 96,6 por ciento del tiempo de la familia CSP en un único
 bucle AC-3 fuertemente preoptimizado, así que las velocidades del benchmark son
 las velocidades reales de ese motor, no una brecha de implementación. Por otra
-parte, las constantes Blackwood de la comunidad no se transfieren tal cual de un
-etiquetado de colores a otro: en una comparación con tres semillas sobre nuestro
-etiquetado, sus colores privilegiados `{13, 16, 10}` obtuvieron 387 frente a 435
-para el reajuste `{22, 21, 20}` que usa ahora nuestro Blackwood, conservando cada
-elemento estructural de la especificación publicada. El reajuste se eligió sobre
-esa misma comparación, así que 435 es una cifra dentro de la muestra; no se ha
-hecho una comprobación sobre variantes reservadas.
+parte, una versión anterior de esta página afirmaba que las constantes Blackwood
+de la comunidad no se transfieren de un etiquetado de colores a otro, a partir de
+una comparación con tres semillas en la que los colores `{13, 16, 10}` obtuvieron
+387 frente a 435 del reajuste `{22, 21, 20}` (cifra elegida sobre esa misma
+comparación, es decir, dentro de la muestra). Ese hallazgo se retira. En la
+numeración de este repositorio, el conjunto privilegiado publicado es
+`{5, 20, 7}` y no `{13, 16, 10}`: los colores comparados eran tres colores
+interiores, que no son su conjunto, así que la comparación no prueba si sus
+constantes se transfieren. La única lectura sostenible es que tres colores
+interiores puntuaron menos que un conjunto reajustado en esas semillas. El
+conjunto publicado, con su curva de cuota leída como proporción de sus lados, es
+ahora el valor por defecto del motor y no se ha medido frente a `{22, 21, 20}`
+con el protocolo de esta página (diez variantes de esquinas, 60 s); si las
+constantes se transfieren sigue abierto. El detalle y las siete correcciones
+están en la página de [fidelidad del portado](/research/lab/experiments/raphael-anjou/full-solve/port-fidelity).
 
 ## Trabajo abierto
 

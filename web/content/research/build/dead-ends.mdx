@@ -2,15 +2,15 @@
 title: Dead ends and untested claims
 description: >-
   Approaches that did not move the score on Eternity II, each graded by the
-  strength of its evidence. Thirteen verdicts rest on committed data, a named
+  strength of its evidence. Twenty verdicts rest on committed data, a named
   public report or a derivation; twenty-two more are stated without evidence a
   reader can open, and are listed separately with the experiment that would
-  settle each.
-metaDescription: "Eternity II approaches that did not move the score, each with a visible evidence grade (measured, reported, argued, or claim without committed evidence) and the scope of its verdict: thirteen established dead ends, and twenty-two untested claims with the experiment that would settle each."
+  settle each, and one measured question that stays undecided.
+metaDescription: "Eternity II approaches that did not move the score, each with a visible evidence grade (measured, reported, argued, or claim without committed evidence) and the scope of its verdict: twenty established dead ends, twenty-two untested claims with the experiment that would settle each, and one undecided question."
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-11-13
+updated: 2026-11-14
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "eternity2.net shuts down: 1.6 TFlops, 10^19 CPU operations, no solution (groups.io message 3511)"
@@ -48,15 +48,24 @@ related:
   - /research/build/exact/sat-csp-encodings
   - /research/build/hardware/gpu-solving
   - /research/lab/experiments/raphael-anjou/repair-study/findings
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks
+  - /research/lab/experiments/raphael-anjou/full-solve/keying-experiments
 ---
 
 Approaches that look promising and did not move the score on Eternity II,
 each with the strength of its evidence. None of these are bad ideas in
-general. Most of the verdicts below are not yet established: of 35 entries,
-4 are measured with committed data, 5 are reported by a named public source,
-4 are argued from a derivation, and 22 rest on runs whose data are not
-committed. Only the first three groups are called dead ends here; the fourth
-is listed separately, entry by entry, with the experiment that would settle it.
+general. About half of the verdicts below are not yet established: of 43 entries,
+10 are measured with committed data, 5 are reported by a named public source,
+5 are argued from a derivation, 22 rest on runs whose data are not
+committed, and 1 is measured but undecided. Only the first three groups are
+called dead ends here; the fourth is listed separately, entry by entry, with
+the experiment that would settle it, and the undecided one has its own short
+section after it.
 
 ## Evidence grades
 
@@ -90,6 +99,13 @@ verdict (board sizes, budgets, engines) where the evidence gives one.
 | 2×2 macro-tiles | Reported | 2×2 blocks as a domain reduction, 2008 |
 | Border-supply pruning | Reported | strict search on an 8×8, 2008; mismatch-tolerant search untested |
 | Forbidden-pattern pruning | Argued | edge-strict search |
+| Refute wrong frames cheaply | Measured | real pieces, five clues, three refuters; frames away from the clue corners undecided |
+| A static order beating row scan | Measured | 18 static orders on the real pieces, five clues; 3 undecided |
+| Late filters on the row scan | Argued | ceiling by depth, derived from a measured profile; two toy-board checks |
+| Semidefinite relaxation | Measured | toy boards 4×4 to 6×6; no 6×6 reading |
+| Low-rank form of the relaxation | Measured | toy boards 5×5 and 6×6 (7×7 for one control) |
+| Small changes to a complete engine | Measured | generated boards 6×6 to 9×9, five experiments |
+| Keying and band experiments | Measured | generated boards, plus real pieces for the keying runs |
 | Survey propagation | Claim without committed evidence | one generated 4×4, three settings |
 | Belief-propagation move ordering | Claim without committed evidence | not stated |
 | Sort by future flexibility | Claim without committed evidence | official board, one thread, 10 s × 3 |
@@ -112,10 +128,11 @@ verdict (board sizes, budgets, engines) where the evidence gives one.
 | Concentric rings | Claim without committed evidence | one schedule, one run per budget |
 | Shared transposition table | Claim without committed evidence | one run of eight workers |
 | Eulerian border closure | Claim without committed evidence | one test of a million partial borders |
+| Clause learning against propagation | Measured, verdict undecided | generated boards 5×5 to 7×7; no real-piece run |
 
 ## Graded dead ends
 
-These thirteen verdicts rest on committed data, a named public source or a
+These twenty verdicts rest on committed data, a named public source or a
 derivation. Each holds within the scope it states, and no further.
 
 ### Symmetry breaking
@@ -364,6 +381,8 @@ allows, and that family plateaus far below the best basins.
 
 Scope: one interior producer whose ceiling sits near 440; whether a near-record producer would see a border effect is untested.
 
+A later measurement on the real pieces with the five clues puts the cheap rejection of a frame at the four clue corners: a frame passes the four clue-block tests with probability about 2^-17.4, and the frames that do pass are not cheaply refuted (see [refute wrong frames cheaply](#refute-wrong-frames-cheaply) and [frame and corners](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners)). The 47 percent and "essentially all" figures above are the uncommitted run's own and are not read against that measurement.
+
 ### Start from the center and grow outward
 
 *The center has the most rotational freedom, so start there and let the
@@ -385,6 +404,8 @@ freedom means less pruning, not faster search. Instead: the
 do help.
 
 Scope: strict depth-first search, 60 seconds on one core, ten corner-pinned variants of the official puzzle. The small-board numbers above are the uncommitted run's own.
+
+Center-out is one of the eighteen static fill orders later measured on the real pieces with the five clues; fifteen of the eighteen do not beat row scan and three are undecided (see [a static order beating row scan](#a-static-order-beating-row-scan) and [approaches priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out)).
 
 ### Precompute 2×2 (or bigger) macro-tiles
 
@@ -470,6 +491,74 @@ the lollypop entry: a prune that fires after your existing checks is worth
 exactly nothing.
 
 Evidence: the argument is in this entry, and the theorem's counts are committed ([feasibility.json](https://github.com/raphael-anjou/eternity2/blob/main/research/topics/forbidden-patterns/results/feasibility.json)). Scope: edge-strict search that completes a 2×2 only after matching its internal edges.
+
+### Refute wrong frames cheaply
+
+*Fix the 60 border pieces first and fill the interior second, on the theory that wrong frames die cheaply.*
+
+**Measured**, on the real pieces with the five clues, independently re-checked. The search only pays if wrong frames cost less to refute than the search they save. On 60 frames that pass the four clue-block tests (the stratum that contains the true frame), cheap refutation of a full frame is dead: the lower median speed-up over plain search was 0.89, 0.12 and 1.00 (a matching check in rows order, in spiral order, and the Glucose SAT solver with the frame as assumptions) against a line of 100. SAT refutes a frame at once or not at all (46 frames within 0.35 s, the rest hit the 600 s cap), and plain search was censored on 25 of 60. Refuting an arc of the border does not break even either: for arcs of 44, 42, 40 and 38 border cells the nested cost is 27.7, 31.4, 35.4 and 39.5 bits against budgets of 25.5, 29.0, 32.9 and 37.0. The cheap information about a frame sits at the four clue corners, about 17.4 bits in all. Frames away from the corners are **undecided**: 37 far frames, 16 censored, median 75.12 bits with an interval of [42.64, inf]. The interior under a frame that passes the corners is a model figure of about 10^13.6 nodes in the mean, replacing an earlier 10^8.3.
+
+Evidence: [frame-cores](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/frame-cores); the series page is [frame and corners](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners). Scope: the real pieces with five clues and these refuters; no saving is claimed for a frame-first search, and results on the three generated control boards are toys, not Eternity II progress.
+
+### A static order beating row scan
+
+*Find a fixed fill order whose tree is smaller than the row scan's.*
+
+**Measured**, on the official pieces with the five clues: eighteen static orders, each a population estimate of the full tree with five repetitions ([orders-and-pins](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins), part A). Fifteen of the eighteen do not beat row scan: they are measured, or bounded below by a Markov bound, above row scan's 10^40.453. Three are **undecided**, the three annealed orders: the estimator's population dies at free depth 38 to 48 while row scan's dies at 191 to 198, so their estimates are lower bounds on the tree, not sizes, and the data show them neither cheaper nor dearer. The best line scan is row scan from the bottom; the worst, from the top right to left, is 1.10 bits above it. A separate analysis puts row scan within 0.24 bit of the best static order it could find, with no certificate that row scan is the best.
+
+Evidence: [orders-and-pins](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins); the series pages are [approaches priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) and [the price of a full search](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search). Scope: static orders only; adaptive orders are priced on the first page, and the three annealed orders stay open.
+
+### Late filters on the row scan
+
+*Add a cheap check to the row scan that removes wrong boards before the tree grows.*
+
+**Argued**, from arithmetic over a measured profile (the table is a sum over the level profile of the row-scan tree, recomputed by a second analysis; it is not an experiment). A filter that removes every wrong node from free depth d onward, for free and with no false cuts, saves at most 57.1 bits from depth 52, 29.8 from depth 80, 17.1 from depth 96, 6.8 from depth 128, 2.4 from depth 144 and 0.5 from depth 158. The checks tried bite late. On generated boards (toys), arc consistency run alone refutes 57 percent of sampled wrong prefixes at free depth 96 and 90 percent at 112 (a follow-up that was not independently checked), and its priced saving is about 5.5 bits of nodes while one check costs about 13 bits per node. A colour-census prune at depth 144 on one scan direction gains 1.02 bits [0.72, 1.27] against a ceiling of 2.35 there; with two scan directions the gain is -0.04, with four -1.88 (independently re-checked). A filter that paid would have to bite before depth 96 and cost almost nothing; none was found.
+
+Evidence: [approach-pricing](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing) and [prefix-statistics](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/prefix-statistics); the series page is [late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters). Scope: the two checks above, on generated boards; no filter that bites before depth 96 was built on the real pieces, and pruning at several depths at once was not measured.
+
+### Semidefinite relaxation on small boards
+
+*Relax the placement problem to a semidefinite program (one variable per tile, rotation and cell, lifted to a matrix) and read a solution, or a route to one, from it.*
+
+**Measured**, on generated toy boards of 4×4 to 6×6, with a negative reading and some parts undecided. The lift has 478 placements at 5×5, 1,290 at 6×6 and 156,816 at 16×16. At 5×5 it allows only blends of true solutions on seeds 1, 2 and 4 (independently re-checked), is undecided on seed 0 (the largest-leak solve has not converged), and is not exact on seed 3, which has 403 solutions: about 0.042 per cell sits on ten placements that no solution uses (one solver family only). The three 6×6 runs did not converge, so no 6×6 reading exists. A 5×5 solve took 400 to 1,100 s on boards that depth-first search clears in at most 0.1 s. At 16×16 one dense copy of the matrix is 183 GiB and the factor plus nonnegativity multipliers about 119 GiB (independently re-checked). Claims made along the way that the lift is exact at 5×5, and odds that it is exact at larger sizes, were withdrawn.
+
+Evidence: [relaxation-small-boards](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/relaxation-small-boards); the series page is [relaxations on small boards](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards). Scope: toy boards, one solver family; a decomposition into local lifts, the only route that could make the convex form affordable, was not run. Nothing here is Eternity II progress.
+
+### The low-rank form of the relaxation
+
+*Replace the lifted matrix by a low-rank factor, cheap enough to run at larger sizes.*
+
+**Measured**, on generated toy boards, negative. At 5×5, 200 of 200 runs solved on 15 boards at about 5,200 evaluations per solution (independently re-checked), but this is a randomised search with an exact acceptance test, not a solver of the relaxation: the same form with nonnegativity removed solved 46 of 50, and with a nonnegative factor 0 of 50 starts solved in each of four variants (not independently checked; the derivation was re-checked). Plain annealing with restarts is 8 to 35 times cheaper per solution at 5×5 (independently re-checked) and 3.6 to 63 times cheaper at 6×6 (one pass, intervals overlap on three boards); at 7×7 annealing found nothing in 210 runs, a rate below 26 percent per run, not shown to be zero. The cost grows 62 times from 5×5 to 6×6 (30 to 155), an exponent of 4.2 in the number of placements; on the full 6×6 batch (22 of 50 starts solved) it is 460,416 evaluations per solution against 5,083 (exponent 4.54, bootstrap 3.97 to 5.31, not independently checked). Two sizes cannot separate a power from an exponential; read naively at 16×16 the full batch gives about 1.3e15 evaluations per solution, an extrapolation from two points, not a measurement.
+
+Evidence: [relaxation-small-boards](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/relaxation-small-boards); series page [relaxations on small boards](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards). Scope: two sizes for the growth figures; nothing here is Eternity II progress.
+
+### Small changes to a complete search engine
+
+*Add a backjump rule, a value order, a matching check or a better instrument to a complete search with propagation, and shrink its tree.*
+
+**Measured**, on generated boards of 6×6 to 9×9 (toys, never the Eternity II pieces), each preregistered and independently re-checked. The baseline is `bb-mrv`, a complete search that fills the most constrained cell first; a method passes only with a paired median node ratio of 0.5 or lower. Dropped:
+
+- **Blocker backjump** (evict the cell that blocks the failed cell, with tabu) used 4.68 times the nodes of the stronger baseline `scb` at 6×6 (CI 2.40 to 6.55) and solved 4 of 30 at 7×7 against 16 of 30; a random-eviction twin solved 3 of 30. The kill covers this incomplete repair search, not conflict-directed backjumping with no-goods.
+- **Value-impact order** (try values by the options their propagation removes) gave node ratios of 1.075 [0.779, 1.931], 0.829 [0.544, 1.316] and 1.096 [0.669, 1.871], and loses to a random order among the same probed options at 6×6 (1.297). The kill covers this impact measure only.
+- **Hall test on top of the propagation** removes under 1 percent of nodes at the median pair (node ratio 0.992 to 0.999) while costing 2 to 5 percent in wall clock; propagation already enforces the size-one cases. An earlier 10 percent gain at 6×6 was measured against `scb` and does not survive `bb-mrv`.
+- **Partial-match ladder** (an instrument for score at fixed work on planted boards) found 2 of 5 entrants in the 2 to 4 percent band it needed; dropped for this entrant pool and budget only, as an instrument, not as a verdict on a method.
+- **MRV scaling pilot** (does the ratio to `scb` keep falling at 9×9?) was censored for both in 6 of 8 pairs because of the cap; it reads no evidence, not "the ratio stopped".
+
+The one change that helped changed cost only: a representation-only rewrite makes a node 5.3 to 6.1 times cheaper with the node sequence unchanged (0 of 140 mismatches), about 2.6 bits (derived), and a faster node never shrinks the tree.
+
+Evidence: [blocker-backjump](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/blocker-backjump), [value-impact-order](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/value-impact-order), [hall-on-mrv](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hall-on-mrv), [partial-match-ladder](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/partial-match-ladder), [mrv-scaling-pilot](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/mrv-scaling-pilot); the series page is [search engine tracks](/research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks). Scope: 6×6 to 8×8 for the node ratios, one engine family; nothing on the 16×16.
+
+### Keying and band experiments
+
+*Remember dead ends, or key the search on a few colours or cut edges, so a branch is recognised as dead sooner.*
+
+**Measured**, with three kills, each preregistered and independently re-checked.
+
+- **Difference-map bands** (exact band projections added to a difference map, on generated boards): no instance solved at any width at 7×7 (0 of 30 for each width, against 23 of 30 for `bb-mrv`), so no growth exponent exists; at 6×6 the iteration ratios to width 0 have intervals [0.41, 1.36], [0.43, 1.30] and [0.77, +inf], all containing 1, and a width costs 3 to 33 times more per iteration. Killed for this method at this cap.
+- **Cut-keyed replay** (propagation partitioned on two cut edges, replayed over the exact `bb-mrv` trees of 60 generated boards): the cut key keeps 0.486 [0.469, 0.500] of the nodes at 7×7, a random key off the cut line keeps 0.419, and the work is 1.211 times `bb-mrv`'s. The pruning comes from partitioning in general, not from the cut.
+- **Five-clue keying** (680 one-ring keyings on the real pieces with the five clues): none of 2,240 runs placed a legal node at depth 201 or more, against 9,758 for the default keying on the same openings. Killed, but confounded: the default also differed in quota slack. A follow-up (**five-clue quota**) separated the two: with the same five clues, one-ring keyings asked for the same 79 percent quota share reached depth 201 on 14 of 16 openings for the published triple, while the default under a 147-of-150 quota reached it on 0 of 16. Quota slack, not the colour set, explained the earlier kill, and the surviving claim is narrow: no one-ring keying under the scaled quota works.
+
+Evidence: [difference-map-bands](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/difference-map-bands), [cut-keyed-replay](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/cut-keyed-replay), [five-clue-keying](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/five-clue-keying), [five-clue-quota](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/five-clue-quota); the series page is [keying experiments](/research/lab/experiments/raphael-anjou/full-solve/keying-experiments). Scope: 1e9 nodes per run on the real pieces, 6×6 to 8×8 on generated boards, no restarts and no cut key inside a row-scan solver.
 
 ## Stated but not established
 
@@ -584,6 +673,8 @@ in half an hour; restricted-region and restricted-corpus integer models do
 work, and that is where these solvers earn their keep.
 
 **What would settle it:** the conditional LP solve with a strong board's border fixed, and the MIP run with its solver log, committed so the ceiling and the solver status can be rechecked.
+
+Semidefinite relaxations, a tighter family than the linear one above, were run on toy boards and are graded as their own entries below (see [relaxations on small boards](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards)).
 
 ### Pattern databases (the Rubik's Cube heuristic)
 
@@ -1036,6 +1127,22 @@ checks you already run.
 
 **What would settle it:** the single-core engine already has a border Eulerian propagator; run it on the generated hard ladder against the same solver without it, and commit the node counts.
 
+## Measured, verdict undecided
+
+One question has committed data and no verdict. It is not a dead end.
+
+### Clause learning against propagation
+
+*Add clause learning to a solver and let it remember why branches died.*
+
+**Measured, verdict undecided**, on generated framed toy boards of 5×5 to 7×7 (ten per size, one thread, 3,500 s limit), independently re-checked. Work is counted in conflicts for the learning solvers and in nodes or branches for the propagation-only ones, as bits of log2 (row-scan nodes over work). Paired on the same static order, learning on against off gains **1.31** bits at 5×5 (95% 1.06 to 1.49) and **2.03** bits at 6×6 (1.33 to 2.26). There is no 7×7 value: the learning arm finished 0 of 10 boards, and the 7×7 table entries computed from runs cut at the limit are upper bounds, not measurements. The stop line fixed in advance (the lead over the propagation-only control must rise by 2 bits from 6×6 to 7×7 and by 3 bits from depth 104 to 88) is **undecidable on this data**: the depth clause needs a real-piece part that was never run, and the size clause allows a rise of at most 2.09 against a threshold of 2, with no lower bound. A fault found by the re-check, a dropped 7×7 board that CaDiCaL finished in 430 s and that is the learning solver's best case, means the first note's figure bounds only the 8 boards it used. Size is confounded with tightness (4, 5 and 7 inner colours). Priced for the full puzzle at **0 to 2 bits in time** (the re-check's estimate); in seconds, learning is about 3 bits slower at 6×6.
+
+This is not a closed dead end and is not graded as one. It tells nothing about learning at 8×8, on real-piece prefixes, with a cardinality solver, or past 3,500 s.
+
+**What would settle it:** the real-piece part (40 wrong prefixes at free depths 112 to 88), an 8×8 rung, and runs past 3,500 s, with a propagation-only control.
+
+Evidence: [learning-vs-propagation](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/learning-vs-propagation); the series page is [learning against propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation). Nothing here is Eternity II progress.
+
 ## What the established dead ends have in common
 
 Two lessons recur among the measured, reported and argued entries. A
@@ -1048,6 +1155,8 @@ are scoped. They are about strict, matching-only search, while the record
 engines tolerate mismatches, and they say nothing about faster hardware for
 record hunting, which is open
 ([GPU solving](/research/build/hardware/gpu-solving)).
+
+The row-scan series adds a scoped third lesson. The tree is thin before the depth where the tests that refute wrong boards act, so a check that bites only after about depth 96 has a ceiling of 17.1 bits and one that bites after depth 128 of 6.8 ([late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters)); the largest gain priced anywhere in the series is about 5.5 bits of nodes, against a gap of 56 to 73 bits.
 
 The second section is the larger one. Treat each of its entries as a
 hypothesis with a stated way to test it, not as a closed door. For the open

@@ -12,7 +12,7 @@ metaDescription: "Edge matching is NP-complete as a family, but one fixed 16x16 
 kind: concept
 contribution: exposition
 order: 25
-updated: 2026-11-13
+updated: 2026-11-14
 topics: [exact-methods]
 sources:
   - label: 'Demaine & Demaine 2007, "Jigsaw Puzzles, Edge Matching, and Polyomino Packing: Connections and Complexity" (Graphs and Combinatorics 23): edge matching is NP-complete'
@@ -25,6 +25,7 @@ sources:
     url: https://en.wikipedia.org/wiki/Eternity_II_puzzle
 related:
   - /research/why/complex-theory
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
   - /research/build/exact/sat-csp-encodings
   - /research/build/exact/exact-cover-dlx
   - /research/build/reduce/arc-consistency
@@ -84,7 +85,14 @@ Two separate statements, kept apart:
   [complex theory](/research/why/complex-theory)). A backtracking search therefore threads an astronomically wide
   space toward a near-empty solution set, so it spends almost all of its time
   exploring dead ends. That is why the puzzle is hard *in practice*, and it is a
-  claim about this board, not about the family.
+  claim about this board, not about the family. The $10^{557}$ counts
+  arrangements, not the work of a search: a plain row-scan backtracking tree on
+  the official pieces was measured at about $10^{40.457}$ nodes ($2^{134.4}$)
+  with five clues, $10^{47.140}$ with the centre clue only and $10^{50.039}$
+  with none, in line with the first-moment model, and the official piece set is
+  an ordinary member of boards painted with the same colour counts on that
+  statistic ([the price of a full
+  search](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search)).
 
 The worst-case theorem and the empirical difficulty point the same way here,
 but they are different kinds of statement and only one of them is a theorem. A
@@ -98,8 +106,9 @@ than appealing to the general theorem
 <Callout kind="note" title="The one-line version">
   "Is Eternity II NP-complete?" No: an instance has no complexity class. "Is the
   edge-matching problem NP-complete?" Yes. "Is this instance hard to solve?"
-  Empirically yes, because the search space is ~$10^{557}$ wide and the solution
-  set is nearly empty, so search drowns in dead ends.
+  Empirically yes, because the search space is ~$10^{557}$ wide, a plain search tree
+  over it is measured at ~$10^{40.457}$ nodes, and the solution set is nearly
+  empty, so search drowns in dead ends.
 </Callout>
 
 ## Encoding it: the setup

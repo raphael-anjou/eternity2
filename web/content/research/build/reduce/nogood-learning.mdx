@@ -10,7 +10,7 @@ metaDescription: "No-good learning on Eternity II: a failed subtree is a theorem
 kind: concept
 order: 190
 group: Reduce the search
-updated: 2026-11-13
+updated: 2026-11-14
 topics: [search-space, exact-methods]
 sources:
   - label: "Max's frontier-index scheme: 16 unmatched edges plus a piece bitmap (groups.io message 6137, 2008)"
@@ -64,6 +64,8 @@ related:
   - /research/build/exact/sat-csp-encodings
   - /research/build/faster/solver-engineering
   - /research/lab/experiments/joshua-blackwood/solver
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
 repro:
   kind: prose
 ---
@@ -309,6 +311,36 @@ The pattern across all three: nobody refuted the theorem. Failed subtrees
 (frontier plus piece set) is too large for any table to cover a useful
 fraction of the states, so exact hits stay near 1%, while the tables grow
 without bound and each probe pays memory latency.
+
+## Clause learning against propagation, measured on toy boards
+
+A cleaner test than the archive's hit rates: does learning clauses beat a solver
+that only propagates? On generated framed boards (ten per size, one corner
+pinned; toy boards, never Eternity II progress), a clause-learning solver was
+run against the same solver with learning off and the same cell order, counting
+conflicts. Learning was worth +1.31 bits at 5×5 (95% interval +1.06 to +1.49)
+and +2.03 bits at 6×6 (+1.33 to +2.26), paired and exhaustive. There is no 7×7
+value: the learning arm finished none of its ten boards. The two arms differ in
+backjumping, restarts and clause deletion as well as in learning, and size is
+confounded with tightness (the colour count rose with the board).
+
+In wall time the sign flips: learning was about 3 bits slower at 6×6 and on the
+three 7×7 pairs that finished, its conflict rate falling from 1,454 to 256 a
+second between 6×6 and 7×7. The pre-stated stop line (a lead over propagation
+alone that does not rise by 2 bits from 6×6 to 7×7, and not by 3 bits from
+depth 104 to 88) is undecidable on this data: the depth clause has no data, and
+the size clause leaves a rise of at most +2.09 bits against a threshold of 2,
+with no lower bound. The independent re-check of this run priced learning at 0
+to 2 bits in time for the full puzzle.
+
+The desk study that priced the family agrees, with a narrower scope after its
+own re-check: a free, perfect store of reasons of at most 61 bits would remove
+1.9 to 2.1 bits of row-scan nodes, and no store of reasons obtained from
+refutations at most 32 cells high removes more than 6.6 bits. Ten bits would
+need reasons for taller subtrees at free depth 128 or earlier, and none has
+been measured, so "empty" is evidence of absence at toy scale, not a proof. A
+measurement on real-piece subtrees is not yet reported. Write-up:
+[learning against propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation).
 
 ## Where it genuinely pays
 
