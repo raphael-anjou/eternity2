@@ -271,5 +271,5 @@ cut-keyed partitioning is killed on its own matched control (Track 12); proof-nu
 
 ## Compute used
 
-This Mac (10 cores), machine-b (12 threads) and machine-c (7 threads) over Tailscale,
+This Mac (10 cores), machine-b (12 threads) and machine-c (7 threads) over a private network,
 from 18:30. No paid service. Per-track figures are in each README.
