@@ -1,0 +1,32 @@
+[package]
+name = "hall-on-mrv"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "A17 rebaselined: Hall matching check on top of bb-mrv (A22), nodes and wall clock."
+
+# Standalone workspace so the crate builds from a clean checkout on its own.
+[workspace]
+
+[lib]
+name = "hall_on_mrv"
+path = "src/lib.rs"
+
+[[bin]]
+name = "hall_on_mrv"
+path = "src/main.rs"
+
+[dependencies]
+hard-ladder = { path = "../../hard-ladder/compute" }
+backdoor-branching = { path = "../../backdoor-branching/compute" }
+sat-backdoors = { path = "../../sat-backdoors" }
+mrv-baseline = { path = "../../mrv-baseline/compute" }
+eternity2-engine = { path = "../../../../engine" }
+eternity2-solver-trait = { path = "../../single-core-benchmark/engine/crates/solver-trait" }
+eternity2-solver-engine = { path = "../../single-core-benchmark/engine/crates/solver-engine" }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
