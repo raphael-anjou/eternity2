@@ -1,0 +1,26 @@
+[package]
+name = "cut-keyed-replay"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Night 2026-11-12 track 12: persistent cut-keyed partition replay on bb-mrv trees (T3 stage 0)."
+
+# Standalone workspace so the crate builds from a clean checkout on its own.
+[workspace]
+
+[[bin]]
+name = "replay"
+path = "src/main.rs"
+
+[dependencies]
+dead-node-census = { path = "../../dead-node-census/compute" }
+hard-ladder = { path = "../../hard-ladder/compute" }
+backdoor-branching = { path = "../../backdoor-branching/compute" }
+sat-backdoors = { path = "../../sat-backdoors" }
+eternity2-engine = { path = "../../../../engine" }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
