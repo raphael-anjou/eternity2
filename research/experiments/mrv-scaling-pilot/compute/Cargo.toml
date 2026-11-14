@@ -1,0 +1,22 @@
+[package]
+name = "mrv-scaling-pilot"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Track 1 pilot: 9x9 c=11 instances (seeds 101..108) for the bb-mrv / scb node-ratio pilot."
+
+# Standalone workspace so the crate builds from a clean checkout on its own.
+[workspace]
+
+[[bin]]
+name = "pilot_instances"
+path = "src/main.rs"
+
+[dependencies]
+hard-ladder = { path = "../../hard-ladder/compute" }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
