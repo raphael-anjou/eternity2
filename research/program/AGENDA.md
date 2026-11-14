@@ -12,7 +12,14 @@ how this differs** · **cheap test** (8x8, 10x10 or generated boards with a
 known planted solution) · **baseline** · **kill criterion** · **budget**.
 
 Status values: `proposed`, `running`, `killed`, `promoted` (passed the cheap
-test, scheduled at larger scale), `published`.
+test, scheduled at larger scale), `published`, `open` (a stage passed, the
+next stage undecided).
+
+Night of 2026-11-12 (sixteen judged tracks, ledger entries of that date):
+results below name the track and its local branch; no branch of that night is
+merged or pushed, so an entry's evidence is on that branch until it is. A
+brief for a new track cites its row in `night/2026-11-13/ROUTES.md` (published form: `research/experiments/approach-pricing/routes.md`) or says
+that none exists.
 
 ## A1. Planted-solution recovery by spectral statistics · killed
 
@@ -276,7 +283,7 @@ test, scheduled at larger scale), `published`.
 
 - **Result (round 2, [PR #24](https://github.com/raphael-anjou/eternity2/pull/24)).** Killed by an independent judge: K1 does not fire but K2 and K3 do. Stage 1: backdoor membership is predicted with test AUC 0.637 against 0.373 for fail-first (Delta +0.264, CI [0.233, 0.295]), but the model adds only +0.010 (CI includes 0) over domain size with the sign learned on training, and within interior cells its AUC is 0.518, so the signal is mostly position class plus domain size. Stage 2 on 20 test seeds per rung: branching first on predicted backdoor cells is NO-GAIN against `bb-mrv` (A3 propagation plus MRV) at every rung; R6 node ratio 17.2 (learned) and 8.1 (impact feature), R7 1/20 solved against 15/20, R8 (8x8 c=10) 1 to 2/20 against 20/20, and the loss holds on nodes alone without the 240 s guard. Side observation, not preregistered: `bb-mrv` beats the ladder baseline `scb-gacolor_ac3_random` at all three rungs (R8 20/20 vs 12/20, KM median 95k vs 468k nodes, faster in wall clock). Next: preregister `bb-mrv` as a ladder baseline candidate on fresh seeds (kill if G1 fails at 8-c10 or the wall-clock ratio against scb is above 1), and if it survives re-baseline A12 and A17 on it. Further backdoor work should use backdoors for decomposition or restarts, not as a first-branch rule. Experiment: `research/experiments/backdoor-branching/`.
 
-## A17. Cut-multiset feasibility pruning · promoted
+## A17. Cut-multiset feasibility pruning · killed
 
 - **Hypothesis.** A check that the colours demanded along the frontier of a partial board can be supplied by the unused pieces (count, parity and flow conditions) prunes DFS nodes that local arc consistency keeps.
 - **Borrowed from.** Transfer-matrix counting over colour multisets (round-1 A5).
@@ -286,6 +293,7 @@ test, scheduled at larger scale), `published`.
 - **Budget.** A few core-hours.
 
 - **Result (round 2, [PR #21](https://github.com/raphael-anjou/eternity2/pull/21)).** Kept by an independent judge as a small gain. The count/parity half was already in `gacolor` and the ring-cut half measured at zero, so only Hall matching (every empty cell gets a distinct unused piece, Kuhn augmenting paths) was tested. 6x6 c=5: GAIN, paired node ratio 0.900 (V1, p 0.0002) and 0.876 (V2, p 0.018), Holm-corrected. 7x7 c=6 and 8x8 c=10: NO-GAIN. Wall clock neutral to slightly worse. 8x8 c=10 does not separate pruning methods (plain DFS matches the baseline in nodes at about 26x lower wall time). Next variant: Hall plus Regin filtering on the frontier with a prune-invariant value order, on an 8x8 rung between c=8 and c=10; kill if NO-GAIN there or wall ratio above 1 against the better of the baseline and plain DFS. Experiment: `research/experiments/cut-multiset-pruning/`.
+- **Result (night 2026-11-12, Track 4, branch `night/2026-11-12-t4-hall-on-mrv`, local, not merged).** Killed by an independent judge when rebaselined on `bb-mrv` (A3 propagation, piece all-different, free MRV), which already applies Hall's condition for size-1 sets. V1 and V2, Holm over 2 variants, paired G1: 6x6 c=5 NO-GAIN (1.000 for both), 7x7 c=6 GAIN (0.993 and 0.992), 8x8 c=10 GAIN (0.999 and 0.997): under 1% fewer nodes, no G1 PASS. At every GAIN rung the wall ratio against `bb-mrv` is above 1 (R7 1.028 [1.013, 1.055] and 1.025 [1.009, 1.038]); the check itself costs 2 to 5% of wall clock; K2 fires for both variants. Round 2's 0.90 at R6 was against `scb`, which lacks piece all-different, and vanishes against `bb-mrv`; it stands as measured and is not adopted. The "next variant" above (Hall plus Regin on an 8x8 rung between c=8 and c=10) was not run; it would now have to beat `bb-mrv` on work, not nodes. Experiment: `research/experiments/hall-on-mrv/`.
 
 ## A18. Exact frame marginals: where border pieces sit across all valid frames · proposed
 
@@ -307,7 +315,7 @@ test, scheduled at larger scale), `published`.
 - **Kill.** Not a method, so no kill: the outcome is the per-component paired node and CPU ratio table. Dropped if no single removal changes nodes significantly at either rung (the lead is then spread over components).
 - **Budget.** Under 1 core-hour.
 
-## A20. Blocker eviction as the backjump rule inside propagating DFS · proposed
+## A20. Blocker eviction as the backjump rule inside propagating DFS · killed
 
 - **Hypothesis.** Inside the ladder's propagating DFS, undoing the placement that blocks the cell whose domain was wiped out (the IMS rule that beat random eviction in A15), then re-propagating, solves more 7x7 and 8x8 boards than chronological backtracking at equal events and CPU.
 - **Borrowed from.** B. R. Rau, "Iterative modulo scheduling" (MICRO-27, 1994); conflict-directed backjumping (P. Prosser, "Hybrid algorithms for the constraint satisfaction problem", Computational Intelligence 1993).
@@ -316,8 +324,9 @@ test, scheduled at larger scale), `published`.
 - **Baseline.** The ladder DFS, and a twin that evicts a random placed piece with identical propagation (matched control).
 - **Kill.** NO-GAIN against the ladder DFS on G1 at both rungs and solves at most baseline + 3 on the run-seed median; mechanism killed if the random twin comes within 2 solves and is not significantly worse.
 - **Budget.** 1 to 3 core-hours, CPU only.
+- **Result (night 2026-11-12, Track 2, branch `night/2026-11-12-t2-blocker-backjump`, local, not merged).** Killed by an independent judge on the method clause; the mechanism clause also fires. 6x6 c=5 and 7x7 c=6, 1e6 nodes, tabu tenure 16 chosen on calibration seeds only. R6 solved/30: `scb-gacolor_ac3_random` 30 (KM median 951 nodes), `bb-mrv` 30 (460), blocker eviction 30 (4,334), random-eviction twin 30 (3,868); G1 fails against `scb` (4.68 [2.40, 6.55]) and `bb-mrv` (9.18 [5.39, 15.20]), wall 32.3x and 24.5x, so the method is dropped at R6. R7 solved/30: `scb` 16, `bb-mrv` 23, blocker 5 (run-seed median 4), twin 2 (median 3). K2 fires but has low power at R7 (both arms nearly all censored): it shows no detectable difference between two failing arms, not that blocker choice carries no signal (R6 paired ratio 0.947 [0.574, 3.670]). As run, 24 to 31% of blocker dead ends fall back to evicting the latest decision, and the tabu list is cleared when no decision is left, so both arms are partly restart methods. 8x8 not run. The kill covers this repair-search implementation only; it does not cover conflict-directed backjumping proper (Prosser 1993), conflict sets from propagation explanations, dynamic backtracking or stored no-goods, Rau's IMS placement rule, other tenures, or 8x8. Reopen only with conflict sets built from propagation explanations, scored on work. Experiment: `research/experiments/blocker-backjump/`.
 
-## A21. Value order by propagation impact · proposed
+## A21. Value order by propagation impact · killed
 
 - **Hypothesis.** In the ladder's propagating DFS, trying first the piece and rotation whose propagation removes the fewest values from neighbouring domains (least-constraining value measured by real propagation, not by colour counts) shrinks trees at 7x7 c=6 and 8x8 c=9 against its random value order.
 - **Borrowed from.** Impact-based search (P. Refalo, "Impact-based search strategies for constraint programming", CP 2004).
@@ -326,6 +335,7 @@ test, scheduled at larger scale), `published`.
 - **Baseline.** The ladder DFS with its random value order (3 run seeds).
 - **Kill.** NO-GAIN on every rung, or a node GAIN whose CPU ratio is above 1 at every rung.
 - **Budget.** Under 2 core-hours.
+- **Result (night 2026-11-12, Track 3, branch `night/2026-11-12-t3-value-impact`, local, not merged).** Killed by an independent judge: G1 of `vi-impact` (value order by option bits removed by propagation, least first, inside `bb-mrv`) fails against `bb-mrv` at every rung, so no node gain exists for the wall-clock gate. Node ratios 6x6 c=5 1.075 [0.779, 1.931], 7x7 c=6 0.829 [0.544, 1.316], 8x8 c=10 1.096 [0.669, 1.871]; wall 1.143, 0.814, 1.141. Against the probe-then-random twin: 1.297 [1.058, 1.621] at R6 (worse than random), 1.000 at R7, 1.128 at R8; against `mrv-rand` 1.325, 1.000, 1.127. Scope: count of option bits, least first, inside `bb-mrv`; not a log-product (Refalo) impact, not the most-constraining direction, not 8x8 c=9 (the brief moved the rung to c=10). Judge's observation: run seed 3 of random value order passes G1 against `bb-mrv` at 8x8 c=10 (0.495 [0.409, 0.768]) while seed 1 sits at 1.623, so any order-type method needs run-seed controls (draft protocol rule P1). Experiment: `research/experiments/value-impact-order/`.
 
 ## A22. `bb-mrv` as a ladder baseline: fresh seeds, scaling, ablation · promoted
 
@@ -334,6 +344,302 @@ test, scheduled at larger scale), `published`.
 - **Cheap test.** Ladder R6, R7 seeds 21..30; 8x8 c=10 seeds 21..50; a fixed c = critical + 2 track for n = 6..10, seeds 1..30; four one-change ablations.
 - **Kill.** Not adopted if G1 fails at 8x8 c=10 on seeds 21..50 or the median paired wall-clock ratio there is above 1; "gain grows with n" only if the slope CI is entirely below 0.
 - **Result (round 3, [PR #26](https://github.com/raphael-anjou/eternity2/pull/26)).** Kept by an independent judge, scoped to the 8x8 c=10 rung: 30/30 solved against 20/30, KM median 69,036 vs 555,342 nodes, G1 ratio 0.147 (CI [0.076, 0.313]), wall ratio 0.194; node-identical on the judge's rerun and G1 PASS for scb run seeds 1 to 5. At the critical-colour rungs R6 and R7 G1 fails (0.80, 0.70) and `bb-mrv` is slower in wall clock (1.64x, 1.85x), so it is not adopted there. Scaling: no evidence of a growing gain, because 9x9 c=11 and 10x10 c=12 are censored for both solvers on every pair even at the extended 1e7 / 180 s cap (binding slope +0.089 per n). Exploratory only: over n = 6..8 the median log10 ratio goes -0.26, -0.38, -0.83. Ablations at R8 (node ratio against the parent): no hidden singles 1.11, border-first order 1.83, random value order 1.62; adding A3's piece all-different to scb cuts its nodes to 0.23 but costs per node (wall 0.90). Next: a separately preregistered scaling run with per-size caps of 1e8 to 1e9 nodes on the +2 track, and re-baselining A17 on `bb-mrv` at 8x8 c=10. Experiment: `research/experiments/mrv-baseline/`.
+- **9x9 follow-up (night 2026-11-12, Track 1, measurement, branch `night/2026-11-12-t1-9x9-pilot`, local, not merged).** Killed by the preregistered rule, read as "no evidence the node ratio keeps shrinking", not "it stopped". Seeds 101..108, cap 1e8, `bb-mrv` against `scb-gacolor_ac3_random`: M = 0.000 against T = -0.83215 (K1), U = 6 of 8 pairs uninformative against a limit of 4 (K2, which decides); 6 pairs censored on both solvers; seed 103 r <= -0.106, seed 106 r <= -1.001 (upper bounds), both favouring `bb-mrv`. The cap, not the ratio, was binding. The judge would not spend a 30-seed run on this ratio, because plain row-major DFS is reported (a referee's runs) to solve these 9x9 boards in 2 to 6 s, about three orders of magnitude cheaper per node.
+- **Baseline status after the night (Tracks 0, 5).** `bb-mrv-fast` (Track 0) is node-identical to `bb-mrv` on 140 gate instances and 5.3x to 6.1x faster; use it wherever only counts, statuses and boards are read. The 47-entrant tournament (Track 5) reproduces both ladder anchors with 0 mismatches over 1,310 rows; at R6 and R8 the first two places lie inside run-seed spread, and at R8 row-major DFS solves 24/30 at about 1% of `bb-mrv`'s wall clock (one cell order: column-major 20, five other orders 0). Open question carried forward: which reference to use above 8x8. The night's recommendation (not yet a protocol rule) is plain DFS or `bb-mrv-fast`, scored on work or time (draft rules P7, P10).
+
+## Idea slot of the night 2026-11-12 (A23 to A31)
+
+Thirteen proposals were novelty-checked and ranked in `night/2026-11-12/IDEAS.md`
+(full cards in `ideas-raw/`). The night's census (Track 6), replay (Track 12),
+score-bound gap (Track 8) and partial-match ladder (Track 7) decided several
+of them at stage 0. Entries below keep the IDEAS rank; numbers come from each
+track's judge. Proposals with no baseline or kill criterion written stay in
+`IDEAS.md` and `ROUTES.md` ("looks untried") and are not entries here.
+
+## A23. Revocable branching cells by proof-number search (IDEAS rank 1) · proposed
+
+- **Hypothesis.** At R7, MRV's chosen cell often has a much larger refutation tree than another of the 3 smallest-domain cells; df-pn over revocable splits, with `bb-mrv`'s propagation, finds the cheaper refutations at a net gain in work.
+- **Borrowed from.** Proof-number search (Allis et al., AIJ 66, 1994); df-pn (Nagai 2002).
+- **Nearest cell.** Dynamic fill orders (one committed cell per node). Missing mechanism: effort moved between refutations. Not touched by the census.
+- **Cheap test.** Stage 0 headroom oracle (r = MRV cell refutation size over the best of 3, 300+ refuted nodes, R6 and R7), then df-pn k=3 at R6 and R7, then a growth stage on the +2 track n = 6..8, counting work (nodes plus propagations).
+- **Baseline.** The better of `bb-mrv` and `scb` per rung; controls df-pn k=1 and dom/wdeg on `bb-mrv`.
+- **Kill.** K0: median r at most 1.25 and r at least 2 at under 20% of nodes, both rungs. K1: R7 paired work ratio not at most 0.7 or CI including 1. K2: k=3 not below k=1 (Wilcoxon p at least 0.01). K3: wall ratio above 1. Growth slope CI not below 0.
+- **Budget.** Stage 0 under 2, stage 1 about 4, growth about 3 core-hours.
+
+## A24. Boundary-keyed cavity summaries (IDEAS rank 2) · killed
+
+- **Hypothesis.** Most of `bb-mrv`'s dead nodes at R7 are refuted by a k x k cavity (k at most 3) given its boundary and pool, and those keys recur, so tabulated refutations cut work.
+- **Result (night 2026-11-12, Track 6, branch `night/2026-11-12-t6-dead-node-census`, local, not merged).** Killed at stage 0 on K0a only: cavities with r <= 3 prove 0.0083 of weighted R7 dead-node weight (0.057 unweighted; 0.040 with propagated domains) against a threshold of 0.30. K0c compared two infinite medians and decides nothing (judge). Scope: `bb-mrv` parent, 6x6 and 7x7 critical rungs; a share is an upper bound on savings with unchanged branching.
+
+## A25. Cut-keyed trace partitioning (IDEAS rank 3) · killed
+
+- **Hypothesis.** `bb-mrv` loses at the critical rungs by joining cut-colour cases; partitions keyed on two cut-edge colours, persistent through the descent, close failing subtrees at their roots.
+- **Result (night 2026-11-12, Track 12, branch `night/2026-11-12-t12-cut-keyed-replay`, local, not merged).** Killed at stage 0 on its own K2 with a partition-matched control: upper median node ratio, cut key 0.483 (R6) and 0.486 (R7); random key off the cut line with the same partition count 0.444 and 0.419, better on all five seeds at both rungs and on 30 of 30 R7 instances; every arm costs more propagation work than `bb-mrv` (R7 cut 1.211). Track 6's earlier kill did not stand (one-shot share, unmatched control); this replay supersedes it. Any two-edge partition prunes about half of `bb-mrv`'s nodes, generic to low-colour-set edges. Untested: a cut key under a row-scan solver, where the cut line is a real frontier.
+
+## A26. Relaxed decision diagrams as a score bound in break-tolerant DFS (IDEAS rank 4) · open
+
+- **Hypothesis.** A width-W relaxed decision diagram (frontier colours exact, piece distinctness relaxed) bounds the best score reachable from a prefix tightly enough to prune break-tolerant DFS before the endgame.
+- **Borrowed from.** Bergman, Cire, van Hoeve, Hooker, IJOC 28(1), 2016.
+- **Nearest cell.** Break-tolerant DFS with scheduled late breaks; the repo's `BreakSolver` has no per-node bound.
+- **Stage 0 result (night 2026-11-12, Track 8, branch `night/2026-11-12-t8-score-bound-gap`, local, not merged).** Passed on the threshold: median gap exactly 4 edges at W=4096, 7x7 c=6 with 3 rows left (K1 fires above 4), 3 edges better than W=1, which equals the trivial bound. The gap grows with size (1, 2, 4 at 2 rows left for n = 6, 7, 8) and was measured only on deeply dead prefixes. Undecided, not killed: the night overturned two attempts to close it (a model row giving 92% to 98% late nodes, a port measurement giving 4.5e-7) and the record-cost referee saw 0.4% to 53% of legal nodes late across seeds and clue settings. Whether a record engine spends enough of its search in the tail is not known.
+- **Next test.** Stage 1: work to reach optimum minus k (k = 1..4) on 8x8 c=8 boards where `BreakSolver` stalls, with and without the bound, prefixes drawn near the optimum as well as dead ones, and a wall-clock arm. Before any 16x16 build: the late-node share of a faithful port of the published engine (see A32 and the 2026-11-13 port-fidelity track).
+- **Baseline.** `BreakSolver` with its schedule; control W = 1.
+- **Kill.** Stage 1 work ratio above 0.5 or wall ratio above 1 at any k.
+- **Budget.** 4 to 8 core-hours for stage 1.
+
+## A27. Band consistency by composed tile transducers (IDEAS rank 5) · killed
+
+- **Hypothesis.** GAC over a k-row band, built from the cells' current domains, removes values arc consistency keeps.
+- **Result (night 2026-11-12, Track 6).** Killed at stage 0: k=2 bands prove 0.0023 (R6) and 0.0018 (R7) of weighted dead-node weight against 0.05; even k=3 stays at 0.0113 and 0.0077. Scope: `bb-mrv` parent; the `scb` parent, with weaker domains, was not measured.
+
+## A28. Boundary-word lemmas learned from refutations (IDEAS rank 12) · killed
+
+- **Hypothesis.** Refutations of large dead subtrees yield small verified lemmas (boundary words of a pocket that cannot be filled) that generalise and prune elsewhere.
+- **Result (night 2026-11-12, Track 6).** Killed at stage 0 for the `bb-mrv` parent: 0 of 1,447 sampled R7 dead nodes with subtree size 200 or more are proven by a pocket of up to 2n cells (0 of 88 at R6, 0 of 456 at the 7x7 c=8 null), against a median local-core rate of 10%. The `scb` parent was not measured.
+
+## A29. Adaptive multilevel splitting on local-search trajectories (IDEAS rank 6) · proposed
+
+- **Hypothesis.** Local search fails on small planted boards because the exit to the solution is rare, not because a barrier blocks it (A10); splitting trajectories at level crossings of the score turns one rare event into a chain of common ones and solves boards PT does not.
+- **Borrowed from.** Adaptive multilevel splitting (rare-event estimation by interacting particle systems). Full card: `night/2026-11-12/ideas-raw/statistical-inference.md`.
+- **Nearest cell.** Simulated annealing and parallel tempering (saturated per EXPLORED, a status graded argued) and restart portfolios. Missing mechanism: resuming from a level crossing with selection, isolated by a random-kill control.
+- **Cheap test.** Stage 0 validity gate at 6x6 (AMS estimate within 2 s.e. of direct Monte Carlo); calibration of c on seeds 9001..9004 by A4's rule; 7x7 puzzle seeds 1..30, 2 run seeds, equal move evaluations for every arm.
+- **Baseline.** A4-configuration PT and N independent Metropolis runs; control AMS-RAND (same cloning, uniformly drawn kills).
+- **Kill.** Method killed if AMS solves fewer than max(PT, IND) + 5 of 30 at 7x7 (mean over run seeds) or the one-sided exact McNemar test against the better baseline gives p >= 0.01; mechanism killed if AMS-RAND comes within 2 solves and is not significantly worse.
+- **Budget.** About 3 core-hours.
+
+## A30. Piece-priced frontier bound with safe banding (IDEAS rank 7) · proposed
+
+- **Hypothesis.** A frontier dynamic programme with exact cycle structure and Lagrangian piece prices proves dead a share of `bb-mrv`'s dead nodes that colour-only feasibility and Hall matching miss.
+- **Borrowed from.** Lagrangian relaxation (operations research) with banded alignment (computational biology). Full card: `night/2026-11-12/ideas-raw/pair-or-compbio.md`.
+- **Nearest cell.** LP/ILP relaxations (mapped), tensor-network counting, A17 Hall matching (killed on `bb-mrv`). The census (Track 6) measured only its floor: colour-only feasibility proves 0.017 of weighted R7 dead-node weight (0.110 unweighted), so it is not decided.
+- **Cheap test.** Stage 1a: the bound at sampled dead nodes of the census trees at R6 and R7, subtree-weighted, with four one-component controls.
+- **Baseline.** `scb-gacolor_ac3_random` and `bb-mrv`, same seeds and node rule; controls lambda = 0 (colour-only), row and column chains only, Hall matching at the same nodes, unbanded against banded.
+- **Kill.** K1: weighted share proven dead below 0.3 at depths 6 and 12 combined, or not above the Hall control by more than 2 s.e. K2: lambda = 0 within 2 s.e. of the priced bound. K3: the chain-only control within 2 s.e. of the frontier bound. Read against the census: every small-region oracle tested so far proved almost none of the weight before the peak.
+- **Budget.** About 10 core-hours (the card's estimate).
+
+## A31. Evolve `bb-mrv`'s cell and value ordering code (night 2026-11-12 idea slot, E1) · proposed
+
+- **Hypothesis.** A search over programs for the two ordering hooks of `bb-mrv`, scored automatically on work, finds an ordering that beats MRV with index value order at the critical rungs and on growth with n.
+- **Borrowed from.** AlphaEvolve (Novikov et al., arXiv:2506.13131); open implementation OpenEvolve.
+- **Nearest cell.** Corpus priors and learned move ordering, dynamic fill orders. Missing mechanism: search over the ordering program itself against a scorer outside its reach. Tracks 2 and 3 measured two hand-written points of this space (both killed).
+- **Cheap test.** Evolution sees calibration seeds only (R6, R7, 8x8 c=10) and scores solves within a fixed work budget; selection on test seeds plus 9x9, never seen in evolution. Harness, node counter and verifier out of the evolved code's reach.
+- **Baseline.** `bb-mrv`; `scb` at R6 and R7. Controls: the best of an equal number of random mutations without selection; A21 as the hand-written reference; run-seed controls on order (A21's judge).
+- **Kill.** The selected program fails G1 on work against `bb-mrv` at 7x7 c=6 test seeds, or its growth slope CI is not below 0, or its test-seed gain is under half its calibration-seed gain.
+- **Budget.** About 500 programs at about 2 core-minutes each (15 to 20 core-hours) plus model usage, to be estimated and approved before launch.
+
+## Other candidates from the 2026-11-12 night with a baseline and a kill
+
+## A32. Five-clue quota share sweep on the faithful port · proposed
+
+- **Hypothesis.** On the real pieces with five clues, the share of the keying's privileged sides the quota demands by cell 160 has an optimum that beats the port's default by at least 2x in legal deep yield per second.
+- **Origin.** Track 15 (night 2026-11-12, branch `night/2026-11-12-t15-five-clue-quota`, judged keep): the same absolute quota lets the default keying live (12 of 16 openings reach legal depth 201) and kills the published keying (2 of 16); a matched share lets both live (12 to 14 of 16); a tight share kills the default (0 of 16). No arm beat the default, and which segment of the curve binds was not shown. Track 14 (killed) is the confounded result this explains. Nobody has swept the share.
+- **Nearest cell.** Break-tolerant DFS with scheduled late breaks (record family, reported). Missing: the quota stated as a share and swept, on a port whose differences from the published engine are fixed.
+- **Cheap test.** Five clues, the port with the orientation fix on (free: 0.983 [0.95, 1.04] of yield per second, no non-stranded run changed), 16 held-out openings per share point, 1e9 nodes per run; measure legal nodes at depth 201 or more per second.
+- **Baseline.** The default keying under its own quota (12 to 13 of 16 openings positive in Track 15).
+- **Kill.** No share point beats the default by 2x with a bootstrap interval excluding 1.
+- **Budget.** About one evening on two machines (Track 15 used 5.06 thread-hours for 32 arms x 16 openings). Depends on the port-fidelity work started 2026-11-13 (track D2, branch `night/2026-11-13-d2-port-fidelity`, independently assessed twice and kept on 2026-11-13; with five clues the faithful defaults reach depth 18 to 54 against 33 to 215 for the old defaults, so five-clue runs use the legacy switches until a five-clue schedule is measured).
+
+## A33. Partial-match ladder with entrants that keep searching · proposed
+
+- **Hypothesis.** A partial-match instrument (best verified score at fixed work on planted-optimum boards) becomes usable when its constructive entrants keep searching after their first complete board, or are the 16x16-native engines run at small n.
+- **Origin.** Track 7 (night 2026-11-12, branch `night/2026-11-12-t7-partial-match-ladder`, killed for its pool and budget): 2 of 5 entrants in the [2%, 4%] gap band against 3 required; `BreakSolver` stopped at its first complete board after at most 3.8e6 of 5.12e7 placements; ALNS from a greedy start was weakest everywhere. The judge scoped the kill to that pool and budget.
+- **Cheap test.** Track 7's PREREG and calibration rule on n in {8, 10, 12}, with `BreakSolver` replaced by an entrant that continues after a complete board and with `blackwood_bt`, `verhaard_faithful_v2` or the beam producer added where they run at small n.
+- **Baseline.** Track 7's committed rows (rung A medians: `sa` 3.57%, `pt` 3.57%, `break-r1` 6.25%).
+- **Kill.** Track 7's criterion (1): fewer than 3 of 5 entrants stall in the [2%, 4%] band on a qualifying rung, or no cell at n = 10 or 12 qualifies.
+- **Budget.** About 10 thread-hours (Track 7 used about 9.2).
+
+## A34. Border candidates ordered by first-ring fill count · proposed
+
+- **Hypothesis.** The true border word admits more first-ring fills than shuffled words passing the same corner tests (z = 1.40 against valid frames on generated boards, about 2 ranking bits, confirmed by the referee), and ordering border candidates by that count cuts nodes to the first solution.
+- **Origin.** `night/2026-11-12/memos/frame-information.md` section 10, refereed in `theory-and-frame.REVIEW.md`. The author would not run it first; stated odds of bearing on a full solution under 0.5%.
+- **Cheap test.** 100 generated planted boards with a unique solution at the largest size the compiled strict engine exhausts in under a minute (expected 9x9 or 10x10 with clues); same row scan and engine, (A) default piece order, (B) border candidates sorted by the first-ring count of the corner window they complete.
+- **Baseline.** Arm A.
+- **Kill.** Geometric mean of nodes(A) / nodes(B) below 2.0, or its 95% interval including 1, or the ratio at the larger of two sizes below the ratio at the smaller.
+- **Budget.** About 3 core-hours.
+
+## Arc of 2026-11-13 to 2026-11-14 (A35 to A55)
+
+Results of the two-day arc closed on 2026-11-14 (ledger entries of those dates; evidence in `research/experiments/approach-pricing/`, `relaxation-small-boards/`, `learning-vs-propagation/` and the experiment folders named below; the routes index is `research/experiments/approach-pricing/routes.md`). The hunt for a method stopped on 2026-11-14 with no route priced at 10 bits or more; closed entries first, then what stays open and what would reopen the question. Everything on generated boards is a toy result, never Eternity II progress.
+
+### Closed by the arc
+
+## A35. Cheap refutation of wrong frames of the real pieces · killed
+
+- **Hypothesis.** A wrong 60-piece frame can be refuted about 100 times cheaper than plain search, with a core of fewer than 54 cells, so frame-first search with learned cores beats row scan.
+- **Result (frame-cores, ledger 2026-11-13).** Killed: lower medians 0.89, 0.12 and 1.00 against a line of 100. The stage 2 pass (36.75 bits [32.90, 53.19], median core 5 cells) is a corner artefact (21 of 23 near frames die on a 3x3 clue block). Nested arc cost 27.68, 31.37, 35.39 and 39.49 bits, each 2.2 to 2.5 bits above its break-even budget. The far stratum is undecided (see A44).
+- **Kill reference.** `research/experiments/frame-cores/` (README and results); `research/experiments/approach-pricing/notes/nogood-frame-search-price.md` and its re-check.
+
+## A36. A static scan order that beats row scan · killed
+
+- **Hypothesis.** Some static fill order (comb, border-first, centre-out, rings, searched orders) shrinks the exact tree by 10 bits or more.
+- **Result (orders-and-pins, ledger 2026-11-13).** None of 18 static orders is shown to beat row scan: the kill line is reached for 15 and 3 are undecided (the estimator's population dies); a searched order's 2.11-digit win is withdrawn. Row scan is within 0.24 bit of the best static order found by annealing (no certificate; see A47).
+- **Kill reference.** `research/experiments/orders-and-pins/`; `research/experiments/approach-pricing/notes/gap-6b-reformulation-search-space.md` and its re-check.
+
+## A37. Linearisation at degree 2 as a polynomial-price reformulation · killed
+
+- **Hypothesis.** Linearising the board equations at degree 2 pins the solution at a price near 2^67.
+- **Result (ledger 2026-11-13).** Killed: degree 2 determines 10 of 10 boards at 3x3, 0 of 10 at 4x4, 0 of 5 at 5x5. Degree 3 at 5x5 did not fit in memory, so the row is not formally closed (see A48).
+- **Kill reference.** `research/experiments/approach-pricing/notes/gap-6a-linearisation-degree.md`.
+
+## A38. A relaxation solver (convex lift, low-rank form, nonnegative factor) as a way to solve the board · killed
+
+- **Hypothesis.** A relaxation of the board (degree-2 semidefinite lift, or its low-rank and nonnegative-factor forms) is exact or rounds to solutions at a cost that grows slowly enough to reach 16x16.
+- **Result (ledger 2026-11-14).** Closed as a negative on toy boards. The lift is certified clean on three of five 5x5 boards, undecided on one and not exact on one (about 0.042 of the mass per cell on ten placements in no solution); it costs 400 to 1,100 s per 5x5 solve and 119 GiB or more at 16x16. The low-rank form is a randomised search that annealing beats by 8 to 35 times per solution at 5x5 and 3.6 to 63 times at 6x6; its work grows with an exponent of 4.5 in P (3.97 to 5.31, two sizes). The nonnegative factor solved 0 of 50 starts at 5x5. Exactness of the lift at 6x6 stays open (A41).
+- **Kill reference.** `research/experiments/relaxation-small-boards/`.
+
+## A39. Search that learns, as a time gain on the row-scan tree · killed for the narrow family priced
+
+- **Hypothesis.** Learned reasons (clauses, nogoods, shared failure tables) are worth 10 bits or more on the real 16x16.
+- **Result (ledger 2026-11-13, 2026-11-14).** About 2 bits (ceiling 6.6) for a free, perfect store of small reasons attached to row-scan nodes; a general "empty" is unproven. A clause-learning solver needs 2^5 to 2^6.5 fewer conflicts than tree nodes on 5x5 and 6x6, which is not a time gain. Toy learning measurement: +1.31 bits at 5x5 and +2.03 at 6x6 over a propagation-only control, no 7x7 value, stop line undecidable (A43).
+- **Kill reference.** `research/experiments/approach-pricing/notes/gap-1-search-that-learns.md` and its re-check; `research/experiments/learning-vs-propagation/`.
+
+### Open after the arc
+
+Entries below are open items and reopening conditions from the arc's report. Where the source gave no kill criterion, the one written here was set when the entry was added, before any run.
+
+## A40. Reopening condition: a published method with a class-level gain · open
+
+- **Hypothesis.** A method outside this repo's map shows a gain that is not a constant factor on a row-scan tree.
+- **Nearest cell.** Every row of the routes index; the ceiling table is the first filter.
+- **Cheap test.** Price it against the routes index and the ceiling table of a perfect free cut (57.1, 44.8, 29.8, 17.1, 10.7, 6.8, 2.4 bits at depths 52, 64, 80, 96, 112, 128, 144), then run the falsifying experiment on small boards.
+- **Baseline.** Largest gain priced in the arc: about 5.5 bits of nodes (arc consistency), at a per-node cost of about 13 bits at the measured speed.
+- **Kill.** Priced below 10 bits, or it only bites after depth 128, or the falsifying experiment fails.
+- **Budget.** Under a day for the experiment.
+
+## A41. Exactness of the convex lift at 6x6 · open
+
+- **Hypothesis.** The degree-2 lift with entrywise nonnegativity is exact on generated 6x6 boards under a largest-leak objective.
+- **Nearest cell.** A38. Differs: the 6x6 largest-leak solves, which ran but did not converge.
+- **Cheap test.** Three 6x6 boards, converged to residual 1e-7, one solver family, then a second solver family; the penalty rule fixed first.
+- **Baseline.** 5x5 seed 3 leaks about 0.042 per cell; three 6x6 runs stopped unconverged with mass off solutions per cell 0.843, 0.865, 0.730, and lower bounds of 24, 13.5 and 13 hours to the target.
+- **Kill.** Mass off solutions above 0.05 per cell on 2 of 3 boards at residual 1e-7. A reading before convergence decides nothing. Even a pass is worth 0 bits on its own.
+- **Budget.** 6 to 170 core-hours (the unconverged runs suggest the high end).
+
+## A42. Second solver on the 5x5 seed 3 leak, and hull equality · open
+
+- **Hypothesis.** The seed 3 leak at 5x5 is a property of the lift, not of one solver family.
+- **Nearest cell.** A38.
+- **Cheap test.** A primal-dual solver on seed 3; equality of the lift with the hull checked by optimisation; the 73 against 41 percent comparison for the distance-2 mask.
+- **Baseline.** 403 solutions confirmed by an independent enumeration; a point feasible to 1.5e-9 keeps 0.042 per cell on ten placements.
+- **Kill.** The second solver drives the leak below 1e-6 per cell (the leak was a first-solver artefact).
+- **Budget.** About 20 core-minutes for the first item.
+
+## A43. Learning solvers at 7x7 and on real-piece prefixes, with a propagation-only control · open
+
+- **Hypothesis.** A learning solver's lead over propagation alone rises with size.
+- **Nearest cell.** A39.
+- **Cheap test.** The learning-vs-propagation design extended: 7x7 with a lower bound on cut runs, 8x8, a cardinality solver, weighted degree with restarts, and the real-piece part (40 wrong prefixes at free depths 112 to 88).
+- **Baseline.** +1.31 bits at 5x5 and +2.03 at 6x6 from learning; CaDiCaL over row scan with arc consistency +2.19 at 6x6 and at most +4.28 at 7x7 (rise at most +2.09, no lower bound). In seconds the learners lose at every size.
+- **Kill.** The stated line: the lead over row scan with arc consistency does not rise by 2 bits from 6x6 to 7x7, and not by 3 bits from depth 104 to 88.
+- **Budget.** About 80 core-hours; the program's odds of 10 bits at 16x16 are 1 percent.
+
+## A44. Far stratum of frame cores · open
+
+- **Hypothesis.** The far stratum of wrong frames (those passing the corner blocks, far from the true frame) resolves below the nested break-even cost, which would reopen frame search driven by nogoods.
+- **Nearest cell.** A35.
+- **Cheap test.** Raise the cap on the 16 censored of 37 far frames, or sample more, on the real pieces.
+- **Baseline.** 37 frames, 16 censored, median 75.12 bits, upper end infinite; nested arc cost 27.68 to 39.49 bits, 2.2 to 2.5 bits above break-even. A necessary condition only.
+- **Kill.** Nested arc cost above its break-even budget at every measured arc length once the cap is raised.
+- **Budget.** Not costed (the first stage used about 59 core-hours).
+
+## A45. Growth of non-tree solvers against the tree on the same boards · open
+
+- **Hypothesis.** Annealing, difference map, low-rank form or message passing grows more slowly than the tree on the same boards.
+- **Nearest cell.** A38 and the local-search rows of EXPLORED.
+- **Cheap test.** Each arm and the tree on the same boards at 6x6 and 7x7, work counted in evaluations or CPU seconds.
+- **Baseline.** Restart annealing finds a verified solution every 29 to 257 CPU-seconds at 6x6 and nothing in 210 runs at 7x7 (rate below 26 percent per 3e9-step run, not shown to be zero); low-rank exponent 4.5 in P on two sizes; exhaustive search 0.3 to 0.6 s at 6x6.
+- **Kill.** A non-tree solver's work grows by 0.75 or more of the tree's from 6x6 to 7x7.
+- **Budget.** About 120 core-hours; one arm surviving 5 percent, 10 bits 0.5 to 1 percent.
+
+## A46. Second reader for the 2-bit sketch bound · open
+
+- **Hypothesis.** A sound colour-blind sketch table of the used set saves at most 2.0 bits (a table costs at least 2^126.7 against 2^128.7).
+- **Nearest cell.** The lossy-representations row (gap 2).
+- **Cheap test.** An independent derivation, then a toy check on more than the 8 boards used.
+- **Baseline.** The two-list join gains 3.0 bits (2^131.6); the 2.0 bound is one derivation, weakly toy-checked.
+- **Kill.** A counterexample, or a sound sketch that saves more than 2.0 bits.
+- **Budget.** One study; a proof, not a gain.
+
+## A47. Certificate that row scan is the best static order at the bottleneck · open
+
+- **Hypothesis.** No static order has a lower bottleneck level than row scan.
+- **Nearest cell.** A36.
+- **Cheap test.** A certificate or counterexample on the level profile of the real pieces.
+- **Baseline.** Row scan within 0.24 bit of the best order found by annealing (no certificate); an order that finishes rows one or two at a time gains at most 5.3 or 6.7 bits.
+- **Kill.** An order found at least 1 bit below row scan at the bottleneck.
+- **Budget.** One study; a proof, not a gain.
+
+## A48. Linearisation at degree 3 on 5x5 · open
+
+- **Hypothesis.** Degree 3 pins the solution at 5x5, so the needed degree does not grow past 3.
+- **Nearest cell.** A37.
+- **Cheap test.** Generated 5x5 boards on a machine with about 30 GB, over GF(2) and a large prime.
+- **Baseline.** Degree 3 at 4x4 pins 6 or 7 of 10 boards (the rest need 4); at 5x5 the system has 16.2 million monomials and stopped on memory at rank 2.35 million.
+- **Kill.** The degree needed at 5x5 is above 3 or above that at 4x4.
+- **Budget.** 10 to 20 core-hours; the program's odds are 25 percent at 5x5 and under 0.1 percent at 16x16.
+
+## A49. Injective-only hole in algebraic reformulation · open
+
+- **Hypothesis.** An object with few terms that is correct on boards without repeated pieces can be built without knowing the solutions.
+- **Nearest cell.** The algebra-and-counting row (gap 6a); an object with one term per solution always exists.
+- **Cheap test.** A desk construction, then a toy check.
+- **Baseline.** No model prices it; fifteen reformulations priced, none below 2^134.4.
+- **Kill.** A proof that any such object needs the solutions, or a size lower bound at or above the tree.
+- **Budget.** Half a day of desk work; cannot be priced in bits.
+
+## A50. Weighted degree at 8x8 and 9x9, pseudo-Boolean solvers, spread of tree size over randomised dynamic orders, non-abelian tile group · open
+
+- **Hypothesis.** One of four untested items inside the closed gap rows moves a price by 3 bits or more: conflict-driven weighted degree, cardinality (pseudo-Boolean) reasoning, the dispersion of exhaustion-tree size over randomised dynamic orders on the real pieces (needs no solution), or the non-abelian group of the unplaced tiles.
+- **Nearest cell.** Adaptive-orders, search-that-learns, shape-of-the-tree and tile-set-structure rows.
+- **Cheap test.** Weighted degree on 8x8 and 9x9 toys; the dispersion study on the real pieces; a computer-algebra run for the group.
+- **Baseline.** Weighted degree +0.5 bits at 6x6 and -0.4 at 7x7; quotients of the group up to order 12 refute 0 of 32 undecided prefixes and 0 of 54 known-untileable ones.
+- **Kill.** Gain below 3 bits at both sizes, or no refutation beyond forward checking.
+- **Budget.** Not costed.
+
+## A51. Low-rank form re-check items · open
+
+- **Hypothesis.** The low-rank form's cost to a first solution is changed by a retuned restart period or a third size.
+- **Nearest cell.** A38.
+- **Cheap test.** NumPy evaluations to a first solution; the replicate rows on the second machine written up; 50 runs of about a minute for the first.
+- **Baseline.** 5,083 evaluations per solution at 5x5, 460,416 at 6x6 (censored median 270,051); median solve at step 605 of 1,000, so a shorter restart interval would cut off most solves.
+- **Kill.** A third size puts the exponent below 3.4, or no tuning lowers the 6x6 cost by 2 times.
+- **Budget.** About an hour for the first item.
+
+## A52. Census tilt and painted-board excess (anomaly hunt items) · open, not recommended
+
+- **Hypothesis.** The census tilt at 1.5 to 1.8 times the size bias, or the unexplained painted-board excess (about 0.05 digit), carries a usable signal.
+- **Nearest cell.** The prefix-statistics results (D4).
+- **Cheap test.** 0.5 core-hour each.
+- **Baseline.** Nothing survives a painted-board null and a count of comparisons; neither item is worth more than about 2 bits; odds under 0.1 percent.
+- **Kill.** No gain at ten times the population.
+- **Budget.** 0.5 core-hour each.
+
+## A53. Reopening condition: tiles of the solution become available · open
+
+- **Hypothesis.** An outside source reveals the approach behind the five-clue 466 or any tiles of the solution.
+- **Nearest cell.** The pin study (pin-map, orders-and-pins).
+- **Cheap test.** Price the tiles with the pin study on painted boards.
+- **Baseline.** Best extra pin about 10 bits (10.05), median 5.79; a 10^15 run needs more than 10 and probably 16 to 24 spread pins; touching pairs lose about half of the second tile's worth.
+- **Kill.** Fewer than 10 spread pins, or pins that are not spread, leave the run above 10^15 nodes.
+- **Budget.** Not applicable until it happens.
+
+## A54. Reopening condition: hardware gains of many orders of magnitude · open
+
+- **Hypothesis.** A hardware change closes the gap of 56 to 73 bits (17 to 22 orders of magnitude).
+- **Nearest cell.** The hardware rows of EXPLORED.
+- **Cheap test.** Re-price the row-scan tree at the new cost per node.
+- **Baseline.** Every credible multiplier together is about 2.5 orders; a quantum backtracking constant sits 21 to 22 orders above a 2029 roadmap machine (survey, not independently checked).
+- **Kill.** A multiplier below 15 orders of magnitude (it would reopen plain search, not any method here).
+- **Budget.** Not applicable.
+
+## A55. Reopening condition: a closure is overturned by a re-check or a run · open
+
+- **Hypothesis.** A re-check or a run overturns one of the arc's closures: A41 (lift exact at 6x6), A44 (far stratum below break-even), A45 (non-tree solver grows by less than 0.75 of the tree's), A43 (learning lead rises with size).
+- **Nearest cell.** The four entries named.
+- **Cheap test.** As each entry states.
+- **Baseline.** As each entry states.
+- **Kill.** As each entry states.
+- **Budget.** As each entry states.
 
 ## Parked from the round-1 idea pass
 

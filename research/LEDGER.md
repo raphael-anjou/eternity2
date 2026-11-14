@@ -2604,3 +2604,666 @@ Reproducibility: node counts deterministic, `just experiments mrv-baseline`
 (about 90 min on 8 vCPU; wall clock depends on machine). Source commit
 046324c (PR #26). Files: research/experiments/mrv-baseline/,
 research/experiments/hard-ladder/, research/program/AGENDA.md.
+
+## 2026-11-12 · Night of 2026-11-12: sixteen tracks, how to read the entries below
+
+One unattended night (2026-11-12 18:30 to 2026-11-13 05:49), sixteen tracks,
+each preregistered and judged by a separate session that did not run it:
+eight keep, eight kill. Nothing was pushed, so no track has a pull request:
+every branch named below is a local branch, not merged, not pushed, and its
+head commit is given so the tree can be found again. Verdicts and numbers are
+the judge's (`JUDGE.md` on each branch), checked on 2026-11-13 against the
+drafts in `research/program/night/2026-11-12/DRAFTS.md`; where the two
+differed the judge's file was followed. Tracks 1 to 8 have no preregistration
+guard log (`prereg_guard.py` was written at 20:41, after they branched), so
+their order rests on commit order and file times, which each judge checked;
+Tracks 9 to 15 have the log. Night record: `research/program/night/2026-11-12/`
+(REPORT.md, OBSERVATIONS.md, DRAFTS.md).
+
+## 2026-11-12 · Night track 0, bb-mrv per-node cost: kept (optimization), 5x to 6x faster, node-identical
+
+Optimization track from the night brief. `bb-mrv-fast` keeps the `bb-mrv`
+search and changes only per-node cost (4-bit option bitsets, fixed-size
+domains, a preallocated state stack, 128-bit piece masks). Outcome: keep. The
+judge recomputed the node-sequence hash gate against the unmodified original
+source: 140 of 140 instances identical on status, nodes, backtracks,
+propagate calls and board (R6, R7, 8x8 c=10, plus 8x8 fresh seeds 31..50; 130
+solved, 10 censored at 1e6, all at R7). Wall clock fast / original, median of
+per-instance minima over 5 runs: R6 0.188 [0.178, 0.203], R7 0.163 [0.161,
+0.166], 8x8 c=10 0.190 [0.188, 0.191]; no instance above 1. Limits from the
+judge: identity at 9x9 c=11 is measured only on censored prefixes (7
+instances, at most 300,000 nodes), so a track reporting 9x9 counts from the
+fast solver runs `mrv_node_cost gate` on a few of its own instances; "supports
+n <= 11" is argued from an assert, not measured; n >= 12 panics. Learning: the
+ladder baseline's cost was per-node overhead, so node-count experiments can
+use the fast solver where only counts, statuses and boards are read.
+Reproducibility: node counts deterministic, wall clock machine-dependent,
+`just experiments mrv-node-cost` (about 1 h on 1 core). Branch
+`night/2026-11-12-t0-node-cost`, head 0860e322 (local branch, not merged, not
+pushed); results b916767, judge 087b3013; d4334794 is formatting only after
+the verdict, and the gate was rerun on it. Files:
+research/experiments/mrv-node-cost/.
+
+## 2026-11-12 · Night track 1, A22 follow-up: 9x9 c=11 pilot killed (cap too low)
+
+Measurement of whether the `bb-mrv` / `scb-gacolor_ac3_random` node ratio keeps
+shrinking at 9x9 c=11 (seeds 101..108, cap 1e8, threshold T = -0.83215 from
+8x8 c=10). Outcome: kill by the preregistered rule, read as "no evidence the
+ratio keeps shrinking", not "the ratio stopped". Upper median of the paired
+log10 ratio M = 0.000 (K1 fires) and U = 6 uninformative pairs against a
+limit of 4 (K2 fires, and decides); 95% CI of M [-0.106, 0.000]. 6 of 8 pairs
+are censored at 1e8 on both solvers; seed 103 (`bb-mrv` 78,349,212 nodes, r <=
+-0.106) and seed 106 (9,970,108 nodes, r <= -1.001) favour `bb-mrv`; scb was
+censored 8 of 8. The judge reran `bb-mrv` seed 106 on another architecture:
+node-identical. Learning: at 1e8 the cap, not the ratio, binds; an informative
+follow-up needs an scb cap near 1e9 (14 to 23 h per run) or per-solver
+Kaplan-Meier medians, and the judge would not spend a 30-seed run because
+plain DFS is reported (a referee's runs, not measured here) to be about three
+orders of magnitude cheaper per node at this size. Reproducibility: node
+counts deterministic, `just experiments mrv-scaling-pilot analyze` (seconds)
+or `test` (27.37 core-hours on three machines). Branch
+`night/2026-11-12-t1-9x9-pilot`, head 0af81f7a (local branch, not merged, not
+pushed); analysis 6762e141, judge ba7d7b11. Files:
+research/experiments/mrv-scaling-pilot/, research/program/AGENDA.md (A22).
+
+## 2026-11-12 · Night track 2, A20 blocker eviction as backjump rule: killed (this implementation)
+
+Method test of blocker eviction (the IMS rule) as a repair rule inside
+`bb-mrv` propagation, against the ladder DFS `scb-gacolor_ac3_random`, `bb-mrv`
+and a random-eviction twin with identical propagation; 6x6 c=5 and 7x7 c=6,
+30 seeds, 1e6 nodes, tabu tenure 16 chosen on calibration seeds by a rule
+fixed in code first. Outcome: kill on the method clause (dropped at R6: node
+ratio against scb 4.68 [2.40, 6.55], against `bb-mrv` 9.18 [5.39, 15.20], wall
+32x and 25x) and K1 (R7 solved/30: scb 16, `bb-mrv` 23, blocker 5, run-seed
+median 4); K2 also fires (twin median 3/30, paired ratio 1.000). The judge
+reran 210 of 210 rows identically. Learning: an incomplete repair search on
+propagation loses to complete chronological DFS with MRV at these sizes. K2
+has low power at R7 (both arms nearly all censored), so it shows no
+detectable difference between two failing arms, not that blocker choice
+carries no signal. As run, 24 to 31% of blocker dead ends fall back to the
+latest decision, and both arms are partly restart methods (tabu list cleared
+4,169 and 10,922 times over 30 R7 runs). Scope: does not cover
+conflict-directed backjumping proper (Prosser 1993), conflict sets from
+propagation explanations, dynamic backtracking or stored no-goods, Rau's IMS
+placement rule, other tenures, or 8x8. PREREG.md prose was finished after
+calibration (disjoint seeds, same kill rules as the agenda). Reproducibility:
+node counts deterministic, `just experiments blocker-backjump` (about 2.5 h
+on 2 threads, summed from the README's stage times). Branch
+`night/2026-11-12-t2-blocker-backjump`, head 388b4167 (local branch, not
+merged, not pushed); judge 5dd7adca. Files:
+research/experiments/blocker-backjump/, research/program/AGENDA.md (A20).
+
+## 2026-11-12 · Night track 3, A21 value order by propagation impact: killed
+
+Method test (PREREG a4507f5, no amendments). `vi-impact` is `bb-mrv` with each
+option of the chosen cell probed and tried in ascending number of option bits
+removed. Outcome: kill. G1 against `bb-mrv` fails at every rung: node ratio
+1.075 [0.779, 1.931] at 6x6 c=5, 0.829 [0.544, 1.316] at 7x7 c=6, 1.096
+[0.669, 1.871] at 8x8 c=10; wall 1.143, 0.814, 1.141. Against the
+probe-then-random twin: 1.297 [1.058, 1.621] at R6 (worse than random among
+the same probed options), 1.000 at R7, 1.128 at R8; against `mrv-rand` 1.325,
+1.000, 1.127. The judge reran 210 rows identically (R7 not rerun). Learning:
+ranking values by propagation impact adds nothing over random order among the
+same options. Unplanned judge observation that matters beyond this track:
+one run seed of random value order, `mrv-rand-s3`, passes G1 against `bb-mrv`
+at 8x8 c=10 (0.495 [0.409, 0.768]) while `s1` sits at 1.623, so a G1 pass
+against one deterministic baseline can come from a reshuffle; order-type
+methods need run-seed controls. Scope: count of option bits, least first,
+inside `bb-mrv`; not a log-product (Refalo) impact, not the most-constraining
+direction, not 8x8 c=9. Reproducibility: node counts deterministic, `just
+experiments value-impact-order` (about 1 h on 2 cores). Branch
+`night/2026-11-12-t3-value-impact`, head a2656271 (local branch, not merged,
+not pushed); results 596a3ad9, judge 5c65f77d. Files:
+research/experiments/value-impact-order/, research/program/AGENDA.md (A21).
+
+## 2026-11-12 · Night track 4, A17 Hall matching rebaselined on bb-mrv: killed
+
+Method test: round 2's A17 (Hall matching on the frontier, V1 and V2)
+rebaselined on `bb-mrv`, which already applies A3's size-1 Hall rules.
+Outcome: kill by K2 for both variants. Paired G1 node ratios: 6x6 c=5 1.000
+and 1.000 (NO-GAIN), 7x7 c=6 0.993 [0.992, 0.996] and 0.992 [0.989, 0.993]
+(GAIN), 8x8 c=10 0.999 and 0.997 (GAIN): under 1% fewer nodes. Wall ratio at
+every GAIN rung above 1 (R7 1.028 [1.013, 1.055] and 1.025 [1.009, 1.038]);
+cost-control arms that compute the check but never act show it costs 2 to 5%
+of wall clock. The judge's rerun reproduces 1,500 R6, 90 R7 and 90 R8 rows
+node for node. Learning: round 2's 0.90 at R6 was measured against `scb`,
+which has no piece all-different; on the stronger baseline the gain vanishes.
+Round 2's result stands as measured against `scb` and is not adopted. The R6
+preregistration order cannot be fully established from file times (R6 test
+rows about 14 s after PREREG 860e368); R6 is NO-GAIN and cannot drive K2.
+Reproducibility: node counts deterministic, `just experiments hall-on-mrv`
+(about 75 min on 2 threads). Branch `night/2026-11-12-t4-hall-on-mrv`, head
+d5134870 (local branch, not merged, not pushed); judge 67059eb3. Files:
+research/experiments/hall-on-mrv/, research/program/AGENDA.md (A17).
+
+## 2026-11-12 · Night track 5, baseline tournament of 47 exact-search entrants: kept (measurement)
+
+Every solver-like component of the repo through one node counter at a 1e6 cap
+on R6, R7 and 8x8 c=10, 30 instances, 204 cells. Outcome: keep; the kill
+criterion (anchor identity) does not fire: `bb-mrv` 130/130 and
+`scb-gacolor_ac3_random` seed 1 110/110 reproduce committed rows, 0
+mismatches over 1,310 rows; the judge's rerun of 420 rows across both machines
+matched. Results: R6 `bb-mrv` 30/30, KM median 460; R7 `scb-ad` 27/30, `mrv-rand`
+26, `bb-mrv` 23, the adopted baseline 18; R8 `bb-mrv` 30/30, KM median 69,036;
+row-major DFS solves 24/30 at R8 at about 1% of `bb-mrv`'s per-run wall clock,
+but that is one cell order (column-major 20, double-snake 10, five other
+orders 0). Learning (judge's corrections, all applied to the README): "random
+value order helps at R7 and costs at R8" is not supported; the first two
+places at R6 and R8 lie inside run-seed spread; the A16 solvers are ranked at
+R7 and R8 on their 240 s guard, not on nodes; `bb-mrv`'s R6 screening flag
+holds against baseline seed 1 only. Defect found in A12's code: `fc-luby`
+seeding `(seed ^ hash) | 1` makes run seeds 2k and 2k+1 the same run.
+Limits: 19.10 h of summed wall clock against 10 preregistered; some arms not
+reached (listed in `not-reached.txt`). Reproducibility: node counts
+deterministic, `just experiments baseline-tournament` (resumes; `analyze`
+rebuilds the tables). Branch `night/2026-11-12-t5-baseline-tournament`, head
+2fcbc132 (local branch, not merged, not pushed); results 240268a, PREREG
+81860a4, judge 1f4e211. Files: research/experiments/baseline-tournament/.
+
+## 2026-11-12 · Night track 6, dead-node refutation census: kept (measurement), three idea-slot proposals killed at stage 0
+
+Measurement outside the brief (PREREG 41c069f). On `bb-mrv` trees (cap 1e6,
+ladder test seeds 1..30) at R6, R7 and the 7x7 c=8 null, up to 200 dead nodes
+per tree, stratified by depth, were tested with five bounded-region oracles.
+Soundness: 0 violations on 7,524 live states, and 0 on the judge's own naive
+search over 39,574 states; node identity 450/450. Weighted share of R7
+dead-node weight proven dead: cavities r <= 3 0.008 (pool) and 0.040
+(domains), 2-row bands 0.002, colour-only 0.017, pockets 0.035, partitioned
+propagation 0.103 (cut) and 0.096 (random). Outcome: keep, with the judge's
+rulings: T2 boundary-keyed cavity summaries killed at stage 0 on K0a only
+(K0c compared two infinite medians and decides nothing); T5 band consistency
+killed; ST boundary-word lemmas killed for the `bb-mrv` parent (0 of 1,447
+sampled R7 nodes with subtree >= 200 proven); T3 cut-keyed partitioning NOT
+killed here (the census used a one-shot share and a random control not
+matched on partition count, median 16 against 6), so it went to Track 12; OC
+piece-priced frontier bound not decided. Learning: local reasoning over small
+regions proves the small dead subtrees and almost none of the weight, and
+every share rises steeply with depth. Shares are upper bounds on savings with
+unchanged branching; the oracles' own work is not subtracted. Not measured:
+the `scb` parent. Reproducibility: deterministic counts, `just experiments
+dead-node-census` (about 40 min on 4 threads). Branch
+`night/2026-11-12-t6-dead-node-census`, head 966e9c0e (local branch, not
+merged, not pushed); results 70df1dd, judge f5f9b9a3. Files:
+research/experiments/dead-node-census/, research/experiments/justfile.
+
+## 2026-11-12 · Night track 7, partial-match ladder: killed (this entrant pool and budget)
+
+Measurement: an instrument for the 470 regime (best verified score at fixed
+work on planted-optimum boards, n in {8, 10, 12}, five entrants). Outcome:
+kill. Calibration qualified only n8 c6 and n8 c10; on rung A (n8 c6, 30
+instances) median gaps were `break-r1` 6.25%, `break-r2` 13.39%, `sa` 3.57%,
+`pt` 3.57%, `alns` 11.61%: 2 of 5 in the [2%, 4%] band against 3 required.
+`sa` beats `break-r1`, `break-r2` and `alns` on 30 of 30 instances each, the
+reverse of the 16x16 family order (confounded: implementation and board size
+cannot be separated). Scope (judge): this pool and budget; not a ladder whose
+constructive entrant keeps searching after its first complete board, nor one
+built from the 16x16-native engines. `BreakSolver` stops at its first
+complete board (at most 3.8e6 of 5.12e7 placements used). Learning: at n = 10
+and 12 every entrant stalls 5% to 12% below the optimum at this budget, wider
+than the 16x16 record gap (2.08%), so small boards at these budgets are not in
+the regime of 470 against 480. The README's claim that the band is reachable
+only by annealing entrants below critical was wrong (`break-r1` is in band at
+n8 c10). After the verdict, signed-rank ties were fixed; one descriptive p
+moved (0.047 to 0.032), no verdict depends on it. Reproducibility:
+deterministic in score and work, `just experiments partial-match-ladder check`
+and `analyze`; a third-machine rerun matched 98 of 98 rows. Branch
+`night/2026-11-12-t7-partial-match-ladder`, head 65d05984 (local branch, not
+merged, not pushed); judged at c8b129b, verdict 226baf4. Files:
+research/experiments/partial-match-ladder/.
+
+## 2026-11-12 · Night track 8, decision-diagram score-bound gap (stage 0): kept, on the threshold
+
+Measurement of how tight a width-W relaxed decision-diagram upper bound is on
+the best matched-edges completion of a break-tolerant row-major prefix,
+against an exact oracle, on generated 6x6 to 8x8 boards; 8,063 prefixes, 0
+soundness violations, decision stratum and 293 rows from the second machine reproduced bit for
+bit by the judge. Decision stratum (7x7 c=6, 3 rows left): median gap 7 at
+W=1, 5 at 64 and 512, 4 at 4096, 7 for the trivial bound. Outcome: keep. K1
+(median gap above 4 at every W) does not fire, exactly on the threshold (166
+of 240 prefixes at gap 4 or less); K2 does not fire (7 - 4 = 3). The W=1
+control equals the trivial bound at the median on every stratum with 2 or more
+rows left, so "3 edges better" means better than no bound. Size trend the
+wrong way: at 2 rows left the W=4096 gap is 1, 2, 4 at n = 6, 7, 8. With many
+rows left the diagram adds little at the critical colour counts (trivial minus
+W=4096 median 1 at r=4, 0 at r=5 and 6) but more above them (3 at r=4 on 6x6
+c=7 and 7x7 c=8). Scope: every decision prefix is deeply dead (median true
+deficit 10 and 7), so the gap near the optimum is unmeasured; no search gain,
+no wall-clock or 16x16 claim. Learning: stage 0 passes by an integer at its
+threshold, on dead prefixes, and loosens with size; stage 1 needs prefixes
+near the optimum and a wall-clock arm. Whether a record engine spends enough
+of its search in the tail for a bound to matter is not settled (see the
+record-cost entry below). Reproducibility: deterministic counts, `just
+experiments score-bound-gap` (30.95 thread-hours against 10 to 15
+preregistered). Branch `night/2026-11-12-t8-score-bound-gap`, head c96a6d73
+(local branch, not merged, not pushed); results d5f2075, judge 11a2b912.
+Files: research/experiments/score-bound-gap/.
+
+## 2026-11-12 · Night track 9, resumable long runs for bb-mrv-fast: kept (optimization, after one fix round)
+
+Harness change: progress records, checkpoints and node-identical resume for
+`bb-mrv-fast`, so a 1e8-node 9x9 run survives a kill. Judged twice. Judge 1:
+keep with defects (an edited checkpoint resumed silently as a different
+search; errors exited 0; closed share 0 on a root refutation). Fix round under
+preregistered amendment A1 (checkpoint v2 with a content digest); rejudge:
+keep. Gates: progress on against the unmodified solver, 150 instances, 0
+mismatches; three-process resume 0 mismatches; 9x9 c=11 at 3e6 0 mismatches;
+fix-round rerun equal to version 1 on 368 rows; tamper gate 2,202 of 2,202
+alterations refused. Overhead 1.008 [0.998, 1.011] (judge's spot check
+0.996). Limits: the digest detects corruption and hand edits, not forgery; a
+forged checkpoint dropping a last stack level of index 0 under a forced level
+passes the digest-independent checks (structural cause, not float
+resolution); version 2 cross-machine resume is argued, not measured; a guard
+stop is not resumable. Learning: a state hash taken only at the deepest level
+cannot see forced levels above it, common deep in a 9x9 stack. Follow-up not
+done: put stack depth and last-level index into the state hash.
+Reproducibility: node counts deterministic, `just experiments resumable-runs`
+(fix-round gates about 11 min on 2 cores). Branch
+`night/2026-11-12-t9-resumable-runs`, head 6e60130a (local branch, not merged,
+not pushed); fix 299f8d3, results 0227330e, judge 1 86f302a, rejudge
+1ecac8ba. Files: research/experiments/resumable-runs/.
+
+## 2026-11-12 · Night track 10, real 16x16 profile: kept (measurement), the row-scan price measured on the real pieces
+
+Two measurements on the official piece set, not a record attempt. M2: exact
+row-scan tree size by population SMC (N = 1e6, 5 repetitions). Five clues
+10^40.457 [10^40.440, 10^40.473] against the first-moment model's 10^40.49;
+centre clue only 10^47.140 [47.061, 47.208] against 10^47.14; no clue
+10^50.039 [50.017, 50.059] against 10^50.03 (same peak 10^48.76 at free depth
+161). The model is an analytic computation (`memos/solve-path-5-price.md`), so
+the agreement is not circular. Null: 20 instances painted from the official
+colour counts, median 10^40.606 (sd 0.125); the official set ranks 6th of 21.
+Gates passed before any M2 number was read (10 of 1,110 pairs beyond 3 s.e.;
+frame count hit, 0.99994). M1: late-node share of a port of `blackwood_bt`
+under the `record` unlock list, 4.5e-7 in the median of 6 seeds at 1e10
+nodes; flagged budget-dependent by the preregistered rule (ratio 2.89 against
+a limit of 2), so any statement at a record run's budget is argued. Outcome:
+keep, with three wording fixes applied. Scope of M1: the `record` schedule and
+this port only (its colour keying is not the published engine's, see track 13);
+it says nothing about a record engine. Limit of M2: the population collapses
+to about 300 families by free depth 175, so a heavy subtree it never visits
+cannot be excluded. Learning: the quota prune is not why the late share is
+small (`record-noquota` 1.4e-7), and a port equivalence check on the node
+total at the cap is vacuous (compare deepest depth at several caps: 18 of 18
+agree). Reproducibility: deterministic given seed and binary, `just
+experiments real-puzzle-profile m1` and `m2` plus `scripts/analyze.py`, about
+6.5 core-hours. Branch `night/2026-11-12-t10-real-puzzle-profile`, head
+dc71ad56 (local branch, not merged, not pushed); results f48e1b5 and 06cde25b,
+judge d6012509. Files: research/experiments/real-puzzle-profile/.
+
+## 2026-11-12 · Night track 11, difference map with exact band projections: killed (at this cap)
+
+Method test (PREREG 9a0c4a3) of a divide-and-concur difference map whose
+projection solves k-row bands exactly, k = 0..3, beta 0.25, cap 20,000
+iterations, 30 instances x 3 run seeds, on 6x6 c=5, 7x7 c=6, 8x8 c=8 and 8x8
+c=10. Outcome: kill; both parts of the rule fire through the preregistered
+censoring fallback: 0 of 30 instances solved at every k at 7x7 and 8x8 (one
+run of 90 at 7x7 k=3), so every s_k is infinite against s' = 0.1165. The
+band-width exponent was not measured. No band effect at 6x6, the only rung
+with finite medians (KM ratio k/k0: k1 [0.41, 1.36], k2 [0.43, 1.30], k3
+[0.77, inf]); bands cost 3x to 33x more per iteration; censored runs end
+further from a solution as k grows (median best mismatches at 8x8 9, 10, 11,
+13). Easy 8x8 c=10: the map solved 1 of 270 runs, `bb-mrv` 30 of 30. Caveat:
+for k <= 2 the cap gives the map less wall time than `bb-mrv` at 7x7. Scope:
+not larger caps, other step sizes or maps, or over-coloured boards (where the
+map does solve: the memo's 8x8 c=12 instance 4 times in 5). Judge on
+reopening: a different mechanism, not a larger cap, meaning a band projection
+that lowers iterations at 6x6 with an interval below 1 against k = 0 before
+any scaling claim. Learning: exact band projections do not buy iterations at
+the critical colour count and their per-iteration cost grows faster than any
+gain. Reproducibility: deterministic given seeds, `just experiments
+difference-map-bands` (6.81 core-hours); judge rerun of 90 rows identical,
+242 solved boards pass an independent checker. Branch
+`night/2026-11-12-t11-difference-map-bands`, head d1ed89cc (local branch, not
+merged, not pushed); judge 279118a9. Files:
+research/experiments/difference-map-bands/.
+
+## 2026-11-12 · Night track 12, T3 cut-keyed trace partitioning: killed at stage 0 on its matched control
+
+Replay (method label) of idea-slot proposal T3 on the committed `bb-mrv`
+trees, R6 and R7, branching held fixed so the node ratio is exact (PREREG
+9375c26). Upper median node ratio, surviving over `bb-mrv`: cut key 0.483 (R6)
+and 0.486 [0.469, 0.500] (R7); C1, a random key off the cut line with the
+same partition count (mean of 5 seeds), 0.444 and 0.419; C2, POAC at matched
+budget, 0.750 and 0.702. Outcome: kill. K2 fires (C1 beats the cut by 0.039
+and 0.067, on all five seeds at both rungs and on 30 of 30 instances at R7);
+K1-IDEAS fires (R7 work ratio 1.211, every arm costs more propagation work
+than `bb-mrv`); K1 (0.486 against 0.5) and K3 do not fire. Gates: node
+identity 60 of 60 trees, soundness 0 violations over 8 arms x 60 trees.
+Judge notes: at R7 C1 re-keys more often and spends 9% more work, which does
+not rescue T3 (C1 also wins on work at R6); under MRV branching the cut line
+is close to an arbitrary line, so a cut key for a row-scan solver is
+untested. Learning: any two-edge partition prunes about half of `bb-mrv`'s
+nodes (0.42 to 0.49), generic to low-colour-set edges, not specific to the
+cut. This replay is the proposal's own K2 and supersedes the census's
+non-standing kill (track 6). Reproducibility: deterministic, `just experiments
+cut-keyed-replay` (about 2 core-hours at R7). Branch
+`night/2026-11-12-t12-cut-keyed-replay`, head 606e7e52 (local branch, not
+merged, not pushed); results 2046e64, judge 18280596. Files:
+research/experiments/cut-keyed-replay/.
+
+## 2026-11-12 · Night track 13, colour keying of the record-style engine on the real pieces: kept (measurement)
+
+Measurement on the official pieces, not a record attempt (PREREG 49a3ec2;
+part 2 by amendment before its runs). Established from Blackwood's public
+source and a bijection of his piece list onto ours (`scripts/map_colours.py`,
+agreeing with a referee's map): his privileged colours are this repo's
+{5, 20, 7}, one ring colour (24 sides) and two interior (50 and 48), 122
+sides. Gain G = nodes per arrival at depth 201 for the port default {22, 21,
+20} over the arm's, 10 openings, 1e9 nodes per run, one attempt: no clue,
+published keying 1.31 [0.69, 2.43] (the judge's resample: [0.68, 2.43]); centre
+clue 0.74 [0.42, 1.27]; with five clues the published keying never reached
+depth 201 (deepest 52 to 191) against 135 arrivals for the default. Outcome:
+keep. C1, a memo's keying gain of 450 to 4,600, is contradicted at 1e9 nodes,
+one attempt, on this port. C2, the legal break path, is supported: legal
+nodes at depth 201 or more per node, 7.63 [4.82, 13.9] for the published
+keying (judge's resample [4.87, 14.3]); the full fidelity variant (legal
+breaks, ring rule, class-specific candidates, no isolation rule) 10.8 with no
+clue and 4.47 at the centre; dropping the isolation rule alone 1.86 and 1.53.
+C3, staging more colours, is dead by the literal kill line for the memo's
+schedule on this port only (top-left row scan); A2's zero is an infeasibility
+of that schedule under this scan, not a yield. Wall clock: on one host the
+published keying costs about 1,500 s per 1e9 nodes against 64 s for the
+default (rough, partly the port's break path), so per-node gains are a
+wall-clock loss. Port defect found: the no-break path can place a wrongly
+oriented piece early and strand a whole run (seeds 105 and 108). Learning: the
+port differs from the published engine in keying, non-physical pieces in the
+break path, an isolation rule, the centre piece, scan order, and the
+orientation defect; keying alone is not a lever on nodes and loses on time;
+break-path fidelity is worth 4 to 11 times in legal deep nodes. Disputed
+since: the 2026-11-13 port-fidelity track (D2, reported, not judged) says the
+published scan has no border interleaving after depth 180 and the centre-piece
+difference is in counting, not placement. Reproducibility: deterministic per
+seed (16.1 thread-hours); judge reran 19 runs bit-identically. Branch
+`night/2026-11-12-t13-quota-keying`, head ba921de3 (local branch, not merged,
+not pushed); rows 55bd52e, judge 17c56889. Files:
+research/experiments/quota-keying/.
+
+## 2026-11-12 · Night track 14, five-clue colour keying on the real pieces: killed (this family under this quota)
+
+Measurement (PREREG 6bcad1c) of whether a one-ring keying (one ring colour
+plus two interior, quota scaled by (T - 3) / 119) helps five-clue search reach
+legal depth 201. Screening: 680 keyings x 3 openings, 2,040 runs at 1e9
+nodes: none placed a legal node at depth 201 or more (deepest legal maximum
+136; median over keyings of each keying's maximum 47; median over runs 39);
+the default keying reached 209, 204, 209. Confirmation on 20 held-out
+openings: the screened top five, the published keying and five random keys
+all at exactly 0; the default yields 4.88e-7 legal late nodes per node
+(9,758 nodes, 195 arrivals). Outcome: kill, worded as the judge requires: not
+a lever within the one-ring family under the scaled quota, a floor effect
+(every arm 0, the ratio 0/0 set to 1 by convention), not "keying does not
+matter". Confound: the default runs the unscaled quota (about 79% of its
+sides by cell 160), every one-ring keying about 97.5%, so keying and slack are
+not separated; the published keying at factor 1.0 is Blackwood's own quota,
+so its failure points at port-versus-engine differences at least as much as
+at keying. 503 of 2,040 screening runs leave legality in the top border row.
+Judge reran 20 of 20 rows identically. Learning: the test that separates
+keying from slack is track 15. Scope: 1e9 nodes per run, one attempt, this
+port, top-left row scan. Reproducibility: deterministic rows, `just
+experiments five-clue-keying` (20.6 thread-hours). Branch
+`night/2026-11-12-t14-five-clue-keying`, head 4ce8a55e (local branch, not
+merged, not pushed); rows 92690117, judge ee5391c8. Files:
+research/experiments/five-clue-keying/.
+
+## 2026-11-12 · Night track 15, five-clue quota curve and port defect: kept (measurement)
+
+Measurement on the real pieces, five clues, 32 arms x 16 openings (seeds 501
+to 516), 1e9 nodes per run, 5.06 thread-hours (PREREG 7bb763a5; amendment 2,
+the deconfounding arms, committed 29 s before the first test run). Outcome:
+keep. Reading R5, slack explains track 14: the default keying under a quota
+scaled to the one-ring share (147 of 150 sides by cell 160) reaches a legal
+node at depth 201 or more on 0 of 16 openings; the published keying under a
+quota matched to the default's share on 14 of 16, under the default's absolute
+curve on 2 of 16. At matched slack the default is ahead on point estimate
+(published-style keyings 0.61 to 0.75 of its yield per second, intervals
+including 1), so keying is not shown to matter. Loosening the whole curve
+helps; delaying or halving its early part does not (the halving arm is a
+design artifact, a step from 50 to 102 at cell 96). Which curve segment binds
+is not shown (judge's wording fix W1). Orientation defect: it strands top-row
+runs; the one-ring family is rarely stranded (3 of 128); the fix costs
+nothing (0.983 [0.95, 1.04] of yield per second) and changes no non-stranded
+run (233 of 233 pairs identical). Learning: on this port the share of
+privileged sides the quota demands, not the colours, decides whether
+five-clue search reaches depth 201; quotas should be stated as a share of the
+keying's sides. Judge: order verified (584 paired guard lines), 8 rows rerun
+exactly. Reproducibility: deterministic per row (seconds vary), recipe in the
+README. Branch `night/2026-11-12-t15-five-clue-quota`, head b0a185c2 (local
+branch, not merged, not pushed); judged at 7fb856e9, judge commit c9088558,
+wording fixes 55e12880, b0a185c2 is cargo fmt only. Files:
+research/experiments/five-clue-quota/.
+
+## 2026-11-12 · Refereed: the price of a full solve by row scan, model and measurement agree
+
+Night memos `memos/solve-path-5-price.md` and `solve-path-3-exponent.md`,
+refereed in `memos/price-and-ledger.REVIEW.md` (all sixteen memo scripts
+rerun, an independent implementation in `memos/price-and-ledger-review/`),
+then checked on the real pieces by track 10. What the program now believes:
+exhausting the row-scan tree with the five clues costs 10^40.49 nodes by the
+first-moment model (a node is a valid partial board) and 10^40.457 [40.440,
+40.473] measured on the official pieces; one clue 10^47.14 (model) and
+10^47.140 (measured); no clue 10^50.03 and 10^50.039. The gap to 1,000
+core-years is 17 to 20 orders. Struck by the referee: path 2's 10^45.3 and
+path 6's 10^47.7 (one script error, spreading the full-board match
+probability over joints; corrected 10^40.66), and path 3's 10^14.8 (a second
+script error). Kept: with the true frame given, the interior costs about
+10^8.3 nodes by inward spiral (model mean over frames, not measured); at the
+row-scan peak 30 of the 39 digits are partial-frame multiplicity;
+frame-first search costs 10^37.6 frames times about 10^8.3 per refutation,
+10^45.9, 5.5 digits above row scan; no join or merging changes the exponent
+(best gain 1.0 digit, at most 2.4 for a band join storing both lists). Not
+established: "ranking is worth 25 to 150" and "no error beyond 0.3 orders for
+a random 16x16". Expected solutions (ensemble estimate, refereed in
+`partial-match-regime.REVIEW.md`): about 14,702 with the starter clue, about
+4.1e-8 with five. Learning: the price is now a measured number on the
+instance, and the model that predicted it is validated at three clue
+settings; two memos that reproduced the solution count were still 4.6 to 4.8
+digits off on the tree, so reproducing a count does not validate a tree
+model. Reproducibility: model scripts deterministic (referee's rerun);
+measurement as in the track 10 entry. Source commits d3d727b4 (path 5 memo),
+627736f5 (review), lead branch history, not pushed. Files:
+research/program/night/2026-11-12/memos/.
+
+## 2026-11-12 · Refereed: no cheap information about the frame was found (local and corner tests)
+
+Memo `memos/frame-information.md` (about 25 core-minutes of scripts),
+refereed in `memos/theory-and-frame.REVIEW.md` (7 core-minutes, quantities
+recomputed by other routes). What holds: the four corners carry about 20
+cheap bits, 17.45 exactly on the official pieces (57,131 valid five-piece
+border chains per corner; the memo's 17.17 corrected by taking the other clue
+pieces out of the pool); 91 more bits would be needed to bring row scan to
+1,000 core-years; on the real pieces arc consistency over all 196 interior
+cells kills 0.4313 of shuffled border words against 0.4293 for the first ring
+alone, so propagation sees nothing past the corner windows (measured by the
+referee); about 2 ranking bits on generated boards (z = 1.40 against valid
+frames), half of it in the corner counts. Struck: "the corner bits are already
+inside the price" (true for two corner blocks only; the far two close at scan
+cell 239; closing them first costs 0.64 digits, so the practical conclusion
+stands for another reason) and the 6x6 refuter result (one weak refuter; arc
+consistency plus all-different refutes 94.4% to 100% of wrong 6x6 frames with
+zero search nodes; 6x6 says nothing about 16x16 either way). Learning: the
+frame question is closed for counting, corner lists, first-ring counts and arc
+consistency (graded 0.75 by the referee); open: all-different reasoning and
+clause learning on partial frames of the real pieces, the question the
+2026-11-13 track D1 is measuring. Reproducibility: deterministic scripts in
+`memos/frame-information/` and `memos/theory-and-frame-review/`. Source
+commits 902d69e6 (memo), bc5fef40 (review), lead branch history, not pushed.
+Files: research/program/night/2026-11-12/memos/.
+
+## 2026-11-12 · Refereed: claims struck from the night's memos, and where a record's cost is paid
+
+Every memo that got a second reader lost at least one headline claim. Struck
+or not established, by referee (grades are the referees'): growth law, "no
+ladder rung is critical" refuted by enumeration (6x6 c=4 boards have 357
+solutions on average; corrected critical colour counts 4.65, 5.99, 7.32,
+8.63, 9.94 for n = 6..10), "relaxing distinctness cannot refute before the
+peak" wrong as stated (37% and 57% refuted more than a row before the peak),
+"propagation is only a surface factor" not established (`growth-law.REVIEW.md`,
+774e9b53; kept: `bb-mrv`'s node lead over plain DFS does not grow with n, and
+plain row-major DFS solves 9x9 c=11 in 2 to 6 s); partial-match regime, "471
+costs 80 to 235 times 470" not established and "a score bound has little to
+remove" not established (`partial-match-regime.REVIEW.md`, 3186a18c; kept:
+10^34.4 boards at 470, 10^31.65 at 471, a step of 10^2.7 per point, as
+ensemble expectations); literature, "the record moved this month" wrong (a
+five-clue 466 has been public since at least 2026-10-08) and "row-major
+scanning is optimal" wrong (`literature-and-path-6.REVIEW.md`, ebaad0ae);
+solve paths 2, 3 and 6, the prices above (script errors); where a record is
+paid, "keying alone is worth 450 to 4,600 times" wrong (unlike comparison; 3
+to 20 like for like) and "anything after depth 201 is capped at 1.1 to 1.9"
+wrong (`where-a-record-is-paid.REVIEW.md`, 3b103c2b); frame information, two
+supporting statements (entry above); theory referee, all six rulings held,
+but 3 of 5 sampled "sound" pages were one grade too kind. Established from
+Blackwood's public source by the record-cost referee: the published engine
+keys on this repo's colours 5, 20, 7 (quota 119 by cell 160), builds legal
+boards only, pins piece 139 in the centre and has no isolation rule. Where a
+record engine pays its nodes is not settled: track 10 measured 4.5e-7 late on
+a port keyed differently; the partial-match referee inferred 92% to 98% from
+one model row; the record-cost referee saw 0.4% to 53% of legal nodes late
+across seeds and clue settings, and track 13 confirms the spread. Learning: a
+memo is a claim until refereed (draft protocol rule P9); the score-bound line
+was declared closed twice in one night and reopened both times. Files:
+research/program/night/2026-11-12/memos/, REPORT.md ("What the referees
+changed").
+
+## 2026-11-13 · Refereed: the puzzle's numbering and stored orientation carry no recoverable trace; route closed for now
+
+Memo `night/2026-11-13/memos/how-the-puzzle-was-made.md`, refereed in
+`how-the-puzzle-was-made.REVIEW.md` (facts recomputed independently). Holds:
+the official numbering is exactly a sort (class, then smallest rotation; 0
+inversions in 20,656 pairs) under one key and one colour labelling, and the
+stored orientation is that canonical form, so both are functions of the piece
+set and say nothing about the arrangement; no statistic of about 25 distinct
+ones passes the multiple-comparison line against a null matched on colour
+counts and the frame and interior split. Reworded: "zero bits" becomes "at
+most 42.7 bits (the untested order within colour-count tiers), with no
+mechanism". Struck: the seed-enumeration odds of 1 in 1,000 (a guess) and a
+sentence expecting one solution (the project's figure is about 14,702 with the
+starter clue). This agrees with the 2026-11-12 path 2 memo (its
+zero-information argument is Bayes' rule and rules out design traces, not
+solution marginals). Learning: the construction route is closed for now; the
+one loophole left (a coarse stratified painter) is invisible in the piece set
+and testable only by running search under a guessed painter. Reproducibility:
+deterministic scripts in `night/2026-11-13/memos/how-the-puzzle-was-made.scripts/`.
+Source commit 5ed776d9, lead branch history, not pushed. Files:
+research/program/night/2026-11-13/memos/.
+
+## 2026-11-13 · The strict five-clue record is 466, not 465: a public board verifies
+
+The site's strict five-clue record of 465 (ledger entry of 2026-09-17) is
+stale. The board `FiveClue_466_2c037e70f7e9` from the public repository
+`gearashi/EternityIISolver` (`data/record466.json`, fetched 2026-11-13,
+attributed there to "Jef", origin `stats.eternityathome.org`) was checked with
+independent scripts (`research/program/night/2026-11-12/checks/verify-466/`):
+256 pieces each used once, the piece multiset equal to the official set up to
+rotation under one colour relabelling, 5 of 5 official clues honoured in the
+repo's own definition, 466 of 480 internal edges matched, no grey side off
+the rim. Outcome: measured; the record moves to 466 strict once
+`/research/records` is updated (not edited by this entry). Limits: the colour
+relabelling was found by search (the score and the multiset do not depend on
+it, the clue check does); the first-publication date (2026-10-08, from the
+literature referee) was not rechecked; attribution is the source's metadata;
+the downloaded data is not committed, so the check reruns only after fetching
+it. Reported, not verified: a BOINC project page shows 466 with five clues
+(four boards dated 7 to 12 November) whose boards cannot be downloaded. The
+repo has no command that verifies a board given as pieces and rotations; one
+should come with the records update. Reproducibility: deterministic checker,
+`python3 -I check.py <data dir> <official csv>`. Source commit d31b82bb, lead
+branch history, not pushed. Files:
+research/program/night/2026-11-12/checks/verify-466/.
+
+## 2026-11-13 · Follow-up to the 466 entry: data committed, verifier exists, library date 2026-09-19
+
+Corrects the entry "The strict five-clue record is 466, not 465" above, which
+was stale when committed (d75ad2e8, one minute after 7c4757eb). Three of its
+statements no longer held: the board data is committed
+(`research/topics/record-boards/community/fiveclue-466-2c037e70f7e9.json`);
+a verifier for boards given as pieces and rotations exists
+(`research/topics/record-boards/compute/verify_pieces.py`, recipe
+`just research-record-boards-pieces`, output
+`results/community-verified.json`); and the earliest public date is
+2026-09-19T11:27:35Z, the timestamp of this board in the Eternity@Home library
+listing `s/466/0.json`, not 2026-10-08 (that is the date of the GitHub mirror
+commit). The listing held 14 boards at 466 on 2026-11-13, timestamps
+2026-09-19 to 2026-11-12; `s/467/0.json` returned 404. An independent check
+from the piece file (rotation convention unambiguous: the opposite one puts
+grey sides off the frame) confirmed 256 distinct pieces, the five clues at
+their cells and rotations, and 466 of 480 edges. Outcome: measured, valid
+strict five-clue 466, stated on the site as the highest verified as of
+2026-11-13 (only the library and one mirror were checked). Reproducibility:
+artifact verification, deterministic. Commits 7c4757eb, 5b7c687c, 4d05811c.
+Files: research/topics/record-boards/, web/src/data/records-timeline.ts,
+web/src/components/research/views/RecordsView.tsx.
+
+## 2026-11-13 · Documentation corrections: what was withdrawn and why
+
+Theory and build pages were corrected against committed results and an
+independent review (`research/corrections/2026-11-13-REVIEW.md`, 29 numbers
+recomputed, 0 mismatches; 17 required fixes, all applied). Withdrawn: the
+entropy limit 0.67 (it exceeds h(6) = 0.640, impossible for an infimum), the
+area-law fit exp(-0.0445 n^2) and its 155-cell collapse (the sampled fraction
+at 48 cells is about 300 times below it); the 76 ceiling on one-move
+neighbours at 478 (it counted interior pairs only; the census gives a floor of
+154 = 125 near-twin swaps + 29 turns); the flat 10^45 search-tree plateau (the
+committed complex-theory reference peaks at 7.3e45 at depth 161, 1.6e27 at
+depth 50, 5.0e40 at depth 200, so the fill-order "two-order gap" is close to
+three); "proven" on the rigidity page and on open problems (the MIP runs are
+uncommitted notebook results, graded measured); the sigma-cycles title "Why
+basin-hopping looks impossible" (the body shows only that interpolating
+between known boards fails and that the loops match a random null; retitled
+"Interpolating between record boards fails"); the glossary's causal clause on
+near-solution scarcity; the "standing" strict five-clue record wording (now
+"highest verified as of 2026-11-13"). Regraded: 13 dead-end entries by
+evidence, 22 moved to untested claims; the strict five-clue record moved from
+465 to 466 site-wide; AGENDA and EXPLORED rewritten with evidence grades. The
+entropy scripts moved into `research/topics/entropy-area-law/compute/scripts/`
+and the single-move script into `research/topics/parity-defect-floor/compute/
+scripts/`, so site pages cite topic results, not the correction log. The
+distinct-piece sampler, the one input the review could not reproduce, was
+rerun with seeds 101 to 106: 4x4 0.3261, 4x6 0.1071, 4x8 0.02443, 4x12
+0.000389 against 0.3263, 0.1060, 0.02383, 0.000375; largest gap 1.8 combined
+standard errors; 1e-3 crossing 44.4 cells against 44.2. The entropy page's
+repro is now graded seeded. Learning: carried constants from offline sweeps
+are where the withdrawn numbers came from; every carried value now names a
+committed script and output. Reproducibility: exact for the census and the
+counts, seeded for the sampled fractions. Commits e390a746 to the commit
+adding this entry on night/2026-11-13-docs (not pushed). Files:
+web/content/research/, web/src/data/, research/topics/{entropy-area-law,
+parity-defect-floor,record-boards}/, research/corrections/, research/program/
+{AGENDA,EXPLORED}.md, AGENTS.md, justfile.
+
+## 2026-11-13 · Note on a miscited commit
+
+The entry on the construction memo (2026-11-13, "Source commit 5ed776d9, lead
+branch history") names the wrong branch by implication: 5ed776d9 is on
+`night/2026-11-13-lead`, not on `night/2026-11-12-lead`. The entry stands
+otherwise.
+
+## 2026-11-13 · Frame cores, port fidelity, scan orders and pins, prefix statistics, pin map: five tracks independently assessed and closed
+
+Five tracks, each independently assessed and closed on 2026-11-13. Frame cores (D1, real pieces): cheap refutation of full frames is dead (lower medians 0.89, 0.12 and 1.00 against a line of 100). The stage 2 pass (36.75 bits [32.90, 53.19], median core 5 cells) holds by the letter but is a corner artefact: 21 of 23 near frames die on a 3x3 clue block. The far stratum is undecided (37 frames, 16 censored, median 75.12 bits, upper end infinite). Nested arc cost 27.68, 31.37, 35.39 and 39.49 bits, each 2.2 to 2.5 bits above its break-even budget. About 59 core-hours. Kept as a measurement, not as evidence that frame search with nogoods beats row scan. Port fidelity (D2): seven differences from the published engine fixed, each with a test and a legacy switch; 23 of 23 node-sequence comparisons identical; with five clues the faithful defaults do worse (deepest depth 18 to 54 and no legal node past 200, against 33 to 215 for the old defaults, eight seeds). Scan orders and pins (D3): none of 18 static orders is shown to beat row scan (the kill line is reached for 15, three are undecided because the estimator's population dies); a 2.11-digit "win" of one searched order is withdrawn. On painted 16x16 boards the best single extra pin is worth 10.05 bits, the median 5.79; a 10^15 run is over budget at 10 spread pins and under at 16 to 24 (checked end to end only). Prefix statistics (D4): a census statistic tilts about 2 sd toward the planted prefix at depths 144 and 160 on 48 painted boards; worth 1.02 bits [0.72, 1.27] in one scan direction, -0.04 with two, -1.88 with four; no claim of transfer to the real puzzle. Pin map (D5, 8x8 and 10x10 toys): under row scan a known tile's worth is set by its place in the scan order; a touching pair loses about half of the second tile's worth; under an adaptive solver the placement rules still differ by 6.8 bits at k = 3 and converge only by k = 6 to 8. An unplanned follow-up measured how much of the tree arc consistency refutes: the share of sampled wrong prefixes not refuted is 0.427 at depth 96, 0.096 at 112, 0.179 at 128, 0.064 at 144, 0.007 at 152 and 0 at 160, and the true prefix is never refuted; applied to the official profile that is about 5.2 bits of nodes (derived), at a per-node cost of about 13 bits at the measured speed (not independently assessed; the engine changed after the D4 assessment). Learning: every check that works, works too late; the old claim that arc consistency refutes close to nothing at depths 96 to 128 was wrong (it refutes 57 to 90 percent there), with the conclusion unchanged. Generated and painted boards are toys. Reproducibility: deterministic per seed for D2 and D3, seeded for D4 and D5; `just experiments frame-cores`, `orders-and-pins`, `prefix-statistics`, `pin-map`. (commit: pending) Files: research/experiments/frame-cores/, research/experiments/orders-and-pins/, research/experiments/prefix-statistics/, research/experiments/pin-map/, research/experiments/single-core-benchmark/, research/experiments/approach-pricing/.
+
+## 2026-11-13 · Seven gap studies, each independently re-checked: no route priced at 10 bits or more
+
+Seven desk studies on the places the three known obstructions do not reach, each followed by an independent re-check that narrowed or struck claims. Search that learns: "empty" is unproven as written and holds only for reasons attached to row-scan nodes, used one at a time; about 2 bits (ceiling 6.6); an off-the-shelf clause-learning solver needs 2^5 to 2^6.5 fewer conflicts than tree nodes on 5x5 and 6x6, flat across the two sizes, which is not a time gain. Lossy representations: the two-list join gains 3.0 bits (2^131.6), not 5.9; a colour-blind sound sketch saves at most 2.0 bits (a derivation that needs a second reader). Shape of the tree: blind restarts and portfolios net 1 to 3 bits with oracle cutoffs (ceiling 6.5) and lose about 1 bit blind; the counting bound in the study is unproven. Adaptive orders: row-shaped rules within 3 bits of row scan under forward checking and within 1 under arc consistency; free smallest-domain is 13 to 49 bits worse; arc consistency alone 5.5 bits; finishing rows one or two at a time gains at most 5.3 or 6.7 bits (proved in the re-check). Tile-set structure: no colour automorphism, invariant group Z^2 + Z/2, 0 bits before depth 192; the study's "0 of 184 prefixes refuted" had no evidential weight (all 184 are dead). Algebra and counting: none found among fifteen reformulations, not a barrier; one lemma was wrong on real tiles, the merge factor is about 0.033 bit, not under 0.02. Search-space reformulation: row scan within 0.24 bit of the best static order (annealing, no certificate); a four-side colour pattern identifies one tile (1,024 oriented patterns, all distinct), so searching by edges is searching by tiles. Largest gain priced anywhere: 5.5 bits of nodes (arc consistency), whose per-node cost exceeds it at the measured speed. Learning: a gap study's "empty" verdict is only as wide as the family it priced; of 60 claims later struck or corrected in the arc, most came from desk studies and survey citations (seven survey citations corrected, 121 checked, 103 confirmed, none invented). Open from these: a second reader for the 2-bit sketch bound, a certificate that row scan is the best order at the bottleneck, weighted degree at 8x8 and 9x9, the injective-only hole (an object with one term per solution always exists; whether it can be built without the solutions has no model). Reproducibility: desk studies with small toy-board scripts (boards generated, never Eternity II progress); the numbers are re-derived by the second analyses, not rerun for the index. (commit: pending) Files: research/experiments/approach-pricing/notes/gap-*.md, research/experiments/approach-pricing/surveys/, research/experiments/approach-pricing/scripts/, research/experiments/approach-pricing/results/.
+
+## 2026-11-13 · Linearisation degree on toy boards: degree 2 fails at 4x4 and 5x5, row not formally closed
+
+Test fixed before any run on the algebraic row (linearisation, in the family of XL, Nullstellensatz and polynomial calculus): the price of 2^67 for degree 2 stays alive only if degree 2 pins the solution at both 4x4 and 5x5 on most boards. Result on generated boards with one solution, over GF(2) and a large prime: degree 2 determines 10 of 10 boards at 3x3, 0 of 10 at 4x4, 0 of 5 at 5x5. At 4x4 the needed degree is 3 on 6 or 7 of 10 boards and 4 on the rest; at 5x5 it is at least 3, and whether 3 suffices did not fit in memory (16.2 million monomials, stopped at rank 2.35 million with 1.07 billion nonzeros). Degree 2 only propagates (a median 18 of 128 variables forced at 4x4, 60 of 461 at 5x5); controls pass. Outcome: the degree-2 price is dead; the row is not formally closed (degree 3 at 5x5 was never measured). Learning: sparse elimination cost grew about linearly in monomials where runs completed, so the stated price per degree may be too high; memory, not time, was the wall. Not independently checked. Reproducibility: deterministic scripts, toy boards from the study's own painter. (commit: pending) Files: research/experiments/approach-pricing/notes/gap-6a-linearisation-degree.md, research/experiments/approach-pricing/scripts/gap-6a-linearisation/, research/experiments/approach-pricing/results/gap-6a-linearisation/.
+
+## 2026-11-14 · Relaxation line closed as a negative: convex lift, low-rank form, annealing comparison, growth exponent
+
+A bounded study of relaxation solvers on generated toy boards, closed on 2026-11-14. Convex lift (degree-2 semidefinite with entrywise nonnegativity): on five generated 5x5 boards, three are certified clean by a converged largest-leak solve (seeds 1, 2 and 4, with 2 to 8 solutions), one is undecided (seed 0) and one is not exact (seed 3, 403 solutions: 0.0047 of the mass per cell stays on 10 placements that are in no solution at violation 5e-9, and about 0.042 once polished to violation 1.5e-9; an independent enumeration gives the same 403 solutions). One solver family only; a second solver is still needed. The sentence "the lift is exact at 5x5" is withdrawn, and so is the 60, 20 and 2 percent odds for exactness at 6x6, 8x8 and 16x16 (a judgment, formed before a 5x5 board was found inexact). Cost: 400 to 1,100 s per 5x5 solve on boards a depth-first search clears in under a second; at 16x16 one dense copy is 183 GiB, the factor plus nonnegativity multipliers about 119 GiB. Three 6x6 largest-leak runs did not converge before they were stopped (primal residual about 3e-4 against a target of 1e-7; mass off solutions per cell 0.843, 0.865, 0.730, flat to 0.001 over the last 1,000 iterations; lower bounds of 24, 13.5 and 13 hours to reach the target): the stop line decides nothing, and exactness at 6x6 stays open with an unconverged reading that points to a large leak. A pseudo-inverse cutoff fault was found at 6x6 on one machine; no 5x5 figure and no re-checked claim rests on it (not independently checked). Low-rank form: a penalty-guided randomised search with an exact acceptance test, not a relaxation solver. At 5x5 it solved 200 of 200 runs on 15 boards (configuration chosen on 50 runs, held on 150 unselected), about 5,200 evaluations per solution; annealing with restarts is 8 to 35 times cheaper per solution at 5x5 and 3.6 to 63 times cheaper at 6x6, and exhaustive search takes 0.3 to 0.6 s. The nonnegative factor solved 0 of 50 starts at 5x5 in each of four variants (0 of 2,000 in the simplest), against 26 of 50 for annealing; the formulation aspect is nearly empty (six of eight smaller lifts leak or are vacuous at 5x5). Annealing at 7x7 found nothing in 210 runs; its rate is below 26 percent per 3e9-step run but not shown to be zero; the earlier "0 of 1,000 at 6x6" was a budget artefact (the same annealer solves 2 of 3 runs at 1,000 times the budget). Growth exponent: on a 10-core Apple M4 laptop with 30 CPU minutes per start, 22 of 50 starts solved at 6x6; charging capped starts in full, 460,416 evaluations and 3,084 CPU seconds per solution against 5,083 and 6 at 5x5, an exponent of 4.5 in P (bootstrap over boards 3.97 to 5.31, two sizes only; the censored median, 270,051 evaluations, gives 4.53); a replicate on a 14-core low-power x86 laptop solved 3 of 50 and agrees on the speed-independent measures (exponent 4.86). The broken-board control gave 0 of 10 on each machine. Two sizes cannot tell a power from an exponential; extrapolated to 16x16 it is about 1.3e15 evaluations per solution, labelled an extrapolation. Outcome: closed as a negative: the lift is exact on some 5x5 toys, leaks on at least one and cannot run at scale; the low-rank form loses to annealing at 5x5 and 6x6. Learning: a heuristic's success at a small size says nothing about the lift (the low-rank form also solves 46 of 50 with nonnegativity removed); "solves happen early, restart sooner" read from three rows was wrong (median solve at step 605 of 1,000), and "460,416 per solution with capped runs censored" was a full-charge figure. Toy boards only; none of this is Eternity II progress. Reproducibility: seeded, long runs; the committed notes carry the commands and the raw logs. (commit: pending) Files: research/experiments/relaxation-small-boards/ (notes/, scripts/, results/, lowrank-rust/).
+
+## 2026-11-14 · Route audit and anomaly hunt: three weak closures, no surviving anomaly
+
+Route audit of 78 lines of the routes index: 47 closures (32 sound, 13 of them with a stale or overstated index row; 10 weak and bearing on a solve; 5 weak but relevant to records only). The yardstick behind most sound kills: a filter on a row scan gains at most the ceiling at its depth plus the bits it removes there. The ceiling of a perfect free cut from free depth d onward, in bits: 57.1 at 52, 44.8 at 64, 29.8 at 80, 17.1 at 96, 10.7 at 112, 6.8 at 128, 2.4 at 144, 0.4 at 160; the widest level is at depth 158. The stratified-painter loophole is priced at 23.6 bits under row scan (derived) and stays closed. Three weak closures to reopen first, none above 1 percent odds of a solve: exactness of the convex lift at 6x6, growth of non-tree solvers against the tree on the same boards, learning solvers at 7x7 and on real-piece prefixes with a propagation-only control. Anomaly hunt on 51 candidates: 14 disagree with their model beyond noise at face value; none survives a painted-board null and a count of comparisons. The three-row staircase (+2.85 bits in a gap study) is not reproduced at ten times the population (135.2 and 135.7 bits, above row scan); the frame count's 0.106-digit deficit is explained by the 14 edge pieces with the same colour on both sides (0 bits); the official level profile shows no |z| above 3 across 185 widths, 179 branching ratios and 156 dead-end shares. Outcome: negative. Learning: the weak kills sit where the yardstick does not reach, in solvers that are not trees and in reformulations that would become polynomial if some property held. Both are not independently checked; the wording for the staircase is "no gain shown" (two runs). Reproducibility: desk analysis; the ceiling table is printed by `python3 -I scripts/route-audit/strata_gain.py` from the committed level profile. (commit: pending) Files: research/experiments/approach-pricing/notes/route-audit-weak-kills.md, research/experiments/approach-pricing/notes/anomaly-hunt.md, research/experiments/approach-pricing/scripts/route-audit/, research/experiments/approach-pricing/routes.md.
+
+## 2026-11-14 · Learning against propagation on toy boards, 5x5 to 7x7: independently re-checked, stop line undecidable
+
+Measurement of how many bits of search work clause learning saves over a solver that only propagates, on ten generated boards per size, with the stop line written before the run (the lead over row scan with arc consistency must rise by 2 bits from 6x6 to 7x7, and by 3 bits from depth 104 to 88 on real-piece prefixes). Same solver and order, learning on minus off: +1.31 bits at 5x5 (95 percent +1.06 to +1.49) and +2.03 at 6x6 (+1.33 to +2.26); no 7x7 value, because the learning-on arm finished 0 of 10 boards in the one-hour limit. A table entry of +6.06 at 7x7 measures the time cut, not learning, and is an upper bound. CaDiCaL over row scan with arc consistency: +2.19 at 6x6 and at most +4.28 at 7x7, a rise of at most +2.09 against a threshold of 2, with no lower bound (a cut solver may need any number of further conflicts). The re-check found a fault in the first note: 7x7 board 5 was dropped from the paired figure because the arc consistency run was killed with no output although CaDiCaL finished it in 430 s, which is the learning solver's best case, so the note's +3.92 bounds only the 8 boards it used. Outcome: the size clause is undecidable and the depth clause was never run (no real-piece part); the stop line is undecidable on this data. In seconds the learners lose at every size (log2 time ratios -2.00, -3.15, -2.98 in the first note). Estimated worth for the full puzzle: 0 to 2 bits in time. Size is confounded with tightness (inner colours 4, 5, 7). Not run: 8x8, the real-piece part, a cardinality solver, weighted degree with restarts; some 7x7 jobs were lost when one machine restarted. Independently re-checked; toy boards only. Reproducibility: seeded boards regenerate byte for byte; `just experiments learning-vs-propagation` reruns the analysis from the committed raw output (solver builds not verified). (commit: pending) Files: research/experiments/learning-vs-propagation/ (notes/measurement.md, notes/recheck.md, scripts/, results/).
+
+## 2026-11-14 · Decision: stop the hunt for a method, publish the negative results, park with tripwires
+
+Decision of 14 November: stop the research here and publish all the work. Basis: none of the seven re-checked gap studies prices a mechanism at 10 bits or more; the only candidate (linearisation at degree 2) failed its toy test; the relaxation line closed negative; the route audit and the anomaly hunt returned nothing that survives; the learning measurement left its stop line undecidable. The one-sentence reason: every check that works, works too late. The tests that refute wrong boards refute nearly all of them only from depth 144 to 192 (arc consistency already refutes 57 to 90 percent at depths 96 to 128, where the levels hold few nodes), the widest level of the measured tree is at depth 158 and a perfect cut at depth 144 saves at most 2.4 bits, so the largest gain priced is about 5.5 bits of nodes against a gap of 56 to 73 bits (about 84 bits against a modest run of about 10^15 nodes). A cardinality solver arm was not run: one more learning arm cannot change a comparison where the family's best case is about 2 bits against that gap. Tripwires for reopening: a published method with a class-level gain (price at 10 bits or more with a falsifying experiment under a day; the ceiling table is the first filter); tiles of the solution becoming available from outside the search (best extra pin about 10 bits, median about 6; a 10^15 run needs more than 10 and probably 16 to 24 spread pins); hardware gains of 15 orders of magnitude or more (every credible multiplier together is about 2.5 orders); or a re-check or run that overturns a closure (convex lift exact at 6x6; far stratum of frame cores below break-even; a non-tree solver's work growing by less than 0.75 of the tree's from 6x6 to 7x7; a learning solver's lead rising with size). Learning: a closure is worth publishing with its reopening conditions attached; 60 claims were struck or corrected during the arc, so every carried number now names a committed result. Reproducibility: not applicable (decision). (commit: pending) Files: research/program/night/2026-11-13/REPORT.md, research/program/night/2026-11-13/STATUS.md, research/program/AGENDA.md, research/program/EXPLORED.md.
+
+## 2026-11-14 · Publication of the arc: evidence folders, twenty experiment folders, ten pages
+
+The arc is published under the Raphaël Anjou experiments section. Evidence folders: `research/experiments/approach-pricing` (question, fixed numbers, routes index, desk studies with their re-checks, eight field surveys with citation and derivation re-checks, scripts, results), `research/experiments/relaxation-small-boards` (the relaxation line on toy boards), `research/experiments/learning-vs-propagation` (clause learning against propagation). Twenty experiment folders copied in, one commit each, with recipes under `just experiments`: mrv-node-cost, mrv-scaling-pilot, real-puzzle-profile, difference-map-bands, cut-keyed-replay, dead-node-census, quota-keying, five-clue-keying, five-clue-quota, blocker-backjump, value-impact-order, hall-on-mrv, baseline-tournament, partial-match-ladder, score-bound-gap, resumable-runs, frame-cores, orders-and-pins, prefix-statistics, pin-map (the existing single-core-benchmark folder gained the port-fidelity audit). Pages, in English, French and Spanish, under `web/content/research/lab/experiments/raphael-anjou/full-solve/`: index (the price of a full solution), price-of-a-full-search, approaches-priced-out, frame-and-corners, port-fidelity, late-filters, keying-experiments, search-engine-tracks, worth-of-a-known-tile, relaxations-on-small-boards; generic pages (approaches map, known facts, how hard is this instance, single-core benchmark, the experiments index) carry mentions and links. Withdrawn or corrected results keep their status on the pages; results on generated boards are labelled toy boards; unpublished boards and private statements are left out. Not published: the raw logs of the arc. Learning: raw run folders carry host-specific paths and a few large raw files, which were scrubbed or left out; two experiment ids were renamed to remove a banned word, so outside links to the old ids break. Reproducibility: exact for the ceiling table and the reprinted analyses; seeded or long-running for the runs, as each folder states. (commit: pending) Files: research/experiments/{approach-pricing,relaxation-small-boards,learning-vs-propagation}/, the twenty folders above, research/experiments/justfile, web/content/research/lab/experiments/raphael-anjou/full-solve/, web/content/research/lab/experiments/raphael-anjou/index.mdx, web/content/research/build/approaches-map.mdx, web/content/research/build/known-facts.mdx, web/content/research/why/how-hard-is-this-instance.mdx.
