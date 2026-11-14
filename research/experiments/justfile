@@ -360,3 +360,16 @@ prefix-statistics stage="analyze":
 # stage: build | validate | boards | s8 | g8 | p8 | pairs8 | s8c | g8c | p8c | s10 | g10 | p10 | n8 | mrv8 | all | analyze
 pin-map stage="analyze":
     sh pin-map/run.sh {{stage}}
+
+# Approach pricing: reprint the ceiling table of a perfect free cut and rerun the
+# cheap checks (seconds, stdlib only). See approach-pricing/README.md.
+approach-pricing:
+    cd approach-pricing/scripts/route-audit && python3 -I strata_gain.py
+    cd approach-pricing/scripts/route-audit && python3 -I propagation_control.py
+    cd approach-pricing/scripts/far-ideas-different-question && E2_CSV=../../../../../engine/data/official_eternity2.csv python3 -I 01_blocks_2x2.py
+
+# Learning against propagation on toy boards: rerun the analysis on the committed
+# raw outputs. See learning-vs-propagation/README.md.
+learning-vs-propagation:
+    cd learning-vs-propagation/scripts && python3 -I analyze.py
+    cd learning-vs-propagation/scripts && python3 -I analyze_extra.py
