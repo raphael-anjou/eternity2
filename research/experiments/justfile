@@ -368,11 +368,16 @@ approach-pricing:
     cd approach-pricing/scripts/route-audit && python3 -I propagation_control.py
     cd approach-pricing/scripts/far-ideas-different-question && E2_CSV=../../../../../engine/data/official_eternity2.csv python3 -I 01_blocks_2x2.py
 
-# Learning against propagation on toy boards: rerun the analysis on the committed
-# raw outputs. See learning-vs-propagation/README.md.
+# Learning against propagation: rerun the toy-board analyses (5x5 to 7x7) and the real-piece prefix analysis
+# on the committed raw outputs, plus the independent re-check's recomputation of each. Stdlib only. See
+# learning-vs-propagation/README.md. The real-prefix analysis rewrites results/analysis/per_prefix.out.tsv
+# with identical content.
 learning-vs-propagation:
     cd learning-vs-propagation/scripts && python3 -I analyze.py
     cd learning-vs-propagation/scripts && python3 -I analyze_extra.py
+    cd learning-vs-propagation/scripts/recheck && python3 -I recompute.py
+    cd learning-vs-propagation/real-prefixes/scripts && python3 -I analyze.py ../results/raw/machine-c ../results/raw/machine-b ../results/raw/machine-a
+    cd learning-vs-propagation/real-prefixes/scripts/recheck && python3 -I recompute.py
 
 # RELAXATION-SMALL-BOARDS: small-board smoke runs of the relaxation studies (toy boards only,
 # negative result). See relaxation-small-boards/README.md.
