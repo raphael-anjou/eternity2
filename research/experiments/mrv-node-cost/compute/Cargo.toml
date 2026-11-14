@@ -1,0 +1,26 @@
+[package]
+name = "mrv-node-cost"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Optimization track: bb-mrv with a cheaper node (same search tree, hashed node sequence gate)."
+
+# Standalone workspace so the crate builds from a clean checkout on its own.
+[workspace]
+
+[[bin]]
+name = "mrv_node_cost"
+path = "src/main.rs"
+
+[dependencies]
+hard-ladder = { path = "../../hard-ladder/compute" }
+backdoor-branching = { path = "../../backdoor-branching/compute" }
+sat-backdoors = { path = "../../sat-backdoors" }
+eternity2-engine = { path = "../../../../engine" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
