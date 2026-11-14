@@ -1,0 +1,28 @@
+[package]
+name = "blocker-backjump"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "A20: blocker eviction (IMS rule) as the backjump rule inside bb-mrv, with a random-eviction twin."
+
+# Standalone workspace so the crate builds from a clean checkout on its own.
+[workspace]
+
+[[bin]]
+name = "blocker_backjump"
+path = "src/main.rs"
+
+[dependencies]
+hard-ladder = { path = "../../hard-ladder/compute" }
+backdoor-branching = { path = "../../backdoor-branching/compute" }
+sat-backdoors = { path = "../../sat-backdoors" }
+mrv-baseline = { path = "../../mrv-baseline/compute" }
+eternity2-engine = { path = "../../../../engine" }
+eternity2-solver-trait = { path = "../../single-core-benchmark/engine/crates/solver-trait" }
+eternity2-solver-engine = { path = "../../single-core-benchmark/engine/crates/solver-engine" }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
