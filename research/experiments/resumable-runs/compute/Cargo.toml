@@ -1,0 +1,27 @@
+[package]
+name = "resumable-runs"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "bb-mrv-fast with progress records, checkpoint and resume (same search, hashed node sequence gate)."
+
+# Standalone workspace so the crate builds from a clean checkout on its own.
+[workspace]
+
+[[bin]]
+name = "resumable_runs"
+path = "src/main.rs"
+
+[dependencies]
+mrv-node-cost = { path = "../../mrv-node-cost/compute" }
+hard-ladder = { path = "../../hard-ladder/compute" }
+backdoor-branching = { path = "../../backdoor-branching/compute" }
+sat-backdoors = { path = "../../sat-backdoors" }
+eternity2-engine = { path = "../../../../engine" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
