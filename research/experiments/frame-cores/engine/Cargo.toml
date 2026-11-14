@@ -1,0 +1,21 @@
+[package]
+name = "frame-cores"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# std plus the repo's generator crate (std only), so the build is offline.
+[dependencies]
+e2-core = { path = "../../common/crates/e2-core" }
+
+[[bin]]
+name = "fc"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+
+[workspace]
