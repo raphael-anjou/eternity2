@@ -1,0 +1,28 @@
+[package]
+name = "value-impact-order"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "A21: value order by propagation impact inside bb-mrv (see ../PREREG.md)."
+
+# Standalone workspace so the crate builds from a clean checkout on its own.
+[workspace]
+
+[[bin]]
+name = "value_impact"
+path = "src/main.rs"
+
+[dependencies]
+hard-ladder = { path = "../../hard-ladder/compute" }
+backdoor-branching = { path = "../../backdoor-branching/compute" }
+mrv-baseline = { path = "../../mrv-baseline/compute" }
+sat-backdoors = { path = "../../sat-backdoors" }
+eternity2-engine = { path = "../../../../engine" }
+eternity2-solver-trait = { path = "../../single-core-benchmark/engine/crates/solver-trait" }
+eternity2-solver-engine = { path = "../../single-core-benchmark/engine/crates/solver-engine" }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
