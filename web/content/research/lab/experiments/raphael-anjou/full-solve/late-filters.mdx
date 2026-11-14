@@ -1,0 +1,150 @@
+---
+title: "Late filters: every check that works, works too late"
+description: >-
+  A filter added to the row scan can save at most the bits its depth allows, and
+  the checks that refute nearly all wrong boards only start to bite at depths 144
+  to 192, past the widest level of the tree (158). A perfect free cut at depth 144
+  would save 2.4 bits of the 134.4 the scan costs, so no late filter closes the
+  gap. The ceiling table is derived arithmetic on a measured profile, not an
+  experiment.
+metaDescription: "Why no late filter can close the Eternity II gap: a perfect free cut at depth 144 of the row-scan tree saves at most 2.4 bits of 134.4, and the tests that refute wrong boards bite from depth 144 to 192. Derived arithmetic on a measured profile."
+kind: concept
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+order: 54
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking]
+hardware:
+  cores: 1
+  cpu: "10-core Apple laptop"
+  accelerator: none
+  machine: "Laptop; the ceiling script is stdlib Python and runs in seconds"
+  wallClock: "Ceiling table: seconds. The level profile it reads took about 32 s per repetition at N = 1e6 particles."
+  seedPolicy: "The ceiling table is deterministic given the committed profile file"
+  measured: false
+repro:
+  kind: exact
+  cmd: just experiments approach-pricing
+  produces: search
+  scope: "Reprints the ceiling table (depths 52 to 158) from the committed level profile in seconds. It does not rerun the profile, the census tilt or the arc-consistency shares; those come from the two experiments linked under sources."
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Approach pricing: ceiling script, level profile and notes"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+  - label: "Prefix statistics: census tilt and arc-consistency follow-up"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/prefix-statistics
+  - label: "Real-puzzle profile: size of the row-scan tree by depth"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/real-puzzle-profile
+---
+
+Can a cheap check, added to the row scan, cut enough of the tree to matter? The
+answer depends on one number per check: the depth at which it starts to remove
+wrong boards. Nothing a filter does before that depth counts, and the tree is
+thin there. The checks tried bite late, so the answer is no.
+
+## The setup
+
+The exact row-scan tree on the real pieces with all five clues holds 10^40.457
+nodes, or 2^134.4 (95% interval 10^40.440 to 10^40.473, five repetitions at a
+million particles each; see [the measured size](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search)).
+Its widest level sits at free depth 158 (free depth counts placed non-clue
+cells). About 10^15 nodes are affordable for a modest run, so the gap is about
+84 bits; against the larger efforts priced on the
+[series hub](/research/lab/experiments/raphael-anjou/full-solve) it is 56 to 73
+bits.
+
+Take a filter that removes every wrong node from free depth d onward, for free
+and with no false cuts. It cannot do better than the share of the tree that sits
+at depth d or deeper. The saving in bits is log2 of the total over the nodes
+above that depth.
+
+## The ceiling of a perfect free cut
+
+| Free depth | 52 | 64 | 80 | 96 | 112 | 128 | 144 | 158 |
+|---|---|---|---|---|---|---|---|---|
+| Most it can save (bits) | 57.1 | 44.8 | 29.8 | 17.1 | 10.7 | 6.8 | 2.4 | 0.5 |
+
+**Status: derived arithmetic from the measured level profile, recomputed by a
+second analysis. It is not an experiment.** The profile is measured and
+independently checked; the table is a sum over it, with no run of its own. It
+bounds the gross gain of any filter that removes nothing before depth d. It
+ignores what the filter costs, so a real gain is smaller still. A filter that
+also acts earlier is bounded by the ceiling at its earliest depth, not its
+latest.
+
+## Where the tests bite
+
+Two measurements on generated 16x16 boards with the official colour census
+(toy boards, never Eternity II progress) put the checks on that axis.
+
+**Arc consistency.** Run alone, with no search, on prefixes sampled from the row
+scan at each depth. This follow-up was **not independently checked**, and the
+engine was changed after the experiment it extends was judged. It covers 15
+boards, four scan directions each (60 trees).
+
+| Free depth | 96 | 112 | 128 | 144 | 152 | 160 |
+|---|---|---|---|---|---|---|
+| Sampled wrong prefixes still consistent | 0.427 | 0.096 | 0.179 | 0.064 | 0.007 | 0 |
+| Refuted (percent, derived) | 57 | 90 | 82 | 94 | 99 | 100 |
+
+It never refuted the true prefix. The coarser observation in the main
+experiment, which was independently reproduced, covers 192 board-direction rows:
+arc consistency refutes every sampled prefix in 189 of them at depth 160 and in
+all 192 at depth 176. The share unrefuted counts sampled prefixes, not work, so it
+is not the saving. The saving priced for arc consistency is about 5.5 bits of
+nodes, while one check costs about 13 bits per node, so it does not pay.
+
+**Colour census.** A statistic of the multiset of used tiles and the frontier
+colours (a first-moment estimate of the number of completions, 33 ns per
+evaluation) tilts toward the planted prefix by about 2 standard deviations at
+depths 144 and 160 (48 boards; +1.96 [1.53, 2.42] at 144). This one is
+**independently re-checked**. It is what a size-bias model predicts, times 1.5 to
+1.8. As a prune at depth 144 on one scan direction it gains 1.02 bits [0.72,
+1.27], against a ceiling of 2.35 there. With two directions the gain is -0.04
+and with four -1.88. The values printed at depths 96 and 128 rest on too few
+effective samples and are not gains. No transfer to the real pieces is claimed.
+
+## What it means for a full solution
+
+The ceiling at 144 is 2.4 bits and the measured gain there is about 1. Against a
+gap of 56 to 84 bits, a late filter is a constant factor (2 for 1 bit, 5 for the 2.4-bit
+ceiling), and the largest gain priced anywhere is about 5.5 bits of nodes. The tests that
+refute nearly all wrong boards act in the thin tail of the tree. A filter that
+paid would have to bite before depth 96 (17.1 bits of ceiling) and cost almost
+nothing; none was found, and arc consistency on the generated boards leaves
+43 percent of depth-96 prefixes standing.
+
+The same table prices one loophole: a coarse stratified colour prior (quadrants)
+would be worth 23.6 bits under row scan in a first-moment model. That is derived,
+nothing was measured on the real pieces, and it stays closed. See
+[approaches priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out).
+
+## What was not run
+
+- No filter was built that bites before depth 96 on the real pieces.
+- Both tilts and shares come from generated boards with a planted solution; the
+  real puzzle's prefix is unknown.
+- Pruning at several depths at once was not measured.
+- Depths beyond about 190 are not measured; the sampler's population dies there,
+  and the profile argues the tail is negligible (10^-4 of the total).
+
+## Reproduce
+
+```
+just experiments approach-pricing
+```
+
+This reprints the ceiling table in seconds. The census and arc-consistency
+numbers reproduce with `just experiments prefix-statistics analyze` and the
+`ac_followup.py` script in that folder.

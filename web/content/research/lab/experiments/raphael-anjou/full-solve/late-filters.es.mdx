@@ -1,0 +1,164 @@
+---
+title: "Filtros tardíos: toda comprobación que funciona, funciona demasiado tarde"
+description: >-
+  Un filtro añadido al barrido por filas solo puede ahorrar lo que su
+  profundidad permite, y las comprobaciones que refutan casi todos los tableros
+  erróneos solo empiezan a actuar en las profundidades 144 a 192, pasado el nivel
+  más ancho del árbol (158). Un corte gratuito perfecto en la profundidad 144
+  ahorraría 2,4 bits de los 134,4 que cuesta el barrido: ningún filtro tardío
+  cierra la brecha. La tabla de techos es aritmética derivada de un perfil
+  medido, no un experimento.
+metaDescription: "Por qué ningún filtro tardío cierra la brecha de Eternity II: un corte gratuito perfecto en la profundidad 144 del árbol del barrido por filas ahorra como mucho 2,4 bits de 134,4, y las pruebas que refutan tableros erróneos actúan de 144 a 192. Aritmética derivada de un perfil medido."
+kind: concept
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+order: 54
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking]
+hardware:
+  cores: 1
+  cpu: "10-core Apple laptop"
+  accelerator: none
+  machine: "Portátil; el script de los techos es Python estándar y tarda segundos"
+  wallClock: "Tabla de techos: segundos. El perfil por nivel que lee costó unos 32 s por repetición con N = 1e6 partículas."
+  seedPolicy: "La tabla de techos es determinista para el fichero de perfil versionado"
+  measured: false
+repro:
+  kind: exact
+  cmd: just experiments approach-pricing
+  produces: search
+  scope: "Reimprime en segundos la tabla de techos (profundidades 52 a 158) desde el perfil por nivel versionado. No repite el perfil, la inclinación del censo de colores ni las cuotas de consistencia de arco, que proceden de los dos experimentos enlazados en las fuentes."
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Tasación de enfoques: script de techos, perfil por nivel y notas"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+  - label: "Estadísticas de prefijo: inclinación del censo y seguimiento de consistencia de arco"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/prefix-statistics
+  - label: "Perfil del puzle real: tamaño del árbol del barrido por filas según la profundidad"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/real-puzzle-profile
+---
+
+¿Puede una comprobación barata, añadida al barrido por filas, podar lo bastante
+del árbol como para importar? La respuesta depende de un solo número por
+comprobación: la profundidad a partir de la cual empieza a descartar tableros
+erróneos. Nada de lo que un filtro haga antes de esa profundidad cuenta, y allí
+el árbol es delgado. Las comprobaciones probadas actúan tarde, así que la
+respuesta es no.
+
+## El planteamiento
+
+El árbol exacto del barrido por filas sobre las piezas reales, con las cinco
+pistas, tiene 10^40,457 nodos, es decir 2^134,4 (intervalo del 95 %: 10^40,440 a
+10^40,473, cinco repeticiones de un millón de partículas; véase
+[el tamaño medido](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search)).
+Su nivel más ancho está en la profundidad libre 158 (la profundidad libre cuenta
+las casillas colocadas que no son pistas). Unos 10^15 nodos son asequibles para
+un cálculo modesto, de modo que la brecha es de unos 84 bits, y de 56 a 73 bits
+frente a los esfuerzos mayores tasados en el
+[hub de la serie](/research/lab/experiments/raphael-anjou/full-solve).
+
+Tomemos un filtro que descarta todo nodo falso a partir de la profundidad libre
+d, gratis y sin cortes erróneos. No puede hacerlo mejor que la parte del árbol
+situada en la profundidad d o más abajo. El ahorro en bits es el log2 del total
+dividido por los nodos que quedan por encima de esa profundidad.
+
+## El techo de un corte gratuito perfecto
+
+| Profundidad libre | 52 | 64 | 80 | 96 | 112 | 128 | 144 | 158 |
+|---|---|---|---|---|---|---|---|---|
+| Ahorro máximo (bits) | 57,1 | 44,8 | 29,8 | 17,1 | 10,7 | 6,8 | 2,4 | 0,5 |
+
+**Estado: aritmética derivada del perfil por nivel medido, recalculada por un
+segundo análisis. No es un experimento.** El perfil está medido y verificado de
+forma independiente; la tabla es una suma sobre él, sin ejecución propia. Acota
+la ganancia bruta de cualquier filtro que no descarte nada antes de la
+profundidad d. Ignora lo que el filtro cuesta, así que la ganancia real es aún
+menor. Un filtro que también actúa antes queda acotado por el techo de su
+profundidad más temprana, no de la más tardía.
+
+## Dónde actúan las pruebas
+
+Dos mediciones sobre tableros 16x16 generados, con el censo oficial de colores
+(tableros de juguete, nunca un avance en Eternity II), sitúan las comprobaciones
+en ese eje.
+
+**Consistencia de arco.** Aplicada sola, sin búsqueda, a prefijos muestreados del
+barrido por filas en cada profundidad. Este seguimiento **no se ha verificado de
+forma independiente**, y el motor se modificó después de juzgar el experimento
+que prolonga. Cubre 15 tableros, cuatro direcciones de barrido cada uno (60
+árboles).
+
+| Profundidad libre | 96 | 112 | 128 | 144 | 152 | 160 |
+|---|---|---|---|---|---|---|
+| Prefijos erróneos muestreados aún consistentes | 0,427 | 0,096 | 0,179 | 0,064 | 0,007 | 0 |
+| Refutados (por ciento, derivado) | 57 | 90 | 82 | 94 | 99 | 100 |
+
+Nunca refutó el prefijo verdadero. La observación más gruesa del experimento
+principal, reproducida de forma independiente, cubre 192 filas tablero-dirección:
+la consistencia de arco refuta todos los prefijos muestreados en 189 de ellas en
+la profundidad 160 y en las 192 en la profundidad 176. La cuota no refutada
+cuenta prefijos muestreados, no trabajo, así que no es el ahorro. El ahorro
+tasado para la consistencia de arco es de unos 5,5 bits de nodos, mientras que
+una comprobación cuesta unos 13 bits por nodo: no compensa.
+
+**Censo de colores.** Un estadístico del multiconjunto de fichas usadas y de los
+colores del frente (una estimación de primer momento del número de
+completaciones, 33 ns por evaluación) se inclina hacia el prefijo plantado unas
+2 desviaciones típicas en las profundidades 144 y 160 (48 tableros; +1,96 [1,53;
+2,42] en 144). Este sí está **reverificado de forma independiente**. Es lo que
+predice un modelo de sesgo de tamaño, multiplicado por 1,5 a 1,8. Como poda en la
+profundidad 144 en una sola dirección de barrido, gana 1,02 bits [0,72; 1,27],
+con un techo de 2,35 allí. Con dos direcciones la ganancia es -0,04 y con cuatro
+-1,88. Los valores impresos en las profundidades 96 y 128 se apoyan en muy pocas
+muestras efectivas y no son ganancias. No se afirma transferencia a las piezas
+reales.
+
+## Qué significa para una solución completa
+
+El techo en 144 es de 2,4 bits y la ganancia medida allí es de aproximadamente 1.
+Frente a una brecha de 56 a 84 bits, un filtro tardío es un factor constante (2
+por 1 bit, 5 por el techo de 2,4 bits), y la mayor ganancia tasada en cualquier
+parte es de unos 5,5 bits de nodos. Las pruebas que refutan casi todos los
+tableros erróneos actúan en la cola delgada del árbol. Un filtro que compensara
+tendría que actuar antes de la profundidad 96 (17,1 bits de techo) y costar casi
+nada; no se encontró ninguno, y la consistencia de arco sobre los tableros
+generados deja en pie el 43 % de los prefijos de profundidad 96.
+
+La misma tabla tasa una escapatoria: un prior grueso de colores estratificados
+(cuadrantes) valdría 23,6 bits bajo barrido por filas en un modelo de primer
+momento. Es derivado, no se midió nada sobre las piezas reales, y la vía sigue
+cerrada. Véase
+[los enfoques tasados](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out).
+
+## Lo que no se hizo
+
+- No se construyó ningún filtro que actúe antes de la profundidad 96 sobre las
+  piezas reales.
+- Las inclinaciones y las cuotas proceden de tableros generados con una solución
+  plantada; el prefijo del puzle real se desconoce.
+- No se midió la poda en varias profundidades a la vez.
+- Las profundidades más allá de unas 190 no están medidas; allí se extingue la
+  población del muestreador, y el perfil argumenta que la cola es despreciable
+  (10^-4 del total).
+
+## Reproducir
+
+```
+just experiments approach-pricing
+```
+
+Esto reimprime la tabla de techos en segundos. Los números del censo y de la
+consistencia de arco se reproducen con
+`just experiments prefix-statistics analyze` y el script `ac_followup.py` de esa
+carpeta.

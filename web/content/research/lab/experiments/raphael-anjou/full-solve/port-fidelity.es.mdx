@@ -1,0 +1,182 @@
+---
+title: "Fidelidad del port: siete diferencias con un motor de récord y una regresión con cinco pistas"
+description: >-
+  Nuestro port de un backtracker de tipo récord difería del motor publicado en
+  siete puntos; los siete se corrigieron y se probaron, y las secuencias de
+  nodos coinciden con el port anterior allí donde los interruptores heredados
+  están activos. Con las cinco pistas, los valores fieles rinden peor que los
+  antiguos (profundidad máxima 18 a 54 frente a 33 a 215 en ocho semillas), así
+  que la corrección no es una mejora en ese caso.
+metaDescription: "Siete diferencias entre nuestro port de un backtracker de récord de Eternity II y el motor publicado se corrigieron y se revisaron de forma independiente dos veces. Con cinco pistas, los valores fieles llegan a profundidad 18 a 54, los antiguos a 33 a 215 (ocho semillas)."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+scoringConvention: matched-edges
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "Portátil Apple M1 de 8 núcleos, compartido con otra tarea durante las revisiones, hasta 7 ejecuciones de un solo hilo a la vez"
+  wallClock: "ejecuciones limitadas por nodos (10^7 a 10^8 nodos, un reinicio); unos 1,5 a 3,8 s de tiempo de usuario por cada 10^8 nodos en la máquina cargada"
+  seedPolicy: "semillas fijas; sin pista 101 a 108, cinco pistas 501 a 508, solo centro y series cortas 1 a 6"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+  produces: search
+  scope: "La receta vuelve a ejecutar la parrilla del banco, cuya fila de estilo Blackwood ahora mide el motor fiel; no repite las comparaciones de fidelidad, cuyas salidas en bruto y scripts están archivados en la carpeta fidelity-results del experimento."
+order: 58
+updated: 2026-11-14
+date: 2026-11
+topics: [backtracking, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/single-core-benchmark
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Carpeta del experimento: motor, resultados de fidelidad archivados, notas de comparación y las dos revisiones"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+  - label: "El motor de Blackwood publicado con el que se comparó el port (commit f544e42)"
+    url: https://github.com/jblackwood345/EternityII_Solver
+---
+
+¿Es fiel nuestro port del backtracker de récord de Blackwood, y importa? Es el
+régimen de los récords (una caza estocástica de tableros con muchas aristas
+coincidentes), no la búsqueda exacta. Este port es el motor detrás de la fila de
+estilo Blackwood del [banco de un solo núcleo](/research/lab/experiments/single-core-benchmark),
+y varios experimentos posteriores son copias suyas. Cada comprobación se hizo
+contra el código C# publicado (commit f544e42), leído para este fin, y no contra
+los resultados de su autor. El motor en sí no se ejecutó: su generador aleatorio
+impide comparar nodo a nodo. Aquí, fidelidad significa acuerdo con el código por
+lectura y por pruebas, y con el port anterior por repetición.
+
+## Siete diferencias
+
+| n.º | Diferencia | Estado |
+|--:|:--|:--|
+| 6 | El camino sin rupturas podía colocar una pieza con gris hacia una casilla interior | corregido, siempre activo |
+| 2 | El camino con rupturas colocaba piezas no físicas, ignoraba la regla del anillo y probaba primero las más privilegiadas | corregido |
+| 3 | Una regla de aislamiento de rupturas que el motor publicado no tiene | corregido, desactivado por defecto |
+| 1 | Elección de colores clave y lectura de la cuota (un recuento cambiaba de sentido con la elección) | corregido |
+| 4 | Pieza central contada desde la profundidad 0, sin nodo ni prueba de cuota | corregido |
+| 7 | Cuota comprobada por nodo a toda profundidad, no por candidato hasta la profundidad 160 | corregido |
+| 5 | Orden de barrido (filas desde la esquina superior izquierda, no el orden publicado) | corregido |
+
+Cada corrección tiene su prueba unitaria, y seis de las siete tienen un interruptor
+heredado que restablece el comportamiento anterior (la n.º 6 no lo tiene). La
+primera lista de diferencias omitía la n.º 7 y describía mal las n.º 4 y 5: el
+orden de barrido publicado no intercala el borde, y la pieza central está donde la
+pone el motor publicado (la diferencia real era el momento en que se cuenta).
+
+El defecto de orientación (n.º 6) fue el que más pesó. En 5 de las 31 ejecuciones
+de comparación dejaba la búsqueda atrapada en un subárbol ilegal (2 a 8 nodos
+legales en 10^8 a 1,3 x 10^8 nodos antes de la corrección). También inflaba
+ejecuciones: en la semilla 106 sin pista, el binario antiguo llegaba a la
+profundidad 240 con colocaciones ilegales, donde el motor corregido llega a 231,
+con 24,3 millones de sus 10^8 nodos en subárboles ilegales. La corrección solo
+elimina subárboles ilegales: en las 26 ejecuciones que no atrapaba, el histograma
+de nodos legales por profundidad es idéntico con y sin ella.
+
+## Cómo se comprobó
+
+Revisado de forma independiente dos veces, por dos análisis que leyeron el código
+publicado por separado de las notas del autor.
+
+| Comprobación | Resultado |
+|:--|:--|
+| Pruebas unitarias en el commit final | pasan 13 de 13 |
+| Barrido de mutaciones (deshacer una corrección cada vez) | 10 de 11 deshacimientos detectados al principio; la superviviente (orden de candidatos con ruptura) tiene ahora una prueba que falla al deshacerla |
+| Interruptores heredados frente al port anterior, 10^8 nodos, sin pista 101 a 104 y 108, cinco pistas 501 a 506 | 11 de 11 idénticas (nodos, profundidad, puntuaciones, tablero) |
+| Valores nuevos frente al binario de la primera revisión, 10^7 nodos, histogramas por profundidad | 12 de 12 idénticos |
+| Correspondencia de piezas y colores con la lista publicada | las 256 piezas coinciden bajo una única biyección de colores; pieza central y rotación coinciden |
+| Tabla de orden de barrido publicada | idéntica entrada por entrada |
+
+Las dos repeticiones dan en conjunto 23 de 23 comparaciones de secuencias de nodos
+idénticas. En la primera revisión, 13 de 16 repeticiones heredadas coincidieron;
+las otras tres eran justamente las ejecuciones de la n.º 6, reproducidas por el
+motor antiguo congelado con y sin su corrección.
+
+La velocidad es un coste de la corrección, no una ganancia. El camino sin rupturas
+tarda entre un 15 y un 19 por ciento más por nodo que el port anterior (segundos de
+usuario por 10^8 nodos: 1,05 antes, 1,24 a 1,28 después en la primera medición;
+cocientes de 1,15 a 1,19 en la máquina cargada en la segunda). No se localizó la
+causa.
+
+## Con cinco pistas, los valores fieles rinden peor
+
+El motor publicado solo coloca la pieza central. Sus reglas con las cinco pistas
+son, por tanto, una extrapolación de este port que el código no resuelve. Sobre las
+piezas oficiales con cinco pistas, un reinicio y 10^8 nodos por semilla, valores
+antiguos frente a valores fieles:
+
+| semilla | antiguo: más profundo | antiguo: nodos legales pasada la 200 | antiguo: mejor | fiel: más profundo | fiel: nodos legales pasada la 200 | fiel: mejor |
+|--:|--:|--:|--:|--:|--:|--:|
+| 501 | 215 | 1.271 | 443 | 54 | 0 | 372 |
+| 502 | 200 | 0 | 431 | 18 | 0 | 369 |
+| 503 | 33 | 0 | 381 | 18 | 0 | 382 |
+| 504 | 199 | 0 | ninguno | 18 | 0 | ninguno |
+| 505 | 197 | 0 | 425 | 18 | 0 | 373 |
+| 506 | 205 | 258 | 425 | 18 | 0 | 377 |
+| 507 | 197 | 0 | 425 | 18 | 0 | 361 |
+| 508 | 33 | 0 | ninguno | 33 | 0 | 378 |
+
+«Mejor» es la puntuación en aristas coincidentes (convención matched-edges) de una
+compleción voraz del tablero parcial; ninguna ejecución completó un tablero por
+búsqueda, y «ninguno» significa que no se emitió ninguna compleción. El defecto de
+orientación atrapa al motor antiguo en la semilla 508 (8 nodos legales), así que
+esa fila no es comparable término a término. En las ocho semillas, los valores
+antiguos colocan 1.529 nodos legales pasada la profundidad 200, todos en las
+semillas 501 y 506; los valores fieles no colocan ninguno. En seis de ocho semillas
+los valores fieles nunca pasan de la profundidad 18, la casilla justo debajo de una
+pista que el orden publicado alcanza solo en la profundidad 34. El muro aparece
+también en las semillas 1 a 4 con 10^7 nodos. Ningún interruptor aislado devuelve
+las profundidades antiguas; el orden publicado, que encuentra al vecino de una pista
+dieciséis casillas antes, se combina con la elección de colores, la cuota y el
+recuento de pistas. Ocho semillas permiten rangos, no un cociente, y la máquina
+estaba cargada.
+
+## Qué significa
+
+Los valores fieles sirven para el caso de pista central sola o sin pistas, donde 11
+de 12 ejecuciones llegaron a la profundidad 244 a 247 en 10^8 nodos. Con cinco
+pistas, conviene usar el perfil heredado hasta que se diseñe y mida un calendario
+para cinco pistas. Para la búsqueda exacta nada cambia: la fidelidad de un port no
+mueve el tamaño del árbol. Su coste con cinco pistas, y la brecha frente a lo
+asequible, están cifrados en el [hub de la serie](/research/lab/experiments/raphael-anjou/full-solve);
+esta página no añade nada a esos bits, y un port más fiel pero menos profundo con
+cinco pistas se aleja de ellos. Las puntuaciones de récord están en
+[/research/records](/research/records), sin repetirlas aquí.
+
+Dos afirmaciones anteriores piden cautela. La fila Blackwood del banco (media 436,4,
+mejor 440, convención matched-edges) salió de los valores antiguos, así que mide el
+port anterior, no este. Y la conclusión de la página del banco de que los colores
+privilegiados de la comunidad no se transfieren comparaba tres colores interiores,
+que no son el conjunto publicado; en la numeración de este repositorio, el conjunto
+publicado es {5, 20, 7}. Esa comparación no prueba la afirmación para la que se
+citaba.
+
+## Qué no se ejecutó
+
+El motor C# publicado; las ejecuciones con varios hilos; clippy y el formato; una
+medición de tiempo absoluta en máquina en reposo; la regla de la primera esquina (el
+motor publicado fija su primera esquina y nunca retrocede sobre ella, algo que el
+port no implementa); el coste en tiempo del camino con rupturas. La unidad de nodo
+del port (uno por entrada de casilla; en el original, uno por iteración del bucle) y
+su esquema de reinicios y barajado aún difieren: los topes y las tasas de nodos no
+se comparan sin conversión.
+
+## Reproducir
+
+Compile el espacio de trabajo con
+`cargo build --release --manifest-path engine/Cargo.toml` en la carpeta del
+experimento. Los comandos, las salidas en bruto y los scripts de comparación están
+bajo `engine/crates/bench-audit/fidelity-results/`; la comparación escrita, con su
+evidencia punto por punto, es `engine/crates/bench-audit/src/bin/FIDELITY.md`.
+Véanse los [callejones sin salida](/research/build/dead-ends) y los
+[problemas abiertos](/research/open-problems) para situar este resultado.

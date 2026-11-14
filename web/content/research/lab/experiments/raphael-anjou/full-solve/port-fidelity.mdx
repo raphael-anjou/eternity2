@@ -1,0 +1,174 @@
+---
+title: "Port fidelity: seven differences from a record engine, and a five-clue regression"
+description: >-
+  Our port of a record-style backtracker differed from the published engine in
+  seven places; all seven were fixed and tested, and the node sequences match
+  the earlier port wherever the legacy switches are on. With all five clues the
+  faithful defaults do worse than the old ones (deepest depth 18 to 54 against
+  33 to 215 on eight seeds), so the fix is not an improvement for that setting.
+metaDescription: "Seven differences between our port of a record-style Eternity II backtracker and the published engine were fixed and independently re-checked twice. With five clues the faithful defaults reach depth 18 to 54, the old ones 33 to 215 (eight seeds)."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+scoringConvention: matched-edges
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "8-core Apple M1 laptop, shared with another job during the re-checks, up to 7 single-thread runs at once"
+  wallClock: "node-capped runs (10^7 to 10^8 nodes, one restart); about 1.5 to 3.8 s of user time per 10^8 nodes on the loaded host"
+  seedPolicy: "seeded; no-clue seeds 101 to 108, five-clue seeds 501 to 508, centre-only and short-run seeds 1 to 6"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+  produces: search
+  scope: "The recipe reruns the benchmark grid, whose Blackwood-style row now measures the faithful engine; it does not rerun the fidelity comparisons, whose raw outputs and scripts are committed under the experiment's fidelity-results folder."
+order: 58
+updated: 2026-11-14
+date: 2026-11
+topics: [backtracking, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/single-core-benchmark
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Experiment folder: engine, committed fidelity results, comparison notes and both re-checks"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+  - label: "The published Blackwood engine the port was compared against (commit f544e42)"
+    url: https://github.com/jblackwood345/EternityII_Solver
+---
+
+How faithful is our port of the Blackwood record backtracker, and does it matter?
+This is the record regime (a stochastic hunt for high matched-edge boards), not
+exact search. The port is the engine behind the Blackwood-style row of the
+[single-core benchmark](/research/lab/experiments/single-core-benchmark), and
+several later experiments are copies of it. Every check was made against the
+published C# source (commit f544e42), read for this purpose, not against the
+author's results. The engine itself was not run: its random generator makes a
+node-for-node comparison impossible, so fidelity here means agreement with the
+source by reading, with tests, and with the earlier port by replay.
+
+## Seven differences
+
+| # | Difference | Status |
+|--:|:--|:--|
+| 6 | The no-break path could place a piece showing grey toward an interior cell | fixed, always on |
+| 2 | The break path placed non-physical pieces, ignored the ring rule, tried privileged-first | fixed |
+| 3 | An isolation rule for breaks that the published engine does not have | fixed, off by default |
+| 1 | Colour keying and quota reading (a count silently changed meaning with the keying) | fixed |
+| 4 | Centre piece counted from depth 0, with no node or quota test | fixed |
+| 7 | Quota tested per node at every depth, not per candidate up to depth 160 | fixed |
+| 5 | Scan order (rows from the top-left, not the published board order) | fixed |
+
+Each fix has a unit test, and six of the seven have a legacy switch that restores
+the earlier behaviour (item 6 has none). The first list of differences missed
+item 7 and described items 4 and 5 wrongly: the published scan order does not
+interleave the border, and the centre piece sits where the published engine puts
+it (the real difference was when it is counted).
+
+The orientation defect (item 6) mattered most. In 5 of 31 comparison runs it
+stranded the search in an illegal subtree (2 to 8 legal nodes in 10^8 to 1.3 x
+10^8 nodes before the fix). It also inflated runs: on no-clue seed 106 the old
+binary reached depth 240 through illegal placements, where the fixed engine
+reaches 231, with 24.3 million of its 10^8 nodes in illegal subtrees. Removing it
+changes only illegal subtrees: in the 26 runs it did not strand, the per-depth
+legal-node histogram is identical with and without the fix.
+
+## How it was checked
+
+Independently re-checked twice, by two analyses that read the published source
+separately from the author's notes.
+
+| Check | Result |
+|:--|:--|
+| Unit tests at the final commit | 13 of 13 pass |
+| Mutation sweep (revert one fix at a time) | 10 of 11 reverts caught at first; the survivor (break-candidate order) now has a test that fails when it is reverted |
+| Legacy switches against the earlier port, 10^8 nodes, no-clue 101 to 104 and 108, five-clue 501 to 506 | 11 of 11 identical (nodes, depth, scores, board) |
+| New defaults against the first re-check's binary, 10^7 nodes, per-depth histograms | 12 of 12 identical |
+| Piece and colour mapping to the published list | all 256 pieces match under one colour bijection; centre piece and rotation match |
+| Published scan-order table | identical entry for entry |
+
+Together, the two replays give 23 of 23 node-sequence comparisons identical. In the
+first re-check, 13 of 16 legacy replays matched; the other three were exactly the
+item 6 runs, reproduced by the frozen older engine with and without its fix.
+
+Speed is a cost of the fix, not a gain. The no-break path now takes about 15 to 19
+percent more time per node than the earlier port (user seconds per 10^8 nodes:
+1.05 before, 1.24 to 1.28 after in the first timing; ratios 1.15 to 1.19 on the loaded
+host in the second). The cause was not located.
+
+## With five clues, the faithful defaults do worse
+
+The published engine places only the centre piece. Its rules with all five clues
+are therefore this port's extrapolation, not something the source settles. On the
+official pieces with five clues, one restart and 10^8 nodes per seed, old defaults
+(a) against the faithful defaults (c):
+
+| seed | old: deepest | old: legal nodes past depth 200 | old: best | faithful: deepest | faithful: legal nodes past depth 200 | faithful: best |
+|--:|--:|--:|--:|--:|--:|--:|
+| 501 | 215 | 1,271 | 443 | 54 | 0 | 372 |
+| 502 | 200 | 0 | 431 | 18 | 0 | 369 |
+| 503 | 33 | 0 | 381 | 18 | 0 | 382 |
+| 504 | 199 | 0 | none | 18 | 0 | none |
+| 505 | 197 | 0 | 425 | 18 | 0 | 373 |
+| 506 | 205 | 258 | 425 | 18 | 0 | 377 |
+| 507 | 197 | 0 | 425 | 18 | 0 | 361 |
+| 508 | 33 | 0 | none | 33 | 0 | 378 |
+
+"Best" is the matched-edges score of a greedy completion of the partial board;
+no run completed a board by search, and "none" means no completion was emitted.
+The orientation defect strands the old engine on seed 508 (8 legal nodes), so that
+row is not like for like. Over the eight seeds the
+old defaults place 1,529 legal nodes past depth 200, all on seeds 501 and 506;
+the faithful defaults place none. On six of eight seeds the faithful defaults
+never get past depth 18, the cell directly below a clue that the published scan
+order reaches only at depth 34. The wall also appears on seeds 1 to 4 at 10^7
+nodes. No single legacy switch restores the old depths; the published order
+meeting a clue's neighbour sixteen cells early combines with the keying, quota
+and clue counting. Eight seeds support ranges, not a ratio, and the host was
+loaded.
+
+## What it means
+
+The faithful defaults are for the centre-clue and no-clue settings, where 11 of 12
+default runs reached depth 244 to 247 within 10^8 nodes. For five clues, use the legacy profile
+until a five-clue schedule is designed and measured. For exact search nothing
+changes: a port's fidelity cannot move the size of the tree. Its cost with five
+clues, and the gap against what is affordable, are priced on the
+[series hub](/research/lab/experiments/raphael-anjou/full-solve); this page adds
+nothing to those bits, and a port that is more faithful but searches shallower
+under five clues is a step away from them. Record scores are on
+[/research/records](/research/records), not restated here.
+
+Two earlier statements need care. The benchmark's committed Blackwood-style row
+(mean 436.4, best 440, matched-edges convention) came from the old defaults, so
+it measures the earlier port, not this one. And the benchmark page's finding that
+the community's privileged colours do not transfer compared three interior
+colours, which is not the published set; in this repository's numbering the
+published set is {5, 20, 7}. That comparison does not test the claim it was
+cited for.
+
+## What was not run
+
+The published C# engine; multi-threaded runs; clippy and formatting; a quiet-host
+absolute timing; the first-corner rule (the published engine fixes its first
+corner and never backtracks into it, and the port does not implement this); the
+break path's wall-clock cost. The port's node unit (one per cell entry; his is
+one per loop iteration) and its restart and randomisation scheme still differ, so
+node caps and rates are not comparable without conversion.
+
+## Reproduce
+
+Build the workspace with `cargo build --release --manifest-path engine/Cargo.toml`
+in the experiment folder. The commands, raw outputs and comparison scripts are
+under `engine/crates/bench-audit/fidelity-results/`; the written comparison with
+its per-item evidence is `engine/crates/bench-audit/src/bin/FIDELITY.md`. See the
+[dead ends](/research/build/dead-ends) and the
+[open problems](/research/open-problems) for where this sits.

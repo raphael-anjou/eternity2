@@ -1,0 +1,192 @@
+---
+title: Le prix d'une recherche complète
+description: >-
+  Épuiser une recherche simple, rangée par rangée, sur les vraies pièces
+  d'Eternity II avec cinq indices demande environ 10^40,457 nœuds (2^134,4),
+  mesuré, et la prédiction du modèle aléatoire tombe à moins de 0,04 chiffre.
+  Sur cette statistique, le jeu de pièces officiel est un membre ordinaire des
+  plateaux peints avec les mêmes effectifs de couleurs. Cela chiffre la
+  recherche complète ; cela ne trouve aucun moyen de la raccourcir.
+metaDescription: "Taille mesurée d'une recherche simple par rangées sur les vraies pièces d'Eternity II : 10^40,457 nœuds avec cinq indices, 10^47,140 avec le seul indice central, 10^50,039 sans indice, chacune à moins de 0,04 chiffre du modèle aléatoire. Des estimations, pas des dénombrements."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "10-core Apple laptop, runs limited to 4 single-threaded processes"
+  accelerator: none
+  machine: "10-core Apple laptop"
+  wallClock: "about 32 s per five-clue repetition at N = 1e6 particles; about 4 to 5 s per repetition at N = 1e5"
+  seedPolicy: "seeded; every estimate is deterministic given its seed and binary"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments real-puzzle-profile m2
+  topic: real-puzzle-profile
+  produces: search
+  scope: "Relance l'estimation par population de l'arbre de la recherche par rangées sur les pièces officielles (cinq indices, indice central seul, aucun indice) avec les graines archivées ; elle reproduit les estimations, pas un dénombrement de l'arbre, hors de portée."
+order: 51
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking, structure]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/build/analysis/solution-counting
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Résultats bruts archivés, tableaux et revérification indépendante de l'expérience real-puzzle-profile"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/real-puzzle-profile
+  - label: "Seconde mesure du même arbre et d'autres ordres de remplissage (orders-and-pins)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins
+---
+
+Une recherche complète du 16×16 ne se discute qu'une fois sa taille connue.
+Cette expérience la mesure pour la stratégie la plus simple : poser les
+pièces rangée par rangée, en partant du bas, de gauche à droite, et compter
+chaque plateau partiel valide (un nœud) jusqu'à épuisement de l'arbre. Trois
+questions : quelle taille a cet arbre sur les vraies pièces, un modèle de
+premier moment sur des plateaux aléatoires le prédit-il, et le jeu officiel
+paraît-il singulier à côté de plateaux peints avec les mêmes effectifs de
+couleurs. Ce n'est pas une tentative de record, et aucun plateau n'est produit.
+
+## Dispositif
+
+L'arbre compte environ 10^40 nœuds : impossible à énumérer. On l'estime par
+une méthode de population (Monte Carlo séquentiel) : 1 000 000 de particules
+avancent d'une case à la fois, rééchantillonnées au fil de l'eau, et
+l'estimation de la largeur de chaque niveau est sans biais. L'estimateur peut
+sous-estimer, car une population peut s'effondrer sur quelques familles ; le
+travail porte donc sur les vérifications faites avant de lire le moindre
+chiffre réel.
+
+Un nœud est un plateau partiel valide après une pose sur une case libre, le
+bord gris, les indices posés dès le départ, l'ordre de parcours rangées 15
+à 0, colonnes 0 à 15. Le modèle est un calcul analytique de premier moment,
+non une simulation : l'accord avec lui n'est donc pas circulaire.
+
+## Vérifications de l'estimateur
+
+| Vérification | Résultat |
+|---|---|
+| 30 plateaux 6×6 de l'échelle difficile, arbre exact contre estimation, 200 répétitions | 10 paires (instance, niveau) sur 1 110 à plus de 3 erreurs-types (0,90 %) ; erreur log10 absolue médiane 0,0050, maximale 0,023 |
+| Dénombrement exact des cadres officiels complets (le seul décompte exact 16×16 du dépôt) | estimation sur exact : 0,99994 |
+| 40 plateaux générés 5×5 et 6×6, N = 1000 | erreur log10 absolue médiane 0,0023, maximale 0,032 |
+
+Les trois passent leurs seuils préenregistrés. Une seconde analyse a ensuite
+recalculé chaque chiffre principal depuis les lignes brutes et relancé les
+répétitions à cinq indices pour N = 1e5, avec des totaux identiques
+(revérifié indépendamment).
+
+## Résultats sur les vraies pièces
+
+Logarithme décimal du nombre moyen de nœuds, cinq répétitions par ligne,
+intervalle de confiance à 95 % (loi t) sur les répétitions.
+
+| Indices | N | log10 nœuds | Intervalle à 95 % | Modèle | Mesuré moins modèle | Niveau le plus large (profondeur libre) |
+|---|---|---|---|---|---|---|
+| cinq | 1e6 | 40,457 | 40,440 à 40,473 | 40,49 | -0,033 | 158 |
+| cinq | 1e5 | 40,497 | 40,414 à 40,567 | 40,49 | +0,007 | 158 |
+| indice central seul | 1e5 | 47,140 | 47,061 à 47,208 | 47,14 | +0,0004 | 160 |
+| aucun | 1e5 | 50,039 | 50,017 à 50,059 | 50,03 | +0,009 | 161 |
+
+Avec cinq indices, l'arbre complet compte 10^40,457 nœuds, soit 2^134,4. Le
+niveau le plus large, à la profondeur libre 158, contient environ 10^39,16
+nœuds. Les quatre indices autres que le central divisent l'arbre par 10^6,68
+(47,140 contre 40,457). Sans aucun indice, l'arbre porte aussi la symétrie
+d'ordre quatre des coins, puisque rien ne fixe l'orientation. Une recherche
+qui s'arrête à la première solution coûte environ la moitié de l'arbre (un
+bit de moins) quand il y a une seule solution ; l'arbre complet est la bonne
+unité de prix.
+
+La mesure s'accorde avec le modèle bien en deçà de chaque barre d'erreur : on
+peut donc chiffrer des variantes avec le modèle sans nouvelle mesure. Une
+nouvelle exécution du même estimateur dans une seconde expérience, sur les
+mêmes pièces, a donné 10^40,453 (intervalle 40,422 à 40,481), à 0,004 chiffre
+de la première.
+
+## Le jeu officiel est-il ordinaire ?
+
+Vingt plateaux ont été peints avec exactement les effectifs de couleurs
+officiels (joints du cadre tirés du multiensemble officiel des couleurs de
+cadre, joints de couture et intérieurs distribués uniformément parmi les
+couleurs intérieures), cinq indices relevés sur chacun, deux estimations de
+N = 1e5 chacun.
+
+| | log10 nœuds |
+|---|---|
+| plateaux peints, médiane | 40,61 |
+| plateaux peints, étendue sur 20 | 40,33 à 40,76 |
+| plateaux peints, écart-type (dont environ 0,05 de bruit d'estimation) | 0,125 |
+| jeu officiel (N = 1e6) | 40,457, avec 5 des 20 plateaux peints en dessous |
+
+Sur cette seule statistique, le jeu officiel est ordinaire : rien dans la
+taille de l'arbre ne le distingue d'un plateau peint depuis le même
+recensement de couleurs. Cinq autres plateaux peints, passés à N = 1e6 dans la
+seconde expérience, ont donné 40,515, 40,412, 40,464, 40,480 et 40,438. Les
+plateaux peints se situent 0,12 chiffre au-dessus du modèle en médiane ;
+effet de la solution plantée ou détail du recensement de couleurs que le
+modèle ne porte pas, cela n'a pas été tranché. Le test ne dit rien d'aucune
+autre propriété des pièces.
+
+## Limites de l'estimation
+
+La population tombe à environ 300 familles effectives vers la profondeur
+libre 175 et s'éteint à la profondeur 188 à 192, alors que la largeur
+estimée y reste proche de 10^35. Les largeurs au-delà ne sont pas mesurées.
+Les 60 derniers niveaux sont censés ajouter au plus environ 10^-4 du total
+(argumenté, non mesuré) ; la somme jusqu'à la case libre 175 vaut 10^40,453,
+donc 99 % de l'estimation se trouve dans la partie mesurée. L'intervalle sur
+cinq répétitions ne peut exclure un sous-arbre à queue lourde que la
+population ne visite jamais. Les estimations à N = 1e5 et N = 1e6 concordent,
+le N plus grand donnant une valeur un peu plus basse.
+
+## Ce que cela implique pour une résolution complète
+
+La recherche par rangées avec cinq indices coûte 2^134,4 nœuds. Environ 10^15
+nœuds sont abordables, et l'écart avec les recherches abordables est de 56 à
+73 bits ; le [hub de la série](/research/lab/experiments/raphael-anjou/full-solve)
+établit une fois ces nombres fixes. Cette page apporte le membre de gauche :
+le coût de la méthode simple est une quantité mesurée, non une sortie de
+modèle, et il est énorme. Aucun gain de facteur constant ne comble 56 bits.
+Où se loge ce coût est traité dans
+[cadre et coins](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners),
+et ce qu'économise une case connue supplémentaire dans
+[la valeur d'une case connue](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile).
+Pour le nombre attendu de solutions, voir
+[le dénombrement des solutions](/research/build/analysis/solution-counting).
+Les plateaux records sont sur [records](/research/records).
+
+## Ce qui n'a pas été fait
+
+- Aucun arbre n'a été énuméré. Tout chiffre est une estimation, avec des
+  vérifications exactes seulement sur de petits plateaux et sur le décompte
+  des cadres officiels.
+- Les lignes à un indice et sans indice sont à N = 1e5 seulement, et le nul
+  peint utilise deux répétitions à N = 1e5 au lieu de N = 1e6 ; il n'y a pas de
+  nul à indice central seul.
+- Seule la recherche par rangées depuis la rangée 15 est mesurée ici. La
+  seconde expérience a mesuré 18 autres ordres de remplissage statiques sur
+  les mêmes pièces : aucun n'est montré meilleur (15 sont montrés non
+  meilleurs, 3 restent indécis car la population de l'estimateur s'éteint
+  tôt).
+- Seule la taille de l'arbre exhaustif est chiffrée. La chasse aux records
+  stochastique, où plus de débit signifie plus d'essais, est une autre
+  question (voir [problèmes ouverts](/research/open-problems) et
+  [impasses](/research/build/dead-ends)).
+
+## Reproduire
+
+```
+just experiments real-puzzle-profile build
+just experiments real-puzzle-profile m2      # about 4 minutes
+just experiments real-puzzle-profile paint   # painted boards
+python3 -I research/experiments/real-puzzle-profile/scripts/analyze.py
+```
+
+Les estimations sont déterministes à graine et binaire donnés. `RESULTS.md`
+dans le dossier de l'expérience relie chaque nombre à son fichier brut.

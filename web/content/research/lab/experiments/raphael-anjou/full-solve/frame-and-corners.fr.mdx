@@ -1,0 +1,94 @@
+---
+title: "Cadre et coins : un mauvais cadre ne se réfute pas à bas prix"
+description: >-
+  Réfuter un mauvais cadre complet des vraies pièces coûte cher : la ligne
+  d'échec préenregistrée est atteinte, et réfuter des cadres partiels coûte 2,2
+  à 2,5 bits de plus que ce qu'on économise. L'information bon marché sur le
+  cadre, environ 17,4 bits, se trouve aux quatre coins d'indices. Savoir si les
+  cadres éloignés des coins se réfutent à bas prix reste indécidé.
+metaDescription: "Mesuré sur les vraies pièces d'Eternity II avec les cinq indices : la réfutation bon marché d'un cadre complet est morte, les cadres partiels coûtent 2,2 à 2,5 bits au-dessus du seuil de rentabilité, l'information bon marché est aux coins d'indices, et les cadres éloignés des coins sont indécidés."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: parked
+hardware:
+  cores: 10
+  threads: 12
+  cpu: "x86 host, 12 threads, at most 10 used"
+  gpus: 0
+  accelerator: none
+  machine: "12-thread x86 host, 10 jobs in parallel"
+  wallClock: "about 59 core-hours (test stage 4.8 h, extra far-from-corner set 1.1 h)"
+  seedPolicy: "frame samples and counts seeded; refuter timings depend on the host"
+  measured: false
+repro:
+  kind: heavy
+  cmd: just experiments frame-cores
+  produces: search
+  scope: "Relance toute la mesure préenregistrée (environ 59 heures-cœur) et régénère les tableaux depuis les lignes brutes ; échantillons de cadres et comptages sont à graine fixe, les temps des réfuteurs non. Les chiffres 17,4 bits et 10^13,6 viennent des notes de chiffrage, pas de cette commande."
+order: 52
+updated: 2026-11-14
+date: 2026-11
+topics: [structure, search-space]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Frame cores : préenregistrement, amendements, résultats et tableaux"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/frame-cores
+  - label: "Approach pricing : notes de chiffrage des nogoods de cadre et sorties de revérification"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+---
+
+Une recherche qui pose d'abord les 60 pièces de bordure puis remplit l'intérieur ne rapporte que si les mauvais cadres meurent à bas prix. Cette page pose trois questions sur les vraies pièces avec les cinq indices. Un mauvais cadre complet se réfute-t-il à bas prix ? Un cadre partiel (un arc de la bordure) se réfute-t-il pour moins que la recherche qu'il évite ? Et où se trouve l'information bon marché sur le cadre ? Pour les prix de référence (balayage par lignes 2^134,4, environ 10^15 nœuds abordables, un écart de 56 à 73 bits), voir [le hub de la série](/research/lab/experiments/raphael-anjou/full-solve).
+
+## Dispositif
+
+Les cadres sont tirés par un échantillonneur de Monte Carlo séquentiel sur l'anneau de bordure (5 000 particules, tirage approximativement uniforme). La strate H garde les cadres qui passent les quatre tests de blocs d'indices (les trois cases intérieures libres voisines d'un indice de coin doivent pouvoir être remplies par des pièces distinctes) ; le vrai cadre est dans H. Il y a 60 cadres H, 30 cadres uniformes (U), 60 autres cadres H sans bloc 3x3 d'indice mort (« realfar ») et trois plateaux générés comme témoin. Réfuteurs : remplissage en profondeur simple dans deux ordres, le même avec un test d'appariement, et le solveur SAT Glucose avec le cadre en hypothèses. Les seuils et deux amendements ont été validés avant tout lancement du test. Ce n'est pas une tentative de record, et les résultats sur plateaux générés ne sont jamais un progrès sur Eternity II.
+
+## Résultats
+
+| Question | Résultat | Statut |
+|---|---|---|
+| Réfutation bon marché d'un cadre complet (H réel, 60 cadres) | Morte. Médiane inférieure du gain sur la recherche simple : 0,89, 0,12 et 1,00 (test d'appariement par lignes, en spirale, SAT) pour une ligne à 100 | mesuré, revérifié indépendamment |
+| Réfuter un arc de 44, 42, 40, 38 cases de bordure | Le SAT réfute 42, 41, 34, 30 arcs sur 60 en 60 s ; coût emboîté 27,7 ; 31,4 ; 35,4 ; 39,5 bits pour des budgets de 25,5 ; 29,0 ; 32,9 ; 37,0 | mesuré, revérifié indépendamment |
+| Information bon marché sur le cadre | Environ 17,4 bits, tous aux quatre coins d'indices | revérifié indépendamment deux fois |
+| Cadres éloignés des coins d'indices | Indécidé | mesuré, indécidé |
+
+**Un mauvais cadre complet ne se réfute pas à bas prix.** La recherche simple est censurée sur 25 cadres sur 60. Le SAT réfute un cadre tout de suite ou pas du tout : sur H réel, toutes les réfutations ont fini en 0,35 s au plus (46 cadres), et les autres ont atteint le plafond de 600 s.
+
+**Réfuter des arcs reste au-dessus du seuil de rentabilité à toutes les tailles.** Le coût emboîté dépasse son budget de 2,2 à 2,5 bits aux quatre tailles. À 38 cases, le budget dépasse le plafond de 120 s : ce niveau ne peut pas conclure, il est signalé et non lu. Une ligne préenregistrée plus souple (au moins 15 arcs sur 60 réfutés en 60 s) est atteinte, mais c'est l'effet de coin décrit plus bas, et c'est le coût emboîté qui tranche.
+
+**L'information bon marché est aux coins.** Un cadre passe les quatre blocs d'indices avec une probabilité de 2^-17,4 (2^-17,41 en joint, une erreur standard de 17,38 à 17,43). Dans cette mesure, la même quantité vaut 17,24 bits sur les vraies pièces. Les cadres « proches » meurent sur un noyau de 3 cases de bordure (médiane) : 23 cadres H sur 60 sont proches (la réfutation la moins chère est à distance d'anneau 3 d'un coin au plus), et 21 de ces 23 ont un bloc 3x3 d'indice mort (29 cadres H sur 60 en ont un). Leur coût médian est de 29,83 bits. La même facilité apparaît sur les trois plateaux générés (médianes des cadres proches 31,39 ; 28,99 ; 32,22) : elle vient de la géométrie des coins d'indices, pas des vraies pièces.
+
+**Les cadres éloignés des coins sont indécidés.**
+
+| Strate | Cadres | Censurés | Médiane en bits [intervalle à 95 %] |
+|---|---|---|---|
+| H réel, proches | 23 | 0 | 29,83 [28,30 ; 33,78] |
+| H réel, éloignés | 37 | 16 | 75,12 [42,64 ; inf] |
+| Jeu supplémentaire, éloignés | 52 | 29 | inf [58,43 ; inf] |
+
+La médiane des cadres éloignés est sous la ligne de 120 bits, mais son intervalle est non borné : ni la ligne de réussite ni celle d'échec ne s'applique. Une partie de la censure du jeu supplémentaire est un échec du compteur, non du réfuteur (5 des 29 cadres : le compteur n'a renvoyé aucune particule survivante, et le cadre a été noté sans nogood exploitable bien qu'un réfuteur l'ait prouvé). Ce choix est prudent pour la médiane.
+
+La médiane globale de 36,75 bits [32,90 ; 53,19] sur H réel passe, à la lettre, une condition nécessaire. Ce n'est pas un résultat : la médiane tombe sur les cadres de coin, et elle ne dit rien d'une recherche guidée par des noyaux appris.
+
+## Ce que cela change pour une solution complète
+
+L'information des coins est réelle et bon marché, et elle ne couvre qu'une petite part de l'écart. Un cadre qui passe les coins laisse un intérieur à explorer : environ 10^13,6 nœuds en moyenne par recherche en spirale, un chiffre de modèle qui remplace un ancien 10^8,3 (moyenne sur tous les cadres valides, dont presque tous meurent aux coins). Il est revérifié indépendamment comme modèle, non mesuré : confirmer le vrai cadre sur des plateaux 16x16 générés a atteint le plafond de 600 s pour les cinq réfuteurs, donc le coût de confirmation mesuré n'est qu'une borne inférieure. Qu'une recherche cadre d'abord batte le balayage par lignes dépend des cadres éloignés, et c'est la partie laissée indécidée. Cette page n'en tire aucun gain.
+
+## Ce qui n'a pas été lancé
+
+Test d'appariement et spirale sur les arcs ; recherche simple sur les arcs de 42, 40 et 38 cases ; arcs de 34 et 30 cases ; un bras à solveur incrémental ; toute confirmation 16x16 d'un vrai cadre au-delà du plafond. Le chiffre 10^13,6 est un modèle, sans exécution sur les vraies pièces.
+
+## Reproduire
+
+`just experiments frame-cores` relance la mesure (environ 59 heures-cœur). Le README et les tableaux du [dossier de preuves](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/frame-cores) contiennent tous les chiffres ci-dessus. Voir les [records](/research/records) et les [problèmes ouverts](/research/open-problems) pour la frontière, et les [impasses](/research/build/dead-ends) pour les tests locaux bon marché.

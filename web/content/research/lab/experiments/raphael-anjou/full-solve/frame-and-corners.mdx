@@ -1,0 +1,94 @@
+---
+title: "Frame and corners: a wrong frame is not cheap to refute"
+description: >-
+  Refuting a wrong full frame of the real pieces is not cheap: the preregistered
+  kill line is met, and refuting partial frames costs 2.2 to 2.5 bits more than
+  it can save. The cheap information about the frame, about 17.4 bits, sits at
+  the four clue corners. Whether frames away from the corners can be refuted
+  cheaply is undecided.
+metaDescription: "Measured on the real Eternity II pieces with the five clues: cheap refutation of a full frame is dead, partial frames cost 2.2 to 2.5 bits above break-even, the cheap frame information sits at the clue corners, and frames away from the corners are undecided."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: parked
+hardware:
+  cores: 10
+  threads: 12
+  cpu: "x86 host, 12 threads, at most 10 used"
+  gpus: 0
+  accelerator: none
+  machine: "12-thread x86 host, 10 jobs in parallel"
+  wallClock: "about 59 core-hours (test stage 4.8 h, extra far-from-corner set 1.1 h)"
+  seedPolicy: "frame samples and counts seeded; refuter timings depend on the host"
+  measured: false
+repro:
+  kind: heavy
+  cmd: just experiments frame-cores
+  produces: search
+  scope: "Reruns the whole preregistered measurement (about 59 core-hours) and regenerates the tables from the raw rows; frame samples and counts are seeded, refuter timings are not. The 17.4-bit and 10^13.6 figures come from the pricing notes, not from this command."
+order: 52
+updated: 2026-11-14
+date: 2026-11
+topics: [structure, search-space]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Frame cores: preregistration, amendments, results and tables"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/frame-cores
+  - label: "Approach pricing: frame-nogood price notes and re-check outputs"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+---
+
+A search that fixes the 60 border pieces first and fills the interior second only pays if wrong frames die cheaply. This page asks three questions on the real pieces with the five clues. Can a wrong full frame be refuted cheaply? Can a partial frame (an arc of the border) be refuted for less than the search it saves? And where does cheap information about the frame sit? For the fixed prices (row scan 2^134.4, about 10^15 nodes affordable, a gap of 56 to 73 bits) see [the series hub](/research/lab/experiments/raphael-anjou/full-solve).
+
+## Setup
+
+Frames were sampled by a sequential Monte Carlo sampler over the border ring (5,000 particles, approximately uniform). Stratum H keeps frames that pass the four clue-block tests (the three free interior cells next to a corner clue must be fillable with distinct pieces); the true frame is in H. There are 60 H frames, 30 uniform frames (U), a further 60 H frames with no dead 3x3 clue block ("realfar"), and three generated boards as a control. Refuters: plain depth-first fill in two orders, the same with a matching check, and the Glucose SAT solver with the frame as assumptions. The thresholds and two amendments were committed before any test run. The measurement is not a record attempt, and results on generated boards are never Eternity II progress.
+
+## Results
+
+| Question | Result | Status |
+|---|---|---|
+| Cheap refutation of a full frame (real H, 60 frames) | Dead. Lower median speed-up over plain search: 0.89, 0.12 and 1.00 (matching check in rows order, in spiral order, SAT) against a line of 100 | measured, independently re-checked |
+| Refuting an arc of 44, 42, 40, 38 border cells | SAT refutes 42, 41, 34, 30 of 60 arcs within 60 s; nested cost 27.7, 31.4, 35.4, 39.5 bits against budgets of 25.5, 29.0, 32.9, 37.0 | measured, independently re-checked |
+| Cheap information about the frame | About 17.4 bits, all at the four clue corners | independently re-checked twice |
+| Frames away from the clue corners | Undecided | measured, undecided |
+
+**A wrong full frame cannot be refuted cheaply.** Plain search was censored on 25 of 60 frames. SAT refutes a frame either at once or not at all: every refutation on real H finished within 0.35 s (46 frames), and the others hit the 600 s cap.
+
+**Refuting arcs sits above break-even at every size.** The nested cost is 2.2 to 2.5 bits above its budget at each of the four sizes. At 38 cells the budget exceeds the 120 s cap, so that level cannot kill and is stated, not read. A looser preregistered line (at least 15 of 60 arcs refuted within 60 s) is met, but that is the corner effect below, and the nested cost governs.
+
+**The cheap information sits at the corners.** A frame passes the four clue blocks with probability 2^-17.4 (2^-17.41 jointly, one standard error 17.38 to 17.43). In this run the same quantity is 17.24 bits on the real pieces. Near frames die on a core of 3 border cells (median): 23 of 60 H frames are "near" (the cheapest refutation lies within ring distance 3 of a corner), and 21 of those 23 have a dead 3x3 clue block (29 of 60 H frames have one). Their median cost is 29.83 bits. The same cheapness appears on the three generated boards (near medians 31.39, 28.99, 32.22), so it comes from the clue-corner geometry, not from the real pieces.
+
+**Frames away from the corners are undecided.**
+
+| Stratum | Frames | Censored | Median bits [95% interval] |
+|---|---|---|---|
+| Real H, near | 23 | 0 | 29.83 [28.30, 33.78] |
+| Real H, far | 37 | 16 | 75.12 [42.64, inf] |
+| Extra set, far | 52 | 29 | inf [58.43, inf] |
+
+The far median is below the 120-bit line, but its interval is unbounded, so neither the pass nor the fail line applies. Part of the censoring in the extra set is a counting failure, not a refuter failure (5 of the 29 frames: the counter returned no surviving particle, and the frame was recorded as having no usable nogood although a refuter proved it). That choice is conservative for the median.
+
+The overall median of 36.75 bits [32.90, 53.19] on real H technically passes a necessary condition. It is not a result: the median falls on the corner frames, and it says nothing about a search driven by learned cores.
+
+## What it means for a full solution
+
+The corner information is real and cheap, and it is a small part of the gap. A frame that passes the corners still leaves an interior to search: about 10^13.6 nodes in the mean by spiral search, a model figure that replaces an earlier 10^8.3 (which averaged over all valid frames, nearly all of which die at the corners). It is independently re-checked as a model, not measured: confirming the true frame on generated 16x16 boards hit the 600 s cap with all five refuters, so the measured confirm cost is only a lower bound. Whether a frame-first search can beat row scan depends on the far frames, and that is the part left undecided. This page claims no saving from it.
+
+## What was not run
+
+Matching-check and spiral refuters on arcs; plain search on arcs of 42, 40 and 38 cells; arcs of 34 and 30 cells; an incremental solver arm; any 16x16 confirm of a true frame beyond the cap. The 10^13.6 figure is a model with no run behind it on the real pieces.
+
+## Reproduce
+
+`just experiments frame-cores` reruns the measurement (about 59 core-hours). The README and tables in the [evidence folder](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/frame-cores) hold every number above. See [records](/research/records) and [open problems](/research/open-problems) for the frontier, and [dead ends](/research/build/dead-ends) for the cheap local tests.

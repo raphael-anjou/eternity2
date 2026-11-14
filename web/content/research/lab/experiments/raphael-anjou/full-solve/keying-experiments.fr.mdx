@@ -1,0 +1,219 @@
+---
+title: "Expériences d'indexation et de rejeu : aucun gain trouvé, un effet mesuré"
+description: >-
+  Cinq expériences préenregistrées sur la mémorisation et l'indexation des
+  impasses n'ont trouvé aucun gain qui compte pour une résolution complète. Trois
+  ont été tuées (bandes de la carte de différence, rejeu indexé sur la coupe,
+  indexation à cinq indices) et deux conservées comme mesures (indexation par
+  quota, et courbe de quota à cinq indices). Le résultat conservé sur le quota est
+  un effet de débit de 53 fois, soit environ 5.7 bits, face à un écart de 56 à 73
+  bits.
+metaDescription: "Cinq expériences préenregistrées sur l'indexation et le rejeu des impasses : trois tuées, deux conservées comme mesures. Avec cinq indices, la courbe de quota, et non l'indexation par couleurs, décide si l'on atteint la profondeur 201 (environ 5.7 bits de débit face à un écart de 56 à 73 bits)."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+hardware:
+  cores: 12
+  threads: 12
+  cpu: "Single-threaded runs spread over a 14-core low-power x86 laptop (12 threads), an 8-core Apple M1 (7 threads) and an Apple laptop (4 threads)"
+  accelerator: none
+  machine: "three laptops, runs pinned to one thread each"
+  wallClock: "5.67 thread-hours for the five-clue quota experiment (5.06 test, 0.52 calibration, 0.09 gates); 6.81 core-hours for the difference-map test grid; 16.1 thread-hours for quota keying; 20.6 for five-clue keying; 2.13 for cut-keyed replay"
+  seedPolicy: "seeded and deterministic per row; wall-clock seconds vary by host"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments five-clue-quota test 4 local
+  topic: five-clue-quota
+  produces: search
+  scope: "Rejoue la part locale (ouvertures 514 à 516) de l'expérience conservée sur le quota à cinq indices, 1e9 nœuds par exécution ; les 16 ouvertures demandent les trois groupes de graines, et chaque ligne se reproduit nœud pour nœud, seules les secondes varient."
+order: 57
+updated: 2026-11-14
+date: 2026-11
+topics: [backtracking, search-space]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/port-fidelity
+  - /research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "difference-map-bands: preregistration, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/difference-map-bands
+  - label: "cut-keyed-replay: preregistration, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/cut-keyed-replay
+  - label: "quota-keying: preregistration, amendments, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/quota-keying
+  - label: "five-clue-keying: preregistration, amendments, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/five-clue-keying
+  - label: "five-clue-quota: preregistration, amendments, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/five-clue-quota
+---
+
+Une recherche qui oublie pourquoi une branche est morte la paie une seconde fois.
+Ces expériences mémorisent les impasses, ou indexent la recherche sur quelques
+couleurs pour les reconnaître plus tôt. Chaque question, chaque référence et
+chaque seuil d'arrêt ont été fixés avant tout test. Chaque résultat a été
+revérifié de façon indépendante ; quand un README et cette revérification
+divergeaient, la revérification tranchait et le README a été corrigé. Le prix
+d'une recherche complète et l'écart à combler sont sur la
+[page de la série](/research/lab/experiments/raphael-anjou/full-solve).
+
+## Les cinq en un coup d'œil
+
+Les plateaux de 6x6 à 8x8 sont des plateaux générés (des jouets), jamais un
+progrès sur Eternity II. Les trois expériences sur pièces réelles utilisent les
+pièces officielles du 16x16, sans tentative de record.
+
+| Expérience | Question | Référence | Seuil d'arrêt | Issue | Chiffre clé |
+|---|---|---|---|---|---|
+| difference-map-bands (générés) | Des projections exactes sur bandes ralentissent-elles la croissance d'une carte de différence avec la taille ? | largeur 0, `bb-mrv` | tuée si la pente ne baisse pas | **tuée** à ce plafond | 0 résolu sur 30 en 7x7, toute largeur ; `bb-mrv` 23 sur 30 |
+| cut-keyed-replay (générés) | Partitionner la propagation sur une ligne de coupe élague-t-il grâce à la coupe ? | nœuds de `bb-mrv`, clé aléatoire | tuée si une clé aléatoire est à 0.1 près | **tuée** | coupe 0.486 des nœuds, aléatoire 0.419, travail 1.21 |
+| quota-keying (réelles) | L'indexation par couleurs du moteur publié vaut-elle 450 à 4 600 fois ? | indexation par défaut | contredite si le gain est sous 45 | **conservée** ; affirmation contredite | gain 1.31 [0.69, 2.43] |
+| five-clue-keying (réelles) | Avec cinq indices, une indexation à un anneau est-elle un levier ? | défaut, clés aléatoires | pas un levier si meilleure contre aléatoire inclut 1 | **tuée**, confondue | 0 des 2 240 exécutions n'atteint la profondeur légale 201 |
+| five-clue-quota (réelles) | Indexation ou courbe de quota ? | indexation et quota par défaut | la marge explique si 0 sur 12+ contre 8+ ouvertures | **conservée** : la marge explique | 0 sur 16 contre 14 sur 16 ouvertures |
+
+« Conservée » veut dire que la mesure est valide, se reproduit exactement et que
+ses lectures tiennent. Cela ne veut pas dire qu'une méthode fonctionne.
+
+## Bandes de la carte de différence (tuée)
+
+Des projections exactes sur des bandes de largeur k (une programmation
+dynamique), k = 0 à 3, ont été ajoutées à une carte de différence (une méthode
+de projections itérées) sur 30 plateaux générés par taille, 3 graines chacun,
+20 000 itérations par exécution. En 7x7 et en 8x8, aucune instance n'a été
+résolue, quelle que soit la largeur (à une exécution sur 90 près) : aucun
+exposant de croissance n'a donc été mesuré, et la mort vaut pour cette méthode
+à ce plafond. En 6x6, seule taille aux médianes finies, le rapport du nombre
+d'itérations à la largeur 0 a pour intervalles [0.41, 1.36], [0.43, 1.30] et
+[0.77, +inf] pour les largeurs 1 à 3, tous contenant 1, et une largeur coûte 3
+à 33 fois plus par itération. Un plafond plus haut pourrait donner des médianes
+finies en 7x7 aux faibles largeurs, mais la tendance en 6x6 et les exécutions
+censurées vont dans le mauvais sens. Revérifiée de façon indépendante : 90
+lignes rejouées, identiques.
+
+## Rejeu indexé sur la coupe (tuée)
+
+Des partitions indexées sur les couleurs de deux arêtes de coupe ont été
+rejouées sur les arbres exacts de `bb-mrv`, sur 60 plateaux générés. La clé de
+coupe garde 0.486 [0.469, 0.500] des nœuds en 7x7, juste sous la ligne de 0.5.
+Une clé aléatoire au même nombre de partitions, tirée hors de la ligne de
+coupe, en garde moins : 0.419 en 7x7, sur chaque graine de contrôle et sur 30
+instances sur 30 (0.444 contre 0.483 en 6x6). L'élagage vient du partitionnement
+en général (tous les bras indexés gardent 0.42 à 0.49), pas de la coupe, et
+chaque bras coûte plus de travail de propagation que `bb-mrv` (1.211 pour la
+clé de coupe). Non testé : une clé de coupe dans un solveur par balayage de
+lignes. Revérifiée de façon indépendante : les lignes 6x6 et un échantillon de
+lignes 7x7 se reproduisent.
+
+## Indexation par quota (conservée)
+
+Le moteur record publié élague sous un quota de côtés de couleurs « privilégiées »
+posés à chaque case. Une étude préalable affirmait que cette indexation rend
+l'atteinte de la profondeur 201 de 450 à 4 600 fois moins chère (la profondeur
+compte les cases posées, sur 256). Mesuré sur les pièces réelles, chaque nœud
+compté, 10 ouvertures par bras, 1e9 nœuds par exécution, triplet publié
+(couleurs 5, 20, 7 dans la numérotation de ce dépôt) contre le défaut du port :
+
+- **Gain d'indexation : contredit.** 1.31 [0.69, 2.43] sans indice, 0.74 [0.42,
+  1.27] avec l'indice central. Avec cinq indices, l'indexation publiée n'a jamais
+  atteint la profondeur 201 en 10 exécutions ; le défaut l'a fait 135 fois.
+  Portée : 1e9 nœuds, un essai, ce port (l'étude préalable allait à 1e10 avec
+  cinq indices).
+- **Chemin de rupture légal : confirmé, mais cher.** Interdire les poses
+  illégales aux ruptures donne 7.63 [4.82, 13.9] fois plus de nœuds légaux
+  au-delà de la profondeur 201 par nœud, mais tourne environ 23 fois plus
+  lentement par nœud (1.25 arrivées par seconde contre 19.2).
+- **Étagement : mort pour le calendrier de l'étude préalable, sur ce port.**
+  Exiger les 122 côtés privilégiés dès la profondeur 176 ramène les nœuds
+  profonds (profondeur 230 et plus) à 0.051 [0.031, 0.081] de ceux du calendrier
+  publié ; une troisième couleur dès la profondeur 200 les ramène à 0, ce qu'un
+  balayage de lignes peut à peine fournir : ce n'est pas une mesure de
+  rendement. Mort si les deux rapports passent sous 3.
+
+Revérifiée de façon indépendante : 19 lignes rejouées, identiques.
+
+## Indexation à cinq indices (tuée)
+
+Avec les cinq indices officiels, 680 indexations (une couleur d'anneau, deux
+couleurs intérieures, quota ajusté à l'indexation) ont été criblées sur 3
+ouvertures, puis les cinq meilleures, le triplet publié et cinq clés aléatoires
+confirmés sur 20 autres. Aucune des 2 240 exécutions à un anneau n'a posé un
+nœud légal à la profondeur 201 ou au-delà ; l'indexation par défaut en a posé
+9 758 sur les 20 ouvertures de confirmation. La lecture « pas un levier » est un
+effet plancher (meilleure contre aléatoire vaut 0 sur 0, fixé à 1), et le
+défaut différait par deux choses à la fois, l'indexation et la marge de quota.
+Ce qui reste est étroit : aucune indexation à un anneau ne marche sous le quota
+ajusté. Revérifiée : 20 lignes rejouées, identiques.
+
+## Quota à cinq indices (conservée)
+
+Celle-ci a séparé les deux. Mêmes cinq indices, 16 ouvertures, 32 bras.
+L'indexation par défaut, à qui l'on demande 147 de ses 150 côtés à la case 160
+au lieu de 119, ne passe jamais la profondeur 35 : 0 ouverture sur 16 atteint
+la profondeur 201 (12 sous son propre quota). Les indexations à un anneau, à
+qui l'on demande la même part de 79 % de leurs côtés, comptent 14 ouvertures
+positives sur 16 (triplet publié) et 12 à 13 (indexation 1, 7, 9), contre 2 et 1
+sous leur ancien quota de 97.5 %. Les nœuds légaux au-delà de la profondeur 201
+par seconde passent de 0.19 à 10.0 pour le triplet publié. **La marge de quota,
+non le jeu de couleurs, expliquait l'expérience précédente.**
+
+Non établi : à marge égale, le défaut reste devant à l'estimation ponctuelle (les
+indexations à un anneau à 0.61 [0.30, 1.53] et 0.74 [0.29, 2.18] de son débit
+par seconde), avec des intervalles contenant 1 : l'indexation n'est donc pas
+montrée utile sur 16 ouvertures. Quel segment de la courbe contraint n'est pas
+localisé. La correction d'orientation de la rangée du haut du port est gratuite
+(0.98 [0.95, 1.04]). Profondeur légale maximale de toute exécution : 220.
+Revérifiée de façon indépendante : 8 lignes rejouées, identiques.
+
+## Ce que cela change pour une résolution complète
+
+Aucune des cinq ne rend une résolution complète moins chère. Voici les
+logarithmes en base 2 des rapports ci-dessus (calculés), en supposant, ce qui
+est faux, que tous les effets se transfèrent et s'additionnent :
+
+| Effet | Facteur | Bits |
+|---|---|---|
+| clé de coupe, plateaux générés, nœuds seulement (le travail augmente) | 1 / 0.486 | 1.0 |
+| gain d'indexation publiée, sans indice | 1.31 | 0.4 |
+| chemin de rupture légal, par nœud (perte en temps réel) | 7.63 | 2.9 |
+| marge de quota, débit d'atteinte de la profondeur 201 | environ 53 | 5.7 |
+
+Le balayage de lignes à cinq indices coûte 2^134.4 nœuds, environ 10^15 nœuds
+sont abordables, et l'écart est de 56 à 73 bits. Les quatre ensemble font
+environ 10 bits, et il en reste au moins 46 sur 56. Le résultat conservé est un
+débit d'atteinte d'une profondeur, pas un arbre plus petit, et une exécution
+plus profonde n'est pas un plateau mieux noté (voir
+[les records](/research/records)). Voir aussi les
+[filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
+
+## Ce qui n'a pas été fait
+
+Aucune autre forme de courbe de quota, aucun budget au-delà de 1e9 nœuds par
+exécution, aucun redémarrage, aucun entrelacement des bords, aucune clé de
+coupe dans un solveur par balayage de lignes, aucune autre projection sur bandes.
+
+## Reproduire
+
+L'expérience conservée :
+
+```
+just experiments five-clue-quota test 4 local
+```
+
+Les quatre autres :
+
+```
+just experiments difference-map-bands
+just experiments cut-keyed-replay test 7 12
+just experiments quota-keying main 12
+just experiments five-clue-keying screen 12
+```
+
+Les étapes préalables et les scripts d'analyse sont dans le README de chaque dossier.

@@ -1,0 +1,131 @@
+---
+title: "Ten engine experiments on small boards: faster nodes, no smaller trees"
+description: >-
+  Ten small preregistered engine experiments on generated boards from 6x6 to 9x9
+  kept five and dropped five. The one measured speed-up is a node that costs 5.3
+  to 6.1 times less for the identical search; none of the three methods that
+  change the tree (blocker backjumping, value order by impact, Hall matching)
+  shrank it against its baseline. Nothing here is Eternity II progress.
+metaDescription: "Ten preregistered engine experiments on generated boards (6x6 to 9x9): a 5.3 to 6.1 times cheaper node with an identical search was kept; blocker backjumping, impact value order and Hall matching did not shrink the tree. Toy boards only."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+hardware:
+  cores: 2
+  cpu: "Apple M4 (4 performance and 6 efficiency cores)"
+  gpus: 0
+  accelerator: none
+  machine: "10-core Apple M4 laptop, shared; two cores per experiment (one for the timing runs). Some experiments also ran on an 8-core Apple M1 and a 14-thread x86 laptop."
+  wallClock: "about 1 h for the first experiment, 27.37 core-hours for the 9x9 pilot, 19.1 summed per-run hours for the tournament"
+  seedPolicy: "seeded; fixed seed lists on generated boards, node counts identical across the three machines wherever compared"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments mrv-node-cost
+  topic: mrv-node-cost
+  produces: search
+  scope: "Rebuilds the cheaper-node solver, re-checks that its node sequence equals the original on the 140 gate instances and re-times it; it does not re-run the other nine experiments, whose commands are listed below."
+order: 56
+updated: 2026-11-14
+date: 2026-11
+topics: [backtracking, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/dfs-study/findings
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "mrv-node-cost: preregistration, results, assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/mrv-node-cost
+  - label: "mrv-scaling-pilot"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/mrv-scaling-pilot
+  - label: "blocker-backjump"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/blocker-backjump
+  - label: "value-impact-order"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/value-impact-order
+  - label: "hall-on-mrv"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hall-on-mrv
+  - label: "baseline-tournament"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/baseline-tournament
+  - label: "dead-node-census"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dead-node-census
+  - label: "partial-match-ladder"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/partial-match-ladder
+  - label: "score-bound-gap"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/score-bound-gap
+  - label: "resumable-runs"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/resumable-runs
+---
+
+Can small changes to a complete search engine shrink its tree? Ten experiments asked, each preregistered with a stop line before any test seed ran. One change helped, and only on cost: a node that is 5.3 to 6.1 times cheaper with the search itself unchanged. The three methods that alter the tree did not shrink it. Every result is on **generated boards** (6x6 to 9x9, never the Eternity II pieces), so none of it is Eternity II progress.
+
+## Setup, shared by all ten
+
+The baseline is `bb-mrv`, a complete search that fills the most constrained cell first, with propagation. One node is one counted piece assignment. Comparisons are paired per instance under a node cap (1e6; 1e8 for the pilot); a capped run is censored, never a win. A method passes only with a paired median node ratio of 0.5 or lower and a confidence interval below 1. Rungs: 6x6 with 5 colours, 7x7 with 6, 8x8 with 10, 30 seeds each.
+
+Each experiment's numbers were re-derived by a second analysis from the committed rows, and the outcome column is that analysis's verdict. Six of the ten ran without a guard log, so their preregistration order rests on commit order and file times.
+
+| Experiment | Question | Baseline | Stop line | Outcome | Headline |
+|---|---|---|---|---|---|
+| `mrv-node-cost` | Same search, cheaper node? | `bb-mrv` | any node-sequence mismatch; wall-ratio CI not below 1 | kept | 5.3x, 6.1x, 5.3x faster; 0 of 140 mismatches |
+| `mrv-scaling-pilot` | Does the ratio to `scb` keep falling at 9x9? | `scb`; 8x8 value | median not below 8x8 value, or over 4 of 8 pairs uninformative | dropped | 6 of 8 pairs censored for both |
+| `blocker-backjump` | Evict the blocking cell as the backjump rule? | `scb`, `bb-mrv` | fails the 0.5 rule at 6x6 | dropped | 4.68 times more nodes than `scb` at 6x6 |
+| `value-impact-order` | Try values by propagation impact? | `bb-mrv` | fails the 0.5 rule | dropped | node ratio 1.075, 0.829, 1.096 |
+| `hall-on-mrv` | Add a Hall matching check? | `bb-mrv` | wall ratio above 1 at every rung where nodes fall | dropped | node ratio 0.992 to 0.999 |
+| `baseline-tournament` | Which component is best under one counter? | `bb-mrv`, `scb` | an anchor row that does not reproduce | kept | 47 entrants ranked; 0 of 1,310 rows differ |
+| `dead-node-census` | Which bounded checks prove dead nodes dead? | none | weighted share under a stated line | kept | at 7x7, 0.8% to 10.3% |
+| `partial-match-ladder` | A usable score-at-fixed-work instrument? | five entrants | fewer than 3 of 5 within 2% to 4% of optimum | dropped | 2 of 5 in band |
+| `score-bound-gap` | How tight is a decision-diagram bound? | trivial bound | median gap above 4 edges at every width | kept, narrowly | median gap 4 against 7 |
+| `resumable-runs` | Interrupt and resume without changing the search? | fast solver | any mismatch; timing CI above 1.03 | kept | overhead 1.008 [0.998, 1.011] |
+
+## The ten, one paragraph each
+
+**`mrv-node-cost`.** The faster solver changes representation only (4-bit option sets, fixed-size domains, no allocation per node). It reproduces the original's node sequence on all 140 gate instances, checked by hash against the unmodified source, and the paired wall-clock median ratio is 0.188, 0.163 and 0.190 at the three rungs. Identity at 9x9 is measured only on capped prefixes. Independently re-checked.
+
+**`mrv-scaling-pilot`.** The 8x8 ratio of `bb-mrv` to `scb` was about 10^-0.83; at 9x9 (8 seeds, cap 1e8) the question was whether it keeps shrinking. Both stop lines fire, but the reason is the cap: `scb` was censored on all 8 and the pilot ran out of budget without measuring the ratio. It reads "no evidence", not "the ratio stopped". Independently re-checked; cost 27.37 core-hours.
+
+**`blocker-backjump`.** Evicting the cell that blocks the failed cell, with tabu, lost to both baselines: 4.68 times the nodes of `scb` at 6x6 (CI 2.40 to 6.55), and 4 of 30 solved at 7x7 against 16 of 30. A random-eviction twin did as well (3 of 30), so the mechanism carries no detectable signal. The kill covers this incomplete repair search, not conflict-directed backjumping with no-goods. Independently re-checked.
+
+**`value-impact-order`.** Trying each cell's values in ascending order of the options their propagation removes gave node ratios against `bb-mrv` of 1.075 [0.779, 1.931], 0.829 [0.544, 1.316] and 1.096 [0.669, 1.871]. It loses to a random order among the same probed options at 6x6 (1.297). The kill covers this impact measure only. Independently re-checked.
+
+**`hall-on-mrv`.** A Hall matching check (a distinct unused piece for every empty cell) removes under 1% of nodes at the median pair (nothing at 6x6), while the check costs 2% to 5% wall clock; wall ratios exceed 1 wherever nodes fell. The propagation already enforces the size-one cases of the same condition. An earlier 10% gain at 6x6 was measured against `scb`; it does not survive `bb-mrv`. Independently re-checked.
+
+**`baseline-tournament`.** Every solver-like component in the repository ran under one counter at the three rungs. Anchors reproduce on all 1,310 compared rows. At 8x8, plain row-major search solves 24 of 30 at a median 44 ms against 5,145 ms for `bb-mrv`, which solves 30 of 30 in fewer nodes (median 69,036 against 483,034): node counts hide per-node cost, and the claim stays about row-major order only. The README's claim that random value order helps at 7x7 and hurts at 8x8 was corrected after the re-check; the top two ranks lie within run-seed spread. Independently re-checked.
+
+**`dead-node-census`.** At dead nodes of `bb-mrv` (7x7, weighted by subtree size), exact 3x3 cavities prove 0.8%, two-row bands 0.2%, colour-only feasibility 1.7%, 2n-cell pockets 3.5%, and propagation partitioned on two cut edges 10.3% (two random edges: 9.6%). Cavity, band and pocket-lemma kills stand (0 of 1,447 sampled pockets proven). The cut-keyed kill was downgraded to not decided. Every share is an upper bound, the check's own cost unpaid. Independently re-checked; the `scb` tree was not measured.
+
+**`partial-match-ladder`.** An instrument for score at fixed work on planted boards with a known optimum. At 8x8 with 6 colours only 2 of 5 entrants stall in the 2% to 4% band (3.57% each); the next sits at 6.25%, and no 10x10 or 12x12 cell qualified. Dropped for this entrant pool and budget only. Two overstated README sentences were corrected, and the reversal against the 16x16 family order is confounded by implementation. Independently re-checked.
+
+**`score-bound-gap`.** A width-4096 relaxed decision diagram bounds the best completion of dead 7x7 prefixes with 3 rows left within a median of 4 edges (trivial bound: 7), exactly at the stop line, and the trend with size goes the wrong way. Its width-1 control equals the trivial bound at the median, and the claim "within one edge of trivial" holds at critical colour counts only (corrected). No search gain claimed. Independently re-checked.
+
+**`resumable-runs`.** Progress, checkpoint and resume for the fast solver change nothing: 0 mismatches on 140 instances at the tested interruption schedules. After a fix round (three defects found and repaired), 2,202 of 2,202 tampered checkpoints were refused; a forged digest still lets 28 of 1,436 field edits through. Cross-machine resume was measured for the first format and only argued for the second. Independently re-checked.
+
+## What it means for a full solution
+
+The row scan with five clues costs 2^134.4 nodes against about 10^15 affordable, a gap of 56 to 73 bits (see [the hub](/research/lab/experiments/raphael-anjou/full-solve/)). A 6.1 times cheaper node is log2(6.1), about 2.6 bits (derived), and a faster node never shrinks the tree. The three tree-changing methods gained nothing at 6x6 to 8x8, and the dead-node shares (10.3% at best) are upper bounds on pruning, with no gain shown. This agrees with [the DFS study](/research/lab/experiments/raphael-anjou/dfs-study/findings) and with [late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters). No tree-shrinking result here bears on [the records](/research/records) or the [open problems](/research/open-problems).
+
+## What was not run
+
+Nothing on the 16x16. No 9x9 ratio (it needs a cap near 1e9), no conflict-directed backjumping, no log-product impact order, no tabu tenure between 16 and 128, no stage 1 of the score bound, no partial-match ladder from the 16x16-native engines.
+
+## Reproduce
+
+Strongest result: `just experiments mrv-node-cost` (about 1 h, one core). The others:
+
+```
+just experiments mrv-scaling-pilot      # re-analyses committed rows by default; full run takes hours
+just experiments blocker-backjump       # re-analyses committed rows by default
+just experiments value-impact-order     # about 1 h on 2 cores
+just experiments hall-on-mrv            # about 75 min on 2 threads
+just experiments baseline-tournament    # heavy: about 19 core-hours
+just experiments dead-node-census       # re-analyses committed rows by default
+just experiments partial-match-ladder   # default: build and check instances
+just experiments score-bound-gap        # self-test plus re-analysis of the committed rows
+just experiments resumable-runs         # all gates
+```

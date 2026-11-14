@@ -1,0 +1,93 @@
+---
+title: The price of a full solution
+description: >-
+  An exact search of the 16x16 with five clues costs about 2^134.4 nodes, and
+  no route examined closes the 56 to 73 bit gap to what can be afforded. The
+  work is parked, with stated conditions for reopening. This page holds the
+  fixed numbers and indexes the ten pages behind them.
+metaDescription: "What an exact solution of Eternity II costs by search: 10^40.457 nodes (2^134.4) with five clues, a gap of 56 to 73 bits against affordable budgets, and ten pages of measurements and desk studies that found no route to close it. Parked, with tripwires."
+kind: page
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+outcome: parked
+order: 50
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking, exact-methods]
+repro:
+  kind: exact
+  cmd: just experiments approach-pricing
+  produces: search
+  scope: "Reprints the ceiling table of a perfect free cut from the committed level profile in seconds. It does not rerun the row-scan profile, the small-board runs or the re-checks, which sit in the experiment folders linked under sources."
+related:
+  - /research/lab/experiments/raphael-anjou
+  - /research/build/analysis/solution-counting
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Approach pricing: question, numbers, routes, tripwires"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+  - label: "Real-puzzle profile: the measured row-scan tree"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/real-puzzle-profile
+  - label: "Working record of the two nights, with the log of corrections"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/program/night
+---
+
+## The question and the answer
+
+What would an exact solution of the 16x16 cost by search, and can any known family of ideas close the gap between that cost and what can be afforded? Answer: no route examined closes it. The largest gain that survived an independent re-check is about 5.5 bits of nodes, against a gap of 56 to 73 bits. The work is parked, not proven impossible: several closures rest on one reader or one solver family, and the page marks which. The conditions that would reopen it are listed below.
+
+## The fixed numbers
+
+Every other page in this series links here instead of restating these.
+
+| Quantity | Value | Where it comes from |
+|---|---|---|
+| Row-scan tree, real pieces, five clues | 10^40.457 nodes, 2^134.4 (95% interval 10^40.440 to 10^40.473) | measured, `research/experiments/real-puzzle-profile/RESULTS.md` |
+| Affordable: very large distributed effort | 2^78 nodes | `research/experiments/approach-pricing/README.md` |
+| Affordable: 1,000 core-years at 1e8 nodes per second | 2^61.5 nodes | same file |
+| Gap against those two budgets | 56 to 73 bits | same file |
+| Gap against a modest run of about 10^15 nodes (about 2^50) | about 84 bits | derived here: 134.4 minus 50 |
+| Expected solutions | about 14,702 with the starter clue, about 1 with all five | [solution counting](/research/build/analysis/solution-counting) |
+
+The 84 bits belongs to the 10^15 run and the 56 to 73 bits to the two larger budgets; the two are never combined. A tree size is an estimate from a particle sampler (one million particles), not an enumeration; the random-model prediction lands within 0.04 digits of it.
+
+## The one-sentence reason
+
+Every check that works, works too late. The tests that refute wrong boards refute nearly all of them only from depth 144 to 192, while the widest level of the measured tree is at depth 158, and a perfect free cut at depth 144 would save at most 2.4 bits of 134.4. The argument and its ceiling table are on [late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
+
+## The ten pages
+
+Results on generated boards are toy-board results and are never Eternity II progress.
+
+| Page | What was measured | Result | Status |
+|---|---|---|---|
+| [The price of a full search](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search) | Size of the row-scan tree on the real pieces, with five, one and no clues | 10^40.457 nodes with five clues; no way found to shorten it | measured (estimates) |
+| [Frame and corners](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners) | Cost of refuting wrong frames of the real pieces | Cheap refutation of a full frame is dead; the cheap information (about 17.4 bits) sits at the clue corners; frames away from them undecided | parked |
+| [What a known tile is worth](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile) | Bits removed by a pinned tile, by cell, on painted 16x16 boards | 1 to 10 bits by position (median 5.8), sub-additive; 10 spread tiles still above 10^15 nodes, 16 to 24 under | measured on painted boards; end-to-end check only |
+| [Late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters) | Ceiling of a free cut by depth | A free cut at depth 144 saves at most 2.4 bits | refuted (derived arithmetic on a measured profile) |
+| [Seven families priced out](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) | Desk studies and re-checks of seven families of approaches | Largest surviving gain about 5.5 bits; none priced at 10 bits or more | parked; some closures rest on one reader |
+| [Relaxations on small boards](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards) | Semidefinite lift and low-rank form on 4x4 to 6x6 toys | Clean on 3 of 5 boards at 5x5, not exact on one, undecided on one; cannot run at 16x16; the low-rank form is a random search that annealing beats | refuted (toy boards) |
+| [Learning against propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation) | Clause learning against a propagation-only solver, 5x5 to 7x7 | Learning adds +1.31 bits at 5x5 and +2.03 at 6x6; no 7x7 value; the stop line is undecidable on this data | undecided (toy boards, independently re-checked) |
+| [Port fidelity](/research/lab/experiments/raphael-anjou/full-solve/port-fidelity) | Seven differences between our port and a record-style engine | All seven fixed; with five clues the faithful defaults do worse than the old ones | refuted as an improvement |
+| [Ten engine experiments](/research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks) | Node cost, orders, backjumping and bounds on 6x6 to 9x9 | A node 5.3 to 6.1 times cheaper for the identical search; no method shrank the tree | refuted for the tree (toy boards) |
+| [Keying experiments](/research/lab/experiments/raphael-anjou/full-solve/keying-experiments) | Replay and keying of dead ends | Three killed, two kept as measurements; a rate effect of 53 times, about 5.7 bits | refuted as a route |
+
+## What would reopen this
+
+From the tripwires in the approach-pricing record. Any one of them is enough.
+
+1. A published method shows a class-level gain. Price it against the routes index and the ceiling table first.
+2. Tiles of the solution become available from outside the search. An extra pin is worth about 10 bits at best and about 6 at the median on painted boards, and a 10^15 run needs more than 10, probably 16 to 24, spread pins.
+3. Hardware improves by 15 orders of magnitude or more. Every credible multiplier together is about 2.5 orders.
+4. A re-check or a run overturns a closure: the convex lift turns out exact at 6x6; the far stratum of frame cores resolves below break-even; a non-tree solver's work grows by less than 0.75 of the tree's from 6x6 to 7x7; a learning solver's lead over propagation alone rises with size.
+
+The standing rule for reopening is a price of 10 bits or more and a falsifying experiment that takes under a day.
+
+## The full record
+
+The working record of the two nights (12 and 13 November 2026) is in the repository under [research/program/night](https://github.com/raphael-anjou/eternity2/tree/main/research/program/night): the daily reports, the log, the desk studies and their re-checks, and the index of routes. About sixty statements made during the work were withdrawn or corrected, among them a figure for the interior cost under a true frame (replaced by about 10^13.6 nodes in the mean), and the record keeps every one with its replacement. Read the log of corrections before quoting a number from any of the working notes; the pages of this series carry only what stood after it.
+
+For record scores and the open frontier, see [records](/research/records) and [open problems](/research/open-problems).

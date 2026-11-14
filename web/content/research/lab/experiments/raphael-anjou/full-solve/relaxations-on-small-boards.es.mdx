@@ -1,0 +1,121 @@
+---
+title: "Relajaciones semidefinidas en tableros de juguete: un resultado negativo"
+description: >-
+  En tableros de juguete generados, una relajación semidefinida del
+  emparejamiento de aristas queda certificada limpia en tres tableros 5x5,
+  indecisa en uno e inexacta en otro; no cabe en 16x16 y no dio ninguna lectura
+  en 6x6. Su forma de rango bajo sí encuentra soluciones, pero como una
+  búsqueda aleatoria que el recocido simple supera en coste. Nada de esto es un
+  avance en Eternity II.
+metaDescription: "Resultado negativo en tableros de juguete: una relajación semidefinida de grado 2 del emparejamiento de aristas es limpia en 3 de 5 tableros 5x5 generados, inexacta en uno, indecisa en otro, demasiado grande en 16x16 y sin lectura en 6x6. Su forma de rango bajo es una búsqueda aleatoria penalizada que el recocido supera."
+kind: experiment
+contribution: negative
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+hardware:
+  cores: 10
+  ramGb: 32
+  gpus: 0
+  accelerator: none
+  machine: "10-core Apple M4 laptop, 32 GB; 14-core low-power x86 laptop; 8-core Apple M1 (annealing timings)"
+  wallClock: "5x5 convex solves 400 to 1,100 s each; 6x6 low-rank batches 30 CPU minutes per start"
+  seedPolicy: "toy boards from the project's painter, seeds 0 to 4; annealing and low-rank starts are random"
+  measured: false
+repro:
+  kind: stochastic
+  cmd: just experiments relaxation-small-boards
+  produces: artifact
+  scope: "Solo pruebas de humo: una resolución convexa en 4x4, dos arranques de rango bajo en un juguete 5x5 y un recocido corto en un juguete 6x6, cada una en menos de dos minutos. El comando no reproduce ninguna tabla de esta página; los lotes 6x6 (30 minutos de CPU por arranque) y las resoluciones convexas 5x5 no están incluidos, y lo que debe reproducirse son los recuentos, no las trayectorias."
+order: 59
+updated: 2026-11-14
+date: 2026-11
+topics: [exact-methods, search-space, local-search]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "relaxation-small-boards: README con la tabla de estados, las notas, las dos recomprobaciones independientes y los resultados en bruto"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/relaxation-small-boards
+---
+
+¿Puede una relajación semidefinida del problema de colocación, o su forma de rango bajo, más barata, abrir un camino hacia una solución completa que la búsqueda no ofrece? En tableros de juguete generados de 4x4 a 6x6 (7x7 en un solo control de recocido): no. Todos los tableros salen del generador del proyecto (5x5: colores de marco 3, colores interiores 4; 6x6: marco 4, interior 5; semillas 0 a 4). Los precios fijos del puzle real están en el [hub de la serie](/research/lab/experiments/raphael-anjou/full-solve) y aquí no se vuelven a derivar. Esta página no valora nada en bits frente a ellos: la forma convexa no se puede ejecutar a tamaño real, y la forma barata solo se midió en dos tamaños.
+
+## El montaje
+
+Una variable por colocación (una ficha, una rotación, una casilla): 478 colocaciones en 5x5, 1.290 en 6x6, 156.816 en 16x16. La elevación de grado 2 es una matriz indexada por colocaciones, con ceros en los pares en conflicto (misma casilla, misma ficha o color distinto entre vecinas), no negatividad entrada a entrada y las sumas por casilla y por ficha. La pregunta es si los únicos puntos que permite son las soluciones verdaderas y sus promedios.
+
+## Qué significa «una mezcla de soluciones verdaderas»
+
+Tome dos soluciones completas de un tablero de juguete y dé a cada una la mitad del peso. El resultado pone peso 0,5 en cada colocación de cualquiera de las dos y cumple todas las restricciones anteriores: las sumas por casilla y por ficha cuadran, y no se usa ningún par en conflicto. Todo promedio de soluciones verdaderas es, por tanto, un punto admisible de la relajación, sin coste. Se dice que la relajación es exacta en un tablero cuando no admite nada más: todo punto admisible es entonces una mezcla de soluciones verdaderas. En un tablero así, una sola resolución indica qué colocaciones pertenecen a alguna solución: en dos tableros convergidos fueron 93 de las 418 colocaciones que conserva la consistencia de arcos, y 106 de 373 (una resolución por tablero, sin recomprobación independiente).
+
+El peso fuera de las soluciones es el fallo de esa propiedad: peso en una colocación que ninguna solución usa. Un punto admisible que lo lleva no es una mezcla de soluciones, de modo que la relajación ha aceptado algo que el puzle rechaza. De ahí se siguen dos cosas. Una mezcla no es un tablero: leerla casilla a casilla toma fichas de soluciones distintas y deja desajustes (13 en un caso de prueba), así que incluso una relajación exacta necesita un paso de decodificación. Y sin peso fuera de las soluciones el punto informa; con él, la relajación demuestra menos de lo que el tablero permite.
+
+## Resultados
+
+| Resultado | Estado |
+|---|---|
+| Elevación convexa en 5x5: limpia (sin peso fuera de las soluciones) en las semillas 1, 2 y 4 (2 a 8 soluciones) | recomprobado de forma independiente |
+| Semilla 0 (36 soluciones) | indecisa: existen puntos limpios, la resolución de fuga máxima no ha convergido |
+| Semilla 3 (403 soluciones) | no exacta: unos 0,042 por casilla en diez colocaciones que ninguna solución usa, con violación 1,5e-9; una sola familia de resolutores |
+| Memoria en 16x16: una copia densa 183 GiB; factor más multiplicadores de no negatividad unos 119 GiB; división convexa 916 GiB | recomprobado de forma independiente |
+| Ejecuciones convexas 6x6 (tres tableros) | no convergieron (peso fuera de las soluciones 0,73 a 0,87 por casilla, estable): no existe lectura 6x6 |
+| Forma de rango bajo, 5x5: 200 de 200 ejecuciones resueltas en 15 tableros, unas 5.200 evaluaciones por solución | recomprobado de forma independiente; búsqueda aleatoria con prueba de aceptación exacta, no un resolutor de la relajación |
+| La misma forma sin no negatividad: 46 de 50 resueltas | su éxito en 5x5 no dice nada de la elevación |
+| Factor no negativo: 0 de 50 arranques en 5x5 en cada una de cuatro variantes (recocido: 26 de 50) | sin recomprobación independiente (derivación recomprobada) |
+| Seis de ocho elevaciones menores pierden masa o son vacías en 5x5 | sin recomprobación independiente |
+| Un barrido estructurado exacto aún exige unos 4,8e12 flops y 100 GB por barrido en 16x16 | sin recomprobación independiente (aritmética de coste recomprobada) |
+
+El coste por tablero es la otra mitad. Una resolución convexa 5x5 tardó de 400 a 1.100 s en tableros que una búsqueda en profundidad despeja en 0,1 s como mucho; en 6x6, la búsqueda tarda de 0,3 a 0,6 s.
+
+La forma de rango bajo se comporta como una búsqueda aleatoria guiada por una penalización. Las ejecuciones que convergen a un punto admisible son mezclas que el redondeo no sabe leer; las que triunfan las detiene la prueba exacta mientras la dinámica de la penalización aún se mueve.
+
+## Frente al recocido simple
+
+Recocido con reinicios aleatorios, sobre los mismos tableros:
+
+| Tamaño | Recocido por solución frente a la forma de rango bajo | Estado |
+|---|---|---|
+| 5x5 | de 8 a 35 veces más barato | recomprobado de forma independiente |
+| 6x6 | de 3,6 a 63 veces más barato | una sola pasada, intervalos solapados en tres tableros |
+| 7x7 | nada en 210 ejecuciones (tasa inferior al 26 por ciento por ejecución, no demostrada nula) | una sola pasada |
+
+Crecimiento del coste de la forma de rango bajo con el número de colocaciones P, en dos tamaños:
+
+| Medida | De 5x5 a 6x6 | Estado |
+|---|---|---|
+| Evaluaciones por solución, primer lote | 62 veces (30 a 155); exponente 4,2 en P (3,4 a 5,1) | recomprobado de forma independiente |
+| Lote 6x6 completo: 22 de 50 arranques resueltos | 460.416 evaluaciones por solución frente a 5.083; exponente 4,54 (bootstrap 3,97 a 5,31) | sin recomprobación independiente |
+
+Dos tamaños no separan una potencia de P de una exponencial. Extrapolado sin más a 16x16, el lote completo da unas 1,3e15 evaluaciones por solución: es una extrapolación de dos puntos, no una medida.
+
+## Afirmaciones hechas durante el trabajo y retiradas
+
+Las correcciones forman parte del resultado.
+
+- «La elevación es exacta en 5x5» y «primer certificado de exactitud»: no es exacta en la semilla 3, y el certificado cubre un solo tablero.
+- Probabilidades del 60, 20 y 2 por ciento de que la elevación sea exacta en 6x6, 8x8 y 16x16: una estimación nunca derivada, hecha antes de que un tablero resultara inexacto.
+- «30 GiB al rango garantizado», «9,3 GB, cabe en memoria en 16x16» y «10 horas por arranque»: retiradas. Tal como está programado, el código de rango bajo exige 910 GB en 16x16; la garantía de rango solo vale para la forma sin no negatividad.
+- «El recocido no encuentra nada en 6x6» (0 de 1.000): un artefacto de presupuesto. Con 200 millones de pasos, el recocido resolvió 20 de 100 ejecuciones en cinco tableros 6x6.
+- «Recocido 58 por ciento, rango bajo 100 por ciento»: los esfuerzos eran desiguales.
+- «Unas 145 veces más rápido» que una versión en NumPy: no demostrado. La mejora posterior se debe sobre todo a la carga de la máquina (1,3 veces por evaluación). «50 de 50» es 49 de 50.
+- «70 a 190 s por arranque» en 6x6 y «exponente 2,5 o peor»: demasiado bajo por un factor de 15 a 40; 2,5 es un suelo.
+- Crecimiento de las iteraciones «entre P^1,6 y P^3,1» y «hace falta reducción facial»: no demostrados o contradichos.
+- Un intervalo de reinicio más corto en 6x6: retirado, porque la solución mediana cae en el paso 605 de 1.000.
+
+## Qué implica para una solución completa
+
+Nada positivo. La forma convexa es la única con un certificado detrás, y es exacta en algunos tableros pequeños, pierde masa en al menos uno, nunca se leyó en 6x6 y exige 119 GiB o más en 16x16. La forma barata funciona como búsqueda aleatoria y pierde frente al recocido, que a su vez no encontró nada en 7x7 en las ejecuciones hechas. Nada de esto es un avance en Eternity II, y nada mueve la brecha del [hub](/research/lab/experiments/raphael-anjou/full-solve). Los récords actuales están en [/research/records](/research/records) y la frontera en [/research/open-problems](/research/open-problems).
+
+## Qué no se ejecutó
+
+Las ejecuciones convexas 6x6 hasta converger; una segunda familia de resolutores en la semilla 3; cualquier tamaño por encima de 7x7; la relajación en 16x16; una descomposición en elevaciones locales, la única vía que podría hacer asequible la forma convexa.
+
+## Reproducir
+
+`just experiments relaxation-small-boards` lanza tres pruebas de humo (véase la línea de alcance arriba). Las tablas salen de las notas y resultados versionados en la [carpeta del experimento](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/relaxation-small-boards), cuyo README indica de dónde sale cada número.

@@ -1,0 +1,185 @@
+---
+title: "Fidélité du portage : sept écarts avec un moteur de record, et une régression à cinq indices"
+description: >-
+  Notre portage d'un backtracker de type record différait du moteur publié sur
+  sept points ; les sept ont été corrigés et testés, et les suites de nœuds
+  coïncident avec l'ancien portage partout où les interrupteurs hérités sont
+  activés. Avec les cinq indices, les réglages fidèles font moins bien que les
+  anciens (profondeur maximale 18 à 54 contre 33 à 215 sur huit graines) : la
+  correction n'est donc pas un progrès dans ce cadre.
+metaDescription: "Sept écarts entre notre portage d'un backtracker de record pour Eternity II et le moteur publié ont été corrigés et revérifiés indépendamment deux fois. Avec cinq indices, les réglages fidèles atteignent la profondeur 18 à 54, les anciens 33 à 215 (huit graines)."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+scoringConvention: matched-edges
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "Portable Apple M1 à 8 cœurs, partagé avec une autre tâche pendant les revérifications, jusqu'à 7 exécutions mono-thread simultanées"
+  wallClock: "exécutions plafonnées en nœuds (10^7 à 10^8 nœuds, un redémarrage) ; environ 1,5 à 3,8 s de temps utilisateur pour 10^8 nœuds sur la machine chargée"
+  seedPolicy: "graines fixes ; sans indice 101 à 108, cinq indices 501 à 508, centre seul et séries courtes 1 à 6"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+  produces: search
+  scope: "La recette relance la grille du banc, dont la ligne de style Blackwood mesure désormais le moteur fidèle ; elle ne relance pas les comparaisons de fidélité, dont les sorties brutes et les scripts sont archivés dans le dossier fidelity-results de l'expérience."
+order: 58
+updated: 2026-11-14
+date: 2026-11
+topics: [backtracking, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/single-core-benchmark
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Dossier de l'expérience : moteur, résultats de fidélité archivés, notes de comparaison et les deux revérifications"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+  - label: "Le moteur Blackwood publié auquel le portage a été comparé (commit f544e42)"
+    url: https://github.com/jblackwood345/EternityII_Solver
+---
+
+Notre portage du backtracker de record de Blackwood est-il fidèle, et cela
+change-t-il quelque chose ? Il s'agit du régime des records (une chasse
+stochastique aux plateaux à nombre élevé d'arêtes assorties), pas de la recherche
+exacte. Ce portage est le moteur derrière la ligne de style Blackwood du
+[banc mono-cœur](/research/lab/experiments/single-core-benchmark), et plusieurs
+expériences ultérieures en sont des copies. Chaque vérification a été faite
+contre le source C# publié (commit f544e42), lu pour l'occasion, et non contre
+les résultats de son auteur. Le moteur lui-même n'a pas été exécuté : son
+générateur aléatoire interdit toute comparaison nœud pour nœud. La fidélité
+désigne donc ici l'accord avec le source par lecture, par tests, et avec l'ancien
+portage par rejeu.
+
+## Sept écarts
+
+| n° | Écart | Statut |
+|--:|:--|:--|
+| 6 | Le chemin sans rupture pouvait poser une pièce montrant du gris vers une case intérieure | corrigé, toujours actif |
+| 2 | Le chemin avec ruptures posait des pièces non physiques, ignorait la règle de l'anneau, essayait d'abord les plus privilégiées | corrigé |
+| 3 | Une règle d'isolement des ruptures que le moteur publié n'a pas | corrigé, désactivé par défaut |
+| 1 | Choix des couleurs clés et lecture du quota (un compte changeait de sens avec le choix) | corrigé |
+| 4 | Pièce centrale comptée dès la profondeur 0, sans nœud ni test de quota | corrigé |
+| 7 | Quota testé par nœud à toute profondeur, et non par candidat jusqu'à la profondeur 160 | corrigé |
+| 5 | Ordre de balayage (lignes depuis le coin haut gauche, et non l'ordre publié) | corrigé |
+
+Chaque correction a son test unitaire, et six des sept ont un interrupteur hérité
+qui rétablit l'ancien comportement (le n° 6 n'en a pas). La première liste d'écarts
+oubliait le n° 7 et décrivait mal les n° 4 et 5 : l'ordre de balayage publié
+n'intercale pas la bordure, et la pièce centrale est placée là où le moteur publié
+la met (la vraie différence était le moment où elle est comptée).
+
+Le défaut d'orientation (n° 6) est celui qui a le plus compté. Dans 5 des 31
+exécutions de comparaison, il enfermait la recherche dans un sous-arbre illégal
+(2 à 8 nœuds légaux en 10^8 à 1,3 x 10^8 nœuds avant correction). Il gonflait aussi
+des exécutions : sur la graine 106 sans indice, l'ancien binaire atteignait la
+profondeur 240 par des poses illégales, là où le moteur corrigé atteint 231, avec
+24,3 millions de ses 10^8 nœuds dans des sous-arbres illégaux. La correction ne
+retire que des sous-arbres illégaux : dans les 26 exécutions qu'il n'enfermait
+pas, l'histogramme des nœuds légaux par profondeur est identique avec et sans elle.
+
+## Comment cela a été vérifié
+
+Revérifié indépendamment deux fois, par deux analyses qui ont lu le source publié
+séparément des notes de l'auteur.
+
+| Contrôle | Résultat |
+|:--|:--|
+| Tests unitaires au commit final | 13 sur 13 passent |
+| Balayage de mutations (défaire une correction à la fois) | 10 défaites sur 11 détectées d'abord ; la survivante (ordre des candidats avec rupture) a maintenant un test qui échoue quand on la défait |
+| Interrupteurs hérités contre l'ancien portage, 10^8 nœuds, sans indice 101 à 104 et 108, cinq indices 501 à 506 | 11 sur 11 identiques (nœuds, profondeur, scores, plateau) |
+| Nouveaux réglages contre le binaire de la première revérification, 10^7 nœuds, histogrammes par profondeur | 12 sur 12 identiques |
+| Correspondance pièces et couleurs avec la liste publiée | les 256 pièces coïncident sous une seule bijection de couleurs ; pièce centrale et rotation coïncident |
+| Table d'ordre de balayage publiée | identique entrée par entrée |
+
+Les deux rejeux donnent ensemble 23 comparaisons de suites de nœuds sur 23
+identiques. À la première revérification, 13 rejeux hérités sur 16 coïncidaient ;
+les trois autres étaient exactement les exécutions du n° 6, reproduites par
+l'ancien moteur figé avec et sans sa correction.
+
+La vitesse est un coût de la correction, pas un gain. Le chemin sans rupture
+prend environ 15 à 19 pour cent de temps en plus par nœud que l'ancien portage
+(secondes utilisateur pour 10^8 nœuds : 1,05 avant, 1,24 à 1,28 après à la première
+mesure ; rapports de 1,15 à 1,19 sur la machine chargée à la seconde). La cause n'a
+pas été localisée.
+
+## Avec cinq indices, les réglages fidèles font moins bien
+
+Le moteur publié ne pose que la pièce centrale. Ses règles avec les cinq indices
+sont donc une extrapolation de ce portage, que le source ne tranche pas. Sur les
+pièces officielles avec cinq indices, un redémarrage et 10^8 nœuds par graine,
+anciens réglages contre réglages fidèles :
+
+| graine | ancien : plus profond | ancien : nœuds légaux au-delà de 200 | ancien : meilleur | fidèle : plus profond | fidèle : nœuds légaux au-delà de 200 | fidèle : meilleur |
+|--:|--:|--:|--:|--:|--:|--:|
+| 501 | 215 | 1 271 | 443 | 54 | 0 | 372 |
+| 502 | 200 | 0 | 431 | 18 | 0 | 369 |
+| 503 | 33 | 0 | 381 | 18 | 0 | 382 |
+| 504 | 199 | 0 | aucun | 18 | 0 | aucun |
+| 505 | 197 | 0 | 425 | 18 | 0 | 373 |
+| 506 | 205 | 258 | 425 | 18 | 0 | 377 |
+| 507 | 197 | 0 | 425 | 18 | 0 | 361 |
+| 508 | 33 | 0 | aucun | 33 | 0 | 378 |
+
+« Meilleur » est le score en arêtes assorties (convention matched-edges) d'une
+complétion gloutonne du plateau partiel ; aucune exécution n'a complété un plateau
+par la recherche, et « aucun » signifie qu'aucune complétion n'a été émise. Le
+défaut d'orientation enferme l'ancien moteur sur la graine 508 (8 nœuds légaux) :
+cette ligne n'est pas comparable terme à terme. Sur les huit graines, les anciens
+réglages posent 1 529 nœuds légaux au-delà de la profondeur 200, tous sur les
+graines 501 et 506 ; les réglages fidèles n'en posent aucun. Sur six graines sur
+huit, les réglages fidèles ne dépassent jamais la profondeur 18, la case juste
+sous un indice que l'ordre publié n'atteint qu'à la profondeur 34. Le mur apparaît
+aussi sur les graines 1 à 4 à 10^7 nœuds. Aucun interrupteur isolé ne rend les
+anciennes profondeurs ; l'ordre publié, qui rencontre le voisin d'un indice seize
+cases trop tôt, se combine avec le choix des couleurs, le quota et le comptage des
+indices. Huit graines permettent des fourchettes, pas un rapport, et la machine
+était chargée.
+
+## Ce que cela signifie
+
+Les réglages fidèles valent pour le cas du seul indice central ou sans indice, où
+11 exécutions sur 12 ont atteint la profondeur 244 à 247 en 10^8 nœuds. Avec cinq
+indices, il faut garder le profil hérité tant qu'un calendrier à cinq indices n'est
+pas conçu et mesuré. Pour la recherche exacte, rien ne change : la fidélité d'un
+portage ne déplace pas la taille de l'arbre. Son coût avec cinq indices, et l'écart
+avec ce qui est abordable, sont chiffrés sur le
+[hub de la série](/research/lab/experiments/raphael-anjou/full-solve) ; cette page
+n'ajoute rien à ces bits, et un portage plus fidèle mais moins profond avec cinq
+indices s'en éloigne. Les scores de record sont sur
+[/research/records](/research/records), non repris ici.
+
+Deux affirmations antérieures demandent de la prudence. La ligne Blackwood du banc
+(moyenne 436,4, meilleur 440, convention matched-edges) vient des anciens réglages
+et mesure donc l'ancien portage, pas celui-ci. Et la conclusion de la page du banc
+selon laquelle les couleurs privilégiées de la communauté ne se transfèrent pas
+comparait trois couleurs intérieures, qui ne sont pas l'ensemble publié ; dans la
+numérotation de ce dépôt, l'ensemble publié est {5, 20, 7}. Cette comparaison ne
+teste pas l'affirmation pour laquelle on la citait.
+
+## Ce qui n'a pas été exécuté
+
+Le moteur C# publié ; les exécutions multi-threads ; clippy et le formatage ; une
+mesure de temps absolue sur machine au repos ; la règle du premier coin (le moteur
+publié fixe son premier coin et ne revient jamais dessus, ce que le portage
+n'implémente pas) ; le coût en temps du chemin avec ruptures. L'unité de nœud du
+portage (un par entrée de case ; chez lui, un par itération de boucle) et son
+schéma de redémarrage et de tirage aléatoire diffèrent encore : plafonds et
+cadences de nœuds ne se comparent pas sans conversion.
+
+## Reproduire
+
+Compilez l'espace de travail avec
+`cargo build --release --manifest-path engine/Cargo.toml` dans le dossier de
+l'expérience. Les commandes, les sorties brutes et les scripts de comparaison se
+trouvent sous `engine/crates/bench-audit/fidelity-results/` ; la comparaison écrite,
+avec ses preuves point par point, est `engine/crates/bench-audit/src/bin/FIDELITY.md`.
+Voir les [impasses](/research/build/dead-ends) et les
+[problèmes ouverts](/research/open-problems) pour situer ce résultat.

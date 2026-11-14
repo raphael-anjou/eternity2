@@ -1,0 +1,97 @@
+---
+title: Ce que vaut une tuile connue sous balayage par lignes
+description: >-
+  Sous un balayage par lignes, une tuile connue retire de 1 à 10 bits de l'arbre
+  de recherche complet selon la seule position de sa case dans le balayage
+  (médiane 5,8 bits, sur des plateaux 16x16 peints), et plusieurs tuiles valent
+  ensemble moins que leur somme. Sur ces plateaux, 10 tuiles bien réparties
+  laissent l'arbre au-dessus de 10^15 nœuds et 16 à 24 le ramènent en dessous,
+  un chiffre vérifié de bout en bout seulement. Rien ici ne mesure le vrai
+  puzzle, hormis deux contrôles de transfert.
+metaDescription: "Valeur mesurée d'une tuile connue sous balayage par lignes sur des plateaux 16x16 peints : 1 à 10 bits selon la position, sous-additive, 10 tuiles réparties encore au-dessus de 10^15 nœuds, 16 à 24 en dessous (contrôle de bout en bout seulement). Carte sur petits plateaux incluse. Plateaux jouets, pas un progrès sur Eternity II."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+order: 53
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking]
+repro:
+  kind: seeded
+  cmd: just experiments orders-and-pins all
+  scope: "Relance les étapes à épingles du 16x16 (carte à une épingle, indices retirés un à un, jeux d'épingles répartis et aléatoires, contrôle sur arbre entier) puis analyze.py ; graines fixées et lignes déterministes, mais l'exécution complète prend environ 10 heures-cœur. La carte des petits plateaux est une seconde recette, just experiments pin-map all (environ 1,6 heure-cœur). Aucune des deux ne touche aux vraies pièces au-delà des cinq indices."
+hardware:
+  cores: 10
+  cpu: "Apple silicon laptop (10 cores) and an 8-core Apple M1"
+  gpus: 0
+  accelerator: none
+  machine: "Portable Apple silicon à 10 cœurs, 2 processus au plus à la fois, plus un Apple M1 à 8 cœurs pour trois étapes ; la carte des petits plateaux a tourné sur un cœur"
+  wallClock: "environ 10,1 heures-cœur pour l'étude 16x16, environ 1,4 heure-cœur pour la carte des petits plateaux"
+  seedPolicy: "à graines fixées ; graines du peintre 300051, 300061, 300097, 300117, 300131 pour les plateaux 16x16 ; petits plateaux : graines 1 à 20 (8x8) et 1 à 5 (10x10)"
+  measured: false
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Épingles et ordres : préinscription, lignes brutes, summary.json et notes de relecture"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins
+  - label: "Carte des épingles sur petits plateaux : arbres exacts, tables et figures"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/pin-map
+---
+
+Une tuile connue (une épingle) est une pièce dont on donne au solveur la vraie case. Cette page la chiffre en bits de recherche : de combien l'arbre complet du balayage par lignes rétrécit-il quand une case de plus est fixée, et comment la réponse dépend-elle de la case ? Les coûts de référence et le budget auxquels on compare (le balayage avec cinq indices, environ 10^15 nœuds abordables, l'écart en bits) sont sur le [hub de la série](/research/lab/experiments/raphael-anjou/full-solve) et ne sont pas redérivés ici.
+
+## Dispositif
+
+La grandeur est l'**arbre complet** : chaque plateau partiel valide d'un balayage par lignes depuis le bas, indices et épingles posés dès le départ et utilisés seulement quand le balayage les atteint. Le coût attendu jusqu'à une première solution en est environ la moitié. Deux familles de plateaux :
+
+- **Plateaux 16x16 peints** (cinq plateaux) : couleurs peintes sur une solution plantée avec les effectifs de couleurs officiels et les cinq cases d'indice officielles, pièces mélangées. L'arbre de base va de 10^40,41 à 10^40,52 (5 plateaux). Les arbres sont estimés par échantillonnage de population et par un second estimateur qui suit le chemin planté ; les deux sont sans biais et tous deux peuvent sous-estimer.
+- **Petits plateaux** (8x8 et 10x10, générés, énumération exacte, sans échantillonnage) : une carte des tuiles seules et des paires, et un solveur adaptatif pour comparer. Ce sont des plateaux jouets.
+
+## Résultats
+
+**Une tuile : de 1 à 10 bits, selon la position.** Sur les plateaux peints (56 cases, moyenne sur 5 plateaux), la meilleure case, ligne 10 colonne 1, vaut 10,05 bits (9,13 à 11,34 selon les plateaux), la case médiane 5,79, la pire, un coin du haut que le balayage atteint en dernier, 1,01. Les cases intérieures des lignes 8 à 14 valent 9,3 à 10,1 bits, les lignes 0 à 3 environ 1,1 à 1,5, les cases du bord bas environ 5,8. Un modèle de premier moment prédit la carte (Spearman 0,95 sur les 56 cases). Sur les petits plateaux la même forme apparaît : à 8x8, la valeur moyenne est de 2,08 bits, avec les lignes 0, 1, 2 à 3,87, 5,36, 3,40 et les lignes 4 à 7 à 0,54 à 0,81. Inverser le balayage inverse la carte (corrélation 0,998 à 8x8, 0,995 à 10x10, contre -0,64 et -0,23 sans la rotation).
+
+**Les épingles sont sous-additives.** Huit épingles réparties gagnent 0,88 de la somme de leurs gains isolés ([0,85 ; 0,92], 5 plateaux) ; quatre épingles gloutonnes en gagnent 0,92 ([0,87 ; 0,96]). Sur les petits plateaux, 10 080 paires donnent un rapport médian de 0,957, et une paire contiguë garde 0,75 de la somme de ses valeurs.
+
+**Arbre groupé après k épingles, médiane sur les plateaux** (plateaux peints ; bits gagnés sur la base entre parenthèses) :
+
+| k | réparties | aléatoires |
+|---|---|---|
+| 1 | 10^37,61 (9,6) | 10^38,81 (5,4) |
+| 4 | 10^32,09 (27,8) | 10^33,24 (24,1) |
+| 8 | 10^22,52 (59,5) | 10^28,75 (39,0) |
+| 10 | 10^23,79 (55,4) | non mesuré |
+| 16 | 10^12,79 (92,0) | 10^19,24 (70,4) |
+| 24 | 10^11,28 (97,0) | 10^14,56 (86,1) |
+| 48 | 10^8,47 (106,3) | 10^7,99 (107,8) |
+
+La répartition n'est pas monotone (k = 10 est au-dessus de k = 8) car chaque k place ses épingles à d'autres profondeurs du balayage. C'est la meilleure règle essayée, pas un optimum.
+
+**Face à environ 10^15 nœuds.** Dix épingles réparties ne suffisent sur aucun plateau : la borne inférieure de Markov dépasse 10^15 sur les cinq. Le plus petit nombre d'épingles réparties dont l'estimation groupée passe en dessous est 16 sur trois plateaux et 24 sur deux. Avec 16 épingles aléatoires, au moins la moitié des couples (plateau, tirage) restent démontrés au-dessus de 10^15.
+
+## Statut et limites
+
+- **Revérifié indépendamment :** la carte à une épingle, la valeur des indices retirés un à un et les bornes inférieures, par recalcul depuis les lignes brutes et 17 relances identiques sur 17 ; les chiffres des petits plateaux, par 1 177 unités relancées sans écart et un énumérateur écrit séparément.
+- **Vérifié de bout en bout seulement :** la plage de 16 à 24 épingles réparties. Le seul contrôle exact est l'énumération de l'arbre entier à 40 et 48 épingles (les 10 arbres aboutissent, 10^8,06 à 10^10,17, écart d'estimation d'au plus 0,0047 dex). Entre 10^12 et 10^23, rien n'est vérifié exactement, et les deux estimateurs peuvent sous-estimer ensemble. Aucun « en dessous » n'est validé par la barrière préinscrite.
+- **Les épingles groupées mettent les estimateurs en défaut.** Pour des épingles choisies gloutonnement avec le modèle sans solution plantée, les deux estimateurs divergent jusqu'à 12,6 dex à k = 12 et le placement du modèle se trompe d'environ 11 dex. Ces chiffres sont une démonstration, pas un meilleur cas.
+- **Transfert aux vraies pièces, deux contrôles.** L'arbre officiel à cinq indices, 10^40,453, tombe dans la plage peinte ; retirer chaque indice officiel coûte 2,85 à 2,99 dex pour le centre et les deux indices du bas et 0,39 à 0,47 dex pour les deux du haut sur les plateaux peints, et les valeurs officielles sont à moins de 0,3 dex de celles-ci. Seuls les indices, jamais des épingles en plus, sont mesurés sur le vrai jeu.
+- **Plateaux jouets.** Tout ce qui concerne 8x8 et 10x10 est un résultat de plateau jouet. Face à un solveur adaptatif (un solveur, 10 plateaux, 8x8, un seul nombre de couleurs), l'effet du placement disparaît en grande partie dès 6 tuiles connues (toutes les règles sauf le bord seul) et dès 8 (toutes les règles), alors qu'à 3 et 4 tuiles les règles s'étalent encore sur 6,8 à 13,6 et 6,1 à 11,1 bits. Sur les jouets, grouper les tuiles en tête de balayage bat les répartir sous balayage par lignes ; cela n'a pas été testé sur le 16x16.
+
+## Ce que cela implique pour une solution complète
+
+Une seule tuile vaut au plus environ 10 bits, une tuile typique environ 6, et le gain par tuile baisse à mesure qu'on en ajoute. Atteindre environ 10^15 nœuds avec des épingles supplémentaires demande donc plus de 10 tuiles bien réparties, probablement 16 à 24, sur ces plateaux et pour cette grandeur d'arbre complet. C'est un énoncé sur l'arbre du balayage par lignes : il chiffre une mesure, et rien sur le vrai puzzle n'a été mesuré au-delà des cinq indices officiels. Les chiffres de la série sont sur le [hub](/research/lab/experiments/raphael-anjou/full-solve).
+
+## Non exécuté
+
+Un placement glouton validé contre des arbres exacts à 16x16 ; tout contrôle exact entre 10^12 et 10^23 nœuds ; des épingles aléatoires à k = 6, 10, 12 ; des épingles supplémentaires sur les vraies pièces ; un solveur adaptatif à 16x16 ou avec les indices sur petits plateaux.
+
+## Reproduire
+
+Recettes `just experiments orders-and-pins all` et `just experiments pin-map all`, puis `python3 -I research/experiments/orders-and-pins/scripts/analyze.py`. Chaque chiffre ci-dessus est imprimé depuis les lignes brutes versionnées dans le `results/summary.json` du dossier concerné. Les records sont sur la page [records](/research/records) ; la frontière ouverte sur les [problèmes ouverts](/research/open-problems).

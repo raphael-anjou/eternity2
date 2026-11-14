@@ -1,0 +1,120 @@
+---
+title: "Semidefinite relaxations on toy boards: a negative result"
+description: >-
+  On generated toy boards, a semidefinite relaxation of edge matching is
+  certified clean on three 5x5 boards, undecided on one and not exact on one;
+  it cannot run at 16x16 and gave no reading at 6x6. A low-rank form of it does
+  find solutions, but as a randomised search that plain annealing beats on cost.
+  Nothing here is Eternity II progress.
+metaDescription: "Toy-board negative result: a degree-2 semidefinite lift of edge matching is clean on 3 of 5 generated 5x5 boards, not exact on one, undecided on one, too large at 16x16 and unread at 6x6. Its low-rank form is a penalised random search that annealing beats."
+kind: experiment
+contribution: negative
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+hardware:
+  cores: 10
+  ramGb: 32
+  gpus: 0
+  accelerator: none
+  machine: "10-core Apple M4 laptop, 32 GB; 14-core low-power x86 laptop; 8-core Apple M1 (annealing timings)"
+  wallClock: "5x5 convex solves 400 to 1,100 s each; 6x6 low-rank batches 30 CPU minutes per start"
+  seedPolicy: "toy boards from the project's painter, seeds 0 to 4; annealing and low-rank starts are random"
+  measured: false
+repro:
+  kind: stochastic
+  cmd: just experiments relaxation-small-boards
+  produces: artifact
+  scope: "Smoke runs only: one 4x4 convex solve, two low-rank starts on a 5x5 toy and a short annealing run on a 6x6 toy, each under two minutes. It does not reproduce any table on this page; the 6x6 batches (30 CPU minutes per start) and the 5x5 convex solves are not in it, and counts, not trajectories, are what should reproduce."
+order: 59
+updated: 2026-11-14
+date: 2026-11
+topics: [exact-methods, search-space, local-search]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "relaxation-small-boards: README with the status table, the notes, the two independent re-checks and the raw results"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/relaxation-small-boards
+---
+
+Could a semidefinite relaxation of the placement problem, or a cheaper low-rank form of it, give a route to a full solution that search does not? On generated toy boards of 4x4 to 6x6 (7x7 for one annealing control): no. All boards come from the project's painter (5x5: frame colours 3, inner colours 4; 6x6: frame 4, inner 5; seeds 0 to 4). The fixed prices for the real puzzle are on the [series hub](/research/lab/experiments/raphael-anjou/full-solve) and are not re-derived here. This page prices nothing in bits against them, because the convex form cannot be run at full size and the cheap form was measured on two sizes only.
+
+## The setup
+
+One variable per placement (a tile, a rotation, a cell): 478 placements at 5x5, 1,290 at 6x6, 156,816 at 16x16. The degree-2 lift is a matrix indexed by placements, with zeros on pairs that conflict (same cell, same tile, or an edge colour mismatch between neighbours), entrywise nonnegativity, and cell and tile sums. The question is whether the only points it allows are true solutions and averages of them.
+
+## What "a blend of true solutions" means
+
+Take two complete solutions of a toy board and give each half the weight. The result puts weight 0.5 on every placement of either solution, and it satisfies every constraint above: the cell sums and tile sums still work out, and no conflicting pair is both used. Every such average of true solutions is therefore a legal point of the relaxation, for free. The relaxation is called exact on a board when it allows nothing else, so that every legal point is a blend of true solutions. On such a board, solving it once shows which placements belong to some solution: on two converged boards that was 93 of the 418 placements arc consistency keeps, and 106 of 373 (one solve per board, not independently checked).
+
+Weight off solutions is the failure of that. It is weight on a placement that no solution uses, and a legal point carrying some is not a blend of solutions, so the relaxation has accepted something the puzzle does not. Two further facts follow. A blend is not a board: reading it off cell by cell takes pieces from different solutions and leaves mismatches (13 on one test case), so even an exact relaxation needs a decoding step. And without weight off solutions the point is informative; with it, the relaxation proves less than the board allows.
+
+## Results
+
+| Result | Status |
+|---|---|
+| Convex lift on 5x5: clean (no weight off solutions) on seeds 1, 2 and 4 (2 to 8 solutions) | independently re-checked |
+| Seed 0 (36 solutions) | undecided: clean points exist, the largest-leak solve has not converged |
+| Seed 3 (403 solutions) | not exact: about 0.042 per cell on ten placements in no solution, at violation 1.5e-9; one solver family only |
+| Memory at 16x16: one dense copy 183 GiB; factor plus nonnegativity multipliers about 119 GiB; convex splitting 916 GiB | independently re-checked |
+| 6x6 convex runs (three boards) | not converged (weight off solutions 0.73 to 0.87 per cell, flat): no 6x6 reading exists |
+| Low-rank form, 5x5: 200 of 200 runs solved on 15 boards, about 5,200 evaluations per solution | independently re-checked; a randomised search with an exact acceptance test, not a solver of the relaxation |
+| Same form with nonnegativity removed: 46 of 50 solved | so its 5x5 success says nothing about the lift |
+| Nonnegative factor: 0 of 50 starts at 5x5 in each of four variants (annealing: 26 of 50) | not independently checked (derivation re-checked) |
+| Six of eight smaller lifts leak or are vacuous at 5x5 | not independently checked |
+| An exact structured sweep still needs about 4.8e12 flops and 100 GB per sweep at 16x16 | not independently checked (cost arithmetic re-checked) |
+
+The cost per board is the other half. A 5x5 convex solve took 400 to 1,100 s on boards that a depth-first search clears in at most 0.1 s; at 6x6 the search takes 0.3 to 0.6 s.
+
+The low-rank form behaves as a penalty-guided random search. Runs that converge to a feasible point are blends that rounding cannot read; the ones that win are stopped by the exact check while the penalty dynamics are still moving.
+
+## Against plain annealing
+
+Annealing with random restarts, solving the same boards:
+
+| Size | Annealing per solution against the low-rank form | Status |
+|---|---|---|
+| 5x5 | 8 to 35 times cheaper | independently re-checked |
+| 6x6 | 3.6 to 63 times cheaper | one pass, intervals overlap on three boards |
+| 7x7 | nothing found in 210 runs (rate below 26 percent per run, not shown to be zero) | one pass |
+
+Growth of the low-rank cost with the number of placements P, on two sizes:
+
+| Measure | 5x5 to 6x6 | Status |
+|---|---|---|
+| Evaluations per solution, first batch | 62 times (30 to 155); exponent 4.2 in P (3.4 to 5.1) | independently re-checked |
+| Full 6x6 batch: 22 of 50 starts solved | 460,416 evaluations per solution against 5,083; exponent 4.54 (bootstrap 3.97 to 5.31) | not independently checked |
+
+Two sizes cannot separate a power of P from an exponential. Extrapolated naively to 16x16 the full batch gives about 1.3e15 evaluations per solution; that is an extrapolation from two points, not a measurement.
+
+## Statements made during the work and withdrawn
+
+The corrections are part of the result.
+
+- "The lift is exact at 5x5" and "first certificate of exactness": not exact on seed 3, and the certificate covers one board.
+- Odds of 60, 20 and 2 percent that the lift is exact at 6x6, 8x8 and 16x16: an estimate that was never derived and was made before a board was found inexact.
+- "30 GiB at the guaranteed rank", "9.3 GB, fits in memory at 16x16" and "10 hours per start": withdrawn. As coded the low-rank crate needs 910 GB at 16x16; the rank guarantee holds only for the form without nonnegativity.
+- "Annealing finds nothing at 6x6" (0 of 1,000): a budget artefact. At 200 million steps annealing solved 20 of 100 runs on five 6x6 boards.
+- "Annealing 58 percent, low-rank 100 percent": the efforts were unequal.
+- "About 145 times faster" than a NumPy version: unproven. The later gain is mostly machine load (1.3 times per evaluation). "50 of 50" is 49 of 50.
+- "70 to 190 s per start" at 6x6 and "exponent 2.5 or worse": low by 15 to 40 times; 2.5 is a floor.
+- Iteration growth "between P^1.6 and P^3.1" and "facial reduction needed": unproven or contradicted.
+- A shorter restart interval at 6x6: withdrawn, since the median solve lands at step 605 of 1,000.
+
+## What it means for a full solution
+
+Nothing positive. The convex form is the only one with a certificate behind it, and it is exact on some small boards, leaks on at least one, was never read at 6x6, and needs 119 GiB or more at 16x16. The cheap form works as a random search and loses to annealing, which itself found nothing at 7x7 in the runs made. None of this is Eternity II progress, and none of it moves the gap on the [hub](/research/lab/experiments/raphael-anjou/full-solve). Current records are on [/research/records](/research/records) and the frontier on [/research/open-problems](/research/open-problems).
+
+## What was not run
+
+6x6 convex runs to convergence; a second solver family on seed 3; any size above 7x7; the relaxation at 16x16; a decomposition into local lifts, which is the only route that could make the convex form affordable.
+
+## Reproduce
+
+`just experiments relaxation-small-boards` runs three smoke checks (see the scope line above). The tables come from the committed notes and results in the [experiment folder](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/relaxation-small-boards), whose README lists where each number comes from.

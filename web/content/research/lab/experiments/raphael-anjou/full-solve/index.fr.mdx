@@ -1,0 +1,94 @@
+---
+title: Le prix d'une solution complète
+description: >-
+  Une recherche exacte du 16x16 avec cinq indices coûte environ 2^134,4 nœuds,
+  et aucune piste examinée ne comble l'écart de 56 à 73 bits avec ce qui est
+  finançable. Le travail est mis en pause, avec les conditions de reprise
+  énoncées. Cette page porte les chiffres fixes et indexe les dix pages qui les
+  appuient.
+metaDescription: "Ce que coûte une solution exacte d'Eternity II par recherche : 10^40,457 nœuds (2^134,4) avec cinq indices, un écart de 56 à 73 bits face aux budgets accessibles, et dix pages de mesures et d'études sur papier qui n'ont trouvé aucune piste pour le combler. Mis en pause, avec les conditions de reprise."
+kind: page
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+outcome: parked
+order: 50
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking, exact-methods]
+repro:
+  kind: exact
+  cmd: just experiments approach-pricing
+  produces: search
+  scope: "Réimprime en quelques secondes le tableau du plafond d'une coupe gratuite parfaite à partir du profil de niveaux versionné. Ne rejoue ni le profil du balayage ligne par ligne, ni les essais sur petits plateaux, ni les contre-vérifications, qui se trouvent dans les dossiers d'expériences cités dans les sources."
+related:
+  - /research/lab/experiments/raphael-anjou
+  - /research/build/analysis/solution-counting
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Chiffrage des approches : question, chiffres, pistes, conditions de reprise"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+  - label: "Profil du vrai puzzle : l'arbre du balayage ligne par ligne, mesuré"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/real-puzzle-profile
+  - label: "Dossier de travail des deux nuits, avec le journal des corrections"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/program/night
+---
+
+## La question et la réponse
+
+Que coûterait une solution exacte du 16x16 par recherche, et une famille d'idées connue peut-elle combler l'écart entre ce coût et ce qu'on peut se permettre ? Réponse : aucune piste examinée ne le comble. Le plus gros gain qui ait résisté à une contre-vérification indépendante est d'environ 5,5 bits de nœuds, face à un écart de 56 à 73 bits. Le travail est mis en pause, pas démontré impossible : plusieurs fermetures reposent sur un seul lecteur ou une seule famille de solveurs, et les pages le signalent. Les conditions qui le rouvriraient sont plus bas.
+
+## Les chiffres fixes
+
+Toutes les autres pages de la série renvoient ici au lieu de les répéter.
+
+| Grandeur | Valeur | Origine |
+|---|---|---|
+| Arbre du balayage ligne par ligne, vraies pièces, cinq indices | 10^40,457 nœuds, 2^134,4 (intervalle à 95 % : 10^40,440 à 10^40,473) | mesuré, `research/experiments/real-puzzle-profile/RESULTS.md` |
+| Finançable : très gros effort distribué | 2^78 nœuds | `research/experiments/approach-pricing/README.md` |
+| Finançable : 1 000 années-cœur à 1e8 nœuds par seconde | 2^61,5 nœuds | même fichier |
+| Écart face à ces deux budgets | 56 à 73 bits | même fichier |
+| Écart face à un calcul modeste d'environ 10^15 nœuds (environ 2^50) | environ 84 bits | dérivé ici : 134,4 moins 50 |
+| Solutions attendues | environ 14 702 avec l'indice de départ, environ 1 avec les cinq | [dénombrement des solutions](/research/build/analysis/solution-counting) |
+
+Les 84 bits vont avec le calcul à 10^15 et les 56 à 73 bits avec les deux budgets plus larges ; on ne les mélange jamais. La taille d'un arbre est une estimation par échantillonneur de particules (un million de particules), pas un dénombrement ; la prédiction du modèle aléatoire tombe à 0,04 chiffre près.
+
+## La raison en une phrase
+
+Tout contrôle qui fonctionne fonctionne trop tard. Les tests qui réfutent les mauvais plateaux n'en réfutent presque tous qu'à partir de la profondeur 144 à 192, alors que le niveau le plus large de l'arbre mesuré se trouve à la profondeur 158, et qu'une coupe gratuite parfaite à la profondeur 144 économiserait au plus 2,4 bits sur 134,4. L'argument et son tableau de plafonds sont sur [les filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
+
+## Les dix pages
+
+Les résultats sur plateaux générés sont des résultats sur jouets, jamais un progrès sur Eternity II.
+
+| Page | Ce qui a été mesuré | Résultat | Statut |
+|---|---|---|---|
+| [Le prix d'une recherche complète](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search) | Taille de l'arbre du balayage ligne par ligne sur les vraies pièces, avec cinq indices, un seul ou aucun | 10^40,457 nœuds avec cinq indices ; aucun moyen de le raccourcir trouvé | mesuré (estimations) |
+| [Cadre et coins](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners) | Coût de la réfutation de cadres faux des vraies pièces | La réfutation bon marché d'un cadre complet est morte ; l'information bon marché (environ 17,4 bits) se trouve aux coins d'indices ; cadres loin des coins : indécidé | en pause |
+| [Ce que vaut une tuile connue](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile) | Bits retirés par une tuile fixée, selon la case, sur des plateaux 16x16 peints | 1 à 10 bits selon la position (médiane 5,8), sous-additif ; 10 tuiles dispersées laissent encore plus de 10^15 nœuds, 16 à 24 passent dessous | mesuré sur plateaux peints ; vérification de bout en bout seulement |
+| [Filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters) | Plafond d'une coupe gratuite selon la profondeur | Une coupe gratuite à la profondeur 144 économise au plus 2,4 bits | réfuté (arithmétique dérivée d'un profil mesuré) |
+| [Sept familles chiffrées](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) | Études sur papier et contre-vérifications de sept familles d'approches | Meilleur gain résistant : environ 5,5 bits ; aucune famille chiffrée à 10 bits ou plus | en pause ; certaines fermetures reposent sur un seul lecteur |
+| [Relaxations sur petits plateaux](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards) | Relèvement semi-défini et forme de rang faible sur jouets de 4x4 à 6x6 | Propre sur 3 plateaux 5x5 sur 5, inexact sur un, indécidé sur un ; impossible à lancer en 16x16 ; la forme de rang faible est une recherche aléatoire que le recuit bat | réfuté (plateaux jouets) |
+| [Apprentissage contre propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation) | Apprentissage de clauses contre un solveur à propagation seule, du 5x5 au 7x7 | L'apprentissage apporte +1,31 bit en 5x5 et +2,03 en 6x6 ; pas de valeur en 7x7 ; la ligne d'arrêt est indécidable sur ces données | indécidé (plateaux jouets, contre-vérifié indépendamment) |
+| [Fidélité du portage](/research/lab/experiments/raphael-anjou/full-solve/port-fidelity) | Sept différences entre notre portage et un moteur de type record | Les sept corrigées ; avec cinq indices, les réglages fidèles font moins bien que les anciens | réfuté comme amélioration |
+| [Dix expériences de moteur](/research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks) | Coût du nœud, ordres, retours arrière et bornes du 6x6 au 9x9 | Un nœud 5,3 à 6,1 fois moins cher pour la recherche identique ; aucune méthode n'a réduit l'arbre | réfuté pour l'arbre (plateaux jouets) |
+| [Expériences de clés](/research/lab/experiments/raphael-anjou/full-solve/keying-experiments) | Rejeu et clés de mémorisation des impasses | Trois abandonnées, deux gardées comme mesures ; un effet de taux de 53 fois, environ 5,7 bits | réfuté comme piste |
+
+## Ce qui rouvrirait le dossier
+
+Tiré des conditions de reprise du dossier de chiffrage. Une seule suffit.
+
+1. Une méthode publiée montre un gain de classe. On la chiffre d'abord contre l'index des pistes et le tableau des plafonds.
+2. Des tuiles de la solution deviennent disponibles hors de la recherche. Une tuile supplémentaire vaut environ 10 bits au mieux et environ 6 en médiane sur plateaux peints, et un calcul à 10^15 demande plus de 10 tuiles dispersées, probablement 16 à 24.
+3. Le matériel progresse de 15 ordres de grandeur ou plus. Tous les multiplicateurs crédibles réunis font environ 2,5 ordres.
+4. Une contre-vérification ou un essai renverse une fermeture : le relèvement convexe se révèle exact en 6x6 ; la strate lointaine des noyaux de cadre se résout sous le seuil de rentabilité ; le travail d'un solveur hors arbre croît de moins de 0,75 fois celui de l'arbre du 6x6 au 7x7 ; l'avance d'un solveur à apprentissage sur la propagation seule croît avec la taille.
+
+La règle de reprise habituelle est un prix de 10 bits ou plus et une expérience qui peut le réfuter en moins d'une journée.
+
+## Le dossier complet
+
+Le dossier de travail des deux nuits (12 et 13 novembre 2026) est dans le dépôt sous [research/program/night](https://github.com/raphael-anjou/eternity2/tree/main/research/program/night) : les rapports quotidiens, le journal, les études sur papier et leurs contre-vérifications, et l'index des pistes. Une soixantaine d'affirmations faites pendant le travail ont été retirées ou corrigées, par exemple un chiffre du coût de l'intérieur sous un vrai cadre (remplacé par environ 10^13,6 nœuds en moyenne), et le dossier les conserve toutes avec leur remplacement. Lisez le journal des corrections avant de citer un chiffre tiré des notes de travail ; les pages de cette série ne portent que ce qui a tenu après lui.
+
+Pour les scores records et la frontière ouverte, voir les [records](/research/records) et les [problèmes ouverts](/research/open-problems).

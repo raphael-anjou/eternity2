@@ -1,0 +1,132 @@
+---
+title: "Dix expériences de moteur sur petits plateaux : des nœuds plus rapides, pas d'arbres plus petits"
+description: >-
+  Dix petites expériences de moteur préenregistrées, sur plateaux générés de 6x6
+  à 9x9, en ont retenu cinq et écarté cinq. Le seul gain mesuré est un nœud qui
+  coûte 5.3 à 6.1 fois moins cher pour une recherche identique ; aucune des trois
+  méthodes qui modifient l'arbre (retour sur le bloqueur, ordre des valeurs par
+  impact, appariement de Hall) ne l'a réduit face à sa référence. Rien ici ne
+  fait avancer Eternity II.
+metaDescription: "Dix expériences de moteur préenregistrées sur plateaux générés (6x6 à 9x9) : un nœud 5.3 à 6.1 fois moins cher pour une recherche identique est retenu ; retour sur le bloqueur, ordre par impact et appariement de Hall ne réduisent pas l'arbre. Plateaux jouets uniquement."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+hardware:
+  cores: 2
+  cpu: "Apple M4 (4 performance and 6 efficiency cores)"
+  gpus: 0
+  accelerator: none
+  machine: "10-core Apple M4 laptop, shared; two cores per experiment (one for the timing runs). Some experiments also ran on an 8-core Apple M1 and a 14-thread x86 laptop."
+  wallClock: "about 1 h for the first experiment, 27.37 core-hours for the 9x9 pilot, 19.1 summed per-run hours for the tournament"
+  seedPolicy: "seeded; fixed seed lists on generated boards, node counts identical across the three machines wherever compared"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments mrv-node-cost
+  topic: mrv-node-cost
+  produces: search
+  scope: "Reconstruit le solveur à nœud moins cher, vérifie que sa séquence de nœuds égale celle de l'original sur les 140 instances de contrôle et le chronomètre à nouveau ; ne relance pas les neuf autres expériences, dont les commandes sont listées plus bas."
+order: 56
+updated: 2026-11-14
+date: 2026-11
+topics: [backtracking, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/dfs-study/findings
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "mrv-node-cost : préenregistrement, résultats, évaluation"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/mrv-node-cost
+  - label: "mrv-scaling-pilot"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/mrv-scaling-pilot
+  - label: "blocker-backjump"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/blocker-backjump
+  - label: "value-impact-order"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/value-impact-order
+  - label: "hall-on-mrv"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hall-on-mrv
+  - label: "baseline-tournament"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/baseline-tournament
+  - label: "dead-node-census"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dead-node-census
+  - label: "partial-match-ladder"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/partial-match-ladder
+  - label: "score-bound-gap"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/score-bound-gap
+  - label: "resumable-runs"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/resumable-runs
+---
+
+Peut-on réduire l'arbre d'un moteur de recherche complet par de petites modifications ? Dix expériences ont posé la question, chacune préenregistrée avec une ligne d'arrêt fixée avant tout tirage de test. Une modification a aidé, et seulement sur le coût : un nœud 5.3 à 6.1 fois moins cher, la recherche elle-même inchangée. Les trois méthodes qui altèrent l'arbre ne l'ont pas réduit. Tout est mesuré sur des **plateaux générés** (6x6 à 9x9, jamais les pièces d'Eternity II) : rien ne fait avancer Eternity II.
+
+## Cadre commun aux dix
+
+La référence est `bb-mrv`, une recherche complète qui remplit d'abord la case la plus contrainte, avec propagation. Un nœud est une affectation de pièce comptée. Les comparaisons sont appariées par instance sous un plafond de nœuds (1e6 ; 1e8 pour le pilote) ; une exécution plafonnée est censurée, jamais une victoire. Une méthode ne passe qu'avec un rapport médian apparié de nœuds de 0.5 ou moins et un intervalle de confiance sous 1. Barreaux : 6x6 à 5 couleurs, 7x7 à 6, 8x8 à 10, 30 graines chacun.
+
+Les chiffres de chaque expérience ont été re-dérivés par une seconde analyse à partir des lignes archivées ; la colonne « issue » reprend son verdict. Six des dix ont tourné sans journal de garde : leur ordre de préenregistrement repose sur l'ordre des commits et les dates de fichiers.
+
+| Expérience | Question | Référence | Ligne d'arrêt | Issue | Chiffre clé |
+|---|---|---|---|---|---|
+| `mrv-node-cost` | Même recherche, nœud moins cher ? | `bb-mrv` | écart de séquence de nœuds ; IC du rapport de temps pas sous 1 | retenue | 5.3x, 6.1x, 5.3x plus rapide ; 0 écart sur 140 |
+| `mrv-scaling-pilot` | Le rapport à `scb` continue-t-il de baisser en 9x9 ? | `scb` ; valeur 8x8 | médiane pas sous la valeur 8x8, ou plus de 4 paires sur 8 sans information | écartée | 6 paires sur 8 censurées des deux côtés |
+| `blocker-backjump` | Évincer la case bloquante comme règle de retour ? | `scb`, `bb-mrv` | échoue à la règle des 0.5 en 6x6 | écartée | 4.68 fois plus de nœuds que `scb` en 6x6 |
+| `value-impact-order` | Essayer les valeurs par impact de propagation ? | `bb-mrv` | échoue à la règle des 0.5 | écartée | rapport de nœuds 1.075, 0.829, 1.096 |
+| `hall-on-mrv` | Ajouter un test d'appariement de Hall ? | `bb-mrv` | rapport de temps au-dessus de 1 à chaque barreau où les nœuds baissent | écartée | rapport de nœuds 0.992 à 0.999 |
+| `baseline-tournament` | Quel composant est le meilleur sous un même compteur ? | `bb-mrv`, `scb` | une ligne d'ancrage qui ne se reproduit pas | retenue | 47 concurrents classés ; 0 écart sur 1,310 lignes |
+| `dead-node-census` | Quels tests bornés prouvent la mort des nœuds morts ? | aucune | part pondérée sous une ligne fixée | retenue | en 7x7, de 0.8% à 10.3% |
+| `partial-match-ladder` | Un instrument utilisable de score à travail fixé ? | cinq concurrents | moins de 3 sur 5 à 2% à 4% de l'optimum | écartée | 2 sur 5 dans la bande |
+| `score-bound-gap` | Quelle finesse pour une borne par diagramme de décision ? | borne triviale | écart médian au-dessus de 4 arêtes à toutes les largeurs | retenue, de justesse | écart médian 4 contre 7 |
+| `resumable-runs` | Interrompre et reprendre sans changer la recherche ? | solveur rapide | tout écart ; IC du temps au-dessus de 1.03 | retenue | surcoût 1.008 [0.998, 1.011] |
+
+## Les dix, un paragraphe chacune
+
+**`mrv-node-cost`.** Le solveur rapide ne change que la représentation (ensembles d'options sur 4 bits, domaines de taille fixe, aucune allocation par nœud). Il reproduit la séquence de nœuds de l'original sur les 140 instances de contrôle, vérifiée par empreinte contre le source non modifié, et le rapport médian apparié du temps est 0.188, 0.163 et 0.190 aux trois barreaux. L'identité en 9x9 n'est mesurée que sur des préfixes coupés au plafond. Re-vérifiée indépendamment.
+
+**`mrv-scaling-pilot`.** Le rapport de `bb-mrv` à `scb` valait environ 10^-0.83 en 8x8 ; en 9x9 (8 graines, plafond 1e8), il s'agissait de savoir s'il continue de baisser. Les deux lignes d'arrêt se déclenchent, mais la cause est le plafond : `scb` est censuré sur les 8 et le pilote a épuisé son budget sans mesurer le rapport. Lecture : « pas d'indice », non « le rapport s'est arrêté ». Re-vérifiée indépendamment ; coût 27.37 heures-cœur.
+
+**`blocker-backjump`.** Évincer la case qui bloque la case en échec, avec tabou, perd face aux deux références : 4.68 fois les nœuds de `scb` en 6x6 (IC 2.40 à 6.55), et 4 résolues sur 30 en 7x7 contre 16 sur 30. Un jumeau à éviction aléatoire fait aussi bien (3 sur 30) : le mécanisme ne porte aucun signal détectable. L'abandon vaut pour cette recherche de réparation incomplète, pas pour un retour sur conflit dirigé avec nogoods. Re-vérifiée indépendamment.
+
+**`value-impact-order`.** Essayer les valeurs de chaque case par ordre croissant des options que leur propagation retire donne, face à `bb-mrv`, des rapports de nœuds de 1.075 [0.779, 1.931], 0.829 [0.544, 1.316] et 1.096 [0.669, 1.871]. L'ordre perd aussi face à un ordre aléatoire parmi les mêmes options sondées en 6x6 (1.297). L'abandon ne vaut que pour cette mesure d'impact. Re-vérifiée indépendamment.
+
+**`hall-on-mrv`.** Un test d'appariement de Hall (une pièce libre distincte pour chaque case vide) retire moins de 1% des nœuds à la paire médiane (rien en 6x6), alors que le test coûte 2% à 5% de temps mural ; les rapports de temps dépassent 1 partout où les nœuds ont baissé. La propagation applique déjà les cas de taille un de la même condition. Un gain de 10% en 6x6, mesuré plus tôt face à `scb`, ne survit pas à `bb-mrv`. Re-vérifiée indépendamment.
+
+**`baseline-tournament`.** Tout composant de type solveur du dépôt a tourné sous un même compteur aux trois barreaux. Les ancrages se reproduisent sur les 1,310 lignes comparées. En 8x8, la recherche par lignes simple résout 24 sur 30 en 44 ms médians contre 5,145 ms pour `bb-mrv`, qui résout 30 sur 30 en moins de nœuds (médiane 69,036 contre 483,034) : le compte de nœuds masque le coût par nœud, et la conclusion reste limitée à l'ordre par lignes. L'affirmation du README selon laquelle l'ordre de valeurs aléatoire aide en 7x7 et nuit en 8x8 a été corrigée après la revérification ; les deux premiers rangs sont dans la dispersion des graines d'exécution. Re-vérifiée indépendamment.
+
+**`dead-node-census`.** Aux nœuds morts de `bb-mrv` (7x7, pondérés par la taille du sous-arbre), les cavités exactes de 3x3 en prouvent 0.8%, les bandes de deux rangées 0.2%, la faisabilité sur les seules couleurs 1.7%, les poches de 2n cases 3.5%, et la propagation partitionnée sur deux arêtes de coupe 10.3% (deux arêtes aléatoires : 9.6%). Les abandons pour cavités, bandes et lemmes de poche tiennent (0 poche prouvée sur 1,447 échantillonnées). L'abandon de la clé de coupe est rétrogradé en « non décidé ». Chaque part est une borne haute, le coût propre du test non payé. Re-vérifiée indépendamment ; l'arbre de `scb` n'a pas été mesuré.
+
+**`partial-match-ladder`.** Un instrument de score à travail fixé sur plateaux plantés d'optimum connu. En 8x8 à 6 couleurs, seuls 2 concurrents sur 5 stagnent dans la bande de 2% à 4% (3.57% chacun) ; le suivant est à 6.25%, et aucune cellule 10x10 ou 12x12 n'est qualifiée. Écartée pour ce lot de concurrents et ce budget seulement. Deux phrases excessives du README ont été corrigées, et l'inversion face à l'ordre des familles en 16x16 est confondue avec l'implémentation. Re-vérifiée indépendamment.
+
+**`score-bound-gap`.** Un diagramme de décision relâché de largeur 4096 borne le meilleur achèvement de préfixes morts 7x7 à 3 rangées de la fin à 4 arêtes près en médiane (borne triviale : 7), pile sur la ligne d'arrêt, et la tendance avec la taille va dans le mauvais sens. Son témoin de largeur 1 égale la borne triviale à la médiane, et l'énoncé « à une arête de la borne triviale » ne vaut que pour les nombres de couleurs critiques (corrigé). Aucun gain de recherche revendiqué. Re-vérifiée indépendamment.
+
+**`resumable-runs`.** Progression, point de reprise et reprise du solveur rapide ne changent rien : 0 écart sur 140 instances aux calendriers d'interruption testés. Après un tour de correction (trois défauts trouvés et réparés), 2,202 points de reprise altérés sur 2,202 ont été refusés ; une empreinte falsifiée laisse encore passer 28 modifications de champ sur 1,436. La reprise entre machines a été mesurée pour le premier format et seulement argumentée pour le second. Re-vérifiée indépendamment.
+
+## Ce que cela signifie pour une résolution complète
+
+Le balayage par rangées avec cinq indices coûte 2^134.4 nœuds pour environ 10^15 abordables, soit un écart de 56 à 73 bits (voir [le hub](/research/lab/experiments/raphael-anjou/full-solve/)). Un nœud 6.1 fois moins cher vaut log2(6.1), environ 2.6 bits (dérivé), et un nœud plus rapide ne réduit jamais l'arbre. Les trois méthodes qui changent l'arbre n'ont rien gagné de 6x6 à 8x8, et les parts de nœuds morts (10.3% au mieux) sont des bornes hautes d'élagage, sans gain démontré. Cela rejoint [l'étude DFS](/research/lab/experiments/raphael-anjou/dfs-study/findings) et les [filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters). Aucun résultat de réduction d'arbre ici ne touche [les records](/research/records) ni les [problèmes ouverts](/research/open-problems).
+
+## Ce qui n'a pas été lancé
+
+Rien sur le 16x16. Pas de rapport en 9x9 (il faudrait un plafond voisin de 1e9), pas de retour sur conflit dirigé, pas d'ordre par impact en produit logarithmique, pas de durée de tabou entre 16 et 128, pas d'étape 1 de la borne de score, pas d'échelle d'appariement partiel avec les moteurs natifs 16x16.
+
+## Reproduire
+
+Résultat le plus solide : `just experiments mrv-node-cost` (environ 1 h, un cœur). Les autres :
+
+```
+just experiments mrv-scaling-pilot      # ré-analyse les lignes archivées par défaut ; l'exécution complète prend des heures
+just experiments blocker-backjump       # ré-analyse les lignes archivées par défaut
+just experiments value-impact-order     # environ 1 h sur 2 cœurs
+just experiments hall-on-mrv            # environ 75 min sur 2 fils
+just experiments baseline-tournament    # lourd : environ 19 heures-cœur
+just experiments dead-node-census       # ré-analyse les lignes archivées par défaut
+just experiments partial-match-ladder   # par défaut : compilation et contrôle des instances
+just experiments score-bound-gap        # auto-test puis ré-analyse des lignes archivées
+just experiments resumable-runs         # tous les contrôles
+```

@@ -1,0 +1,174 @@
+---
+title: Sept familles d'approches chiffrées face à l'arbre du balayage par lignes
+description: >-
+  Aucune des sept familles d'approches (recherche qui apprend, représentations
+  avec perte, forme de l'arbre, ordres adaptatifs, structure du jeu de tuiles,
+  reformulation algébrique ou de l'espace de recherche), ni les idées lointaines,
+  les nogoods de cadre ou les autres ordres de remplissage, n'est chiffrée à 10
+  bits ou plus avec un mécanisme à l'appui. Le plus grand gain qui survit est
+  d'environ 5,5 bits, pour un écart de 56 à 73 bits ; quelques fermetures reposent
+  sur un seul lecteur ou une seule famille de solveurs et sont signalées comme telles.
+metaDescription: "Sept familles d'approches chiffrées en bits face à l'arbre du balayage par lignes d'Eternity II, par des études sur dossier puis une contre-vérification indépendante. Plus grand gain retenu : environ 5,5 bits pour un écart de 56 à 73 bits ; 15 ordres de remplissage statiques sur 18 ne battent pas le balayage."
+kind: finding
+contribution: negative
+author: raphael-anjou
+rigor: measured
+outcome: parked
+order: 55
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking, exact-methods, learning]
+repro:
+  kind: exact
+  cmd: just experiments approach-pricing
+  topic: approach-pricing
+  produces: artifact
+  scope: "Réaffiche le tableau du plafond d'une coupe gratuite parfaite à partir du profil de niveaux versionné et relance deux contrôles légers en bibliothèque standard ; ne relance pas les études derrière le tableau des familles, dont beaucoup durent des minutes à des heures ou importent des outils absents du dossier."
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "approach-pricing : le tableau des familles, les notes avec leur contre-vérification indépendante, l'index des pistes"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+  - label: "orders-and-pins : ordres de remplissage statiques mesurés sur les vraies pièces (partie A)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins
+---
+
+Une famille d'approches peut-elle combler les 56 à 73 bits qui séparent l'arbre du
+balayage par lignes de ce qui est abordable ? Les nombres de référence (2^134,4
+nœuds avec cinq indices, environ 10^15 nœuds abordables) sont sur le
+[hub de la série](/research/lab/experiments/raphael-anjou/full-solve) et ne sont pas
+redérivés ici. Règle de réouverture d'une famille : un prix de 10 bits ou plus et
+une expérience qui peut la réfuter en moins d'une journée. Solutions attendues :
+environ 14 702 avec l'indice de départ, environ 1 avec les cinq.
+
+## Comment chaque famille a été chiffrée
+
+Chaque famille a eu une étude sur dossier qui énonce un mécanisme et le chiffre en
+bits face à l'arbre du balayage par lignes, puis une seconde analyse qui a redérivé
+les nombres, relancé les scripts et corrigé ce qu'elle trouvait. Le tableau donne
+le plus grand gain qui a survécu à cette seconde analyse. Les résultats sur cartes
+générées sont des jouets, jamais un progrès sur Eternity II. L'écart entre un gain
+et 56 à 73 bits est le sujet : une famille n'est « vide » qu'au sens de la dernière
+colonne.
+
+## Le tableau
+
+| Famille | Plus grand gain après contre-vérification | Statut tel que l'énonce la contre-vérification | Note |
+|---|---|---|---|
+| Recherche qui apprend | Environ 2 bits (plafond 6,6). Un solveur à apprentissage de clauses a besoin de 2^5 à 2^6,5 conflits de moins que de nœuds d'arbre en 5x5 et 6x6 (deux tailles seulement) | Le verdict « vide » est **non démontré** tel qu'écrit. Il ne tient que pour des raisons attachées à des nœuds du balayage, utilisées une à une | [gap-1](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-1-search-that-learns.md), [contre-vérif.](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-1-search-that-learns-recheck.md) |
+| Représentations avec perte | Jointure de deux listes 3,0 bits (et non 5,9). Une esquisse correcte économise au plus 2,0 | Vide pour les esquisses aveugles aux couleurs et les listes de régions rectangulaires. La borne de 2,0 bits est dérivée, peu vérifiée sur jouets et **sans second lecteur** | [gap-2](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-2-lossy-representations.md), [contre-vérif.](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-2-lossy-representations-recheck.md) |
+| Forme de l'arbre | 1 à 3 bits avec des seuils d'oracle ; une perte à l'aveugle | Vide pour les redémarrages et portefeuilles aveugles | [gap-3](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-3-shape-of-the-tree.md), [contre-vérif.](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-3-shape-of-the-tree-recheck.md) |
+| Ordres adaptatifs | Moins de 3 bits. Cohérence d'arc : 5,5 bits de nœuds (elle coûte environ 13 bits par nœud). Finir les lignes une ou deux à la fois : au plus 5,3 ou 6,7 (démontré) | Vide pour les règles en forme de lignes. Les règles de plus petit domaine libres sont de 13 à 49 bits pires | [gap-4](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-4-adaptive-orders.md), [contre-vérif.](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-4-adaptive-orders-recheck.md) |
+| Structure du jeu de tuiles | 0 bit avant la profondeur 192 | Vide : pas d'automorphisme de couleurs, groupe invariant Z^2 + Z/2 | [gap-5](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-5-tile-set-structure.md), [contre-vérif.](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-5-tile-set-structure-recheck.md) |
+| Reformulation algébrique | Aucune trouvée parmi quinze reformulations. La linéarisation de degré 2 fixe 0 carte sur 10 en 4x4 et 0 sur 5 en 5x5 | **Pas une barrière**, simplement aucune trouvée. Le degré 3 en 5x5 ne tenait pas en mémoire. La note de linéarisation n'est **pas vérifiée indépendamment** | [gap-6a](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-6a-reformulation-algebra.md), [contre-vérif.](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-6a-reformulation-algebra-recheck.md), [linéarisation](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-6a-linearisation-degree.md) |
+| Reformulation de l'espace de recherche | Le balayage par lignes est à 0,24 bit du meilleur ordre statique | Vide pour les reformulations statiques ; pas de certificat que le balayage soit le meilleur ordre | [gap-6b](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-6b-reformulation-search-space.md), [contre-vérif.](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-6b-reformulation-search-space-recheck.md) |
+| Idées lointaines (21, 18 et 32 listées dans trois études) | Aucune chiffrée à 10 bits ou plus avec un mécanisme | Certains rejets sont hérités de lignes non vérifiées ; quatre énoncés ont été jugés faux | [contre-vérif.](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/far-ideas-and-isolation-recheck.md) |
+| Nogoods de cadre | Environ 17,4 bits d'information bon marché sur le cadre, tous aux quatre coins d'indices | Contre-vérifié deux fois de façon indépendante. L'intérieur sous un cadre qui passe les coins coûte environ 10^13,6 nœuds en moyenne (remplace 10^8,3). La strate lointaine est **indécidée** | [note](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/nogood-frame-search-price.md), [contre-vérif.](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/nogood-frame-search-price-recheck.md) |
+
+Trois de ces lignes sont plus faibles que le mot « vide » ne le laisse croire. La
+recherche qui apprend est non démontrée en général : la fermeture couvre un
+magasin de raisons greffé sur un balayage, pas un solveur à apprentissage de
+clauses en tant que tel, et l'avance mesurée sur la seule propagation est plate sur
+deux tailles seulement (voir
+[apprentissage contre propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation)).
+La borne sur les représentations avec perte attend un second lecteur. La
+linéarisation n'a pas été vérifiée indépendamment. Les 17,4 bits des nogoods de
+cadre sont de l'information sur le cadre, pas une économie de nœuds : l'intérieur
+sous un cadre qui passe les coins reste à environ 10^13,6 nœuds.
+
+Les relaxations semi-définies ont leur propre page,
+[relaxations sur petites cartes](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards).
+
+## Ordres de remplissage statiques sur les vraies pièces
+
+Un ordre de remplissage statique est-il moins cher que le balayage par lignes ?
+Dix-huit ordres ont été mesurés sur les pièces officielles avec les cinq indices
+(estimations par population de l'arbre complet, cinq répétitions chacun ;
+[orders-and-pins](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins), partie A).
+
+| Résultat | Ordres | Lecture |
+|---|---|---|
+| Ne bat pas le balayage | 15 sur 18 | Mesuré, ou minoré par une borne de Markov, au-dessus des 10^40,453 du balayage |
+| Indécidé | 3 (trois ordres recuits) | La population de l'estimateur meurt à la profondeur libre 38 à 48, contre 191 à 198 pour le balayage. Leurs estimations sont des minorants de l'arbre, pas des tailles |
+
+Le meilleur balayage de lignes est le balayage depuis le bas ; le pire, depuis le
+haut de droite à gauche, est 1,10 bit au-dessus. Les trois ordres indécidés le
+sont dans les deux sens : les données ne les montrent ni moins chers ni plus chers.
+La partie B du même dossier (ce que vaut une tuile connue) est sur
+[la valeur d'une tuile connue](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile).
+
+## Pourquoi le plafond reste bas
+
+Un contrôle qui supprime tous les mauvais nœuds à partir de la profondeur libre d,
+sans coût, économise au plus 57,1 bits dès la profondeur 52, 29,8 dès 80, 17,1 dès
+96, 6,8 dès 128 et 0,5 dès 158. Les vrais tests de mauvaise carte mordent tard : la
+cohérence d'arc réfute 57 à 90 pour cent des préfixes erronés échantillonnés aux
+profondeurs 96 à 128. C'est pourquoi le plus grand gain chiffré est d'environ 5,5
+bits de nœuds. Voir [les filtres tardifs](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
+
+## Deux audits des fermetures
+
+Un audit des pistes a examiné 78 lignes de l'index des pistes essayées : 47
+fermetures, dont 32 solides, 10 faibles et touchant une résolution, 5 faibles mais
+pertinentes pour les records seulement. Il nomme trois réouvertures, aucune au-dessus
+de 1 pour cent de chances de résolution : l'exactitude du relèvement convexe en
+6x6, la croissance des solveurs hors arbre face à l'arbre sur les mêmes cartes, et
+les solveurs à apprentissage en 7x7 et sur des préfixes de vraies pièces avec un
+témoin à propagation seule. Cet audit n'est pas vérifié indépendamment.
+
+Une chasse aux anomalies a cherché les endroits où la mesure s'écarte de son
+modèle. Sur 51 candidats, 14 s'en écartent au-delà du bruit à première lecture ;
+aucun ne survit à un nul sur cartes peintes et à un décompte des comparaisons.
+L'escalier à trois lignes (+2,85 bits) n'est pas reproduit avec dix fois plus de
+population (135,2 et 135,7 bits, au-dessus du balayage). Aucun gain n'est montré.
+Cette note non plus n'est pas vérifiée indépendamment.
+
+## Ce que cela signifie pour une résolution complète
+
+Le plus grand gain qui survit est d'environ 5,5 bits, pour un écart de 56 à 73
+bits. Rien de ce qui est chiffré ici ne met le 16x16 à portée de la recherche. Cela
+ne démontre pas qu'aucune approche n'existe : les fermetures faibles ci-dessus sont
+les endroits où pousser. Les records sont sur [records](/research/records) et la
+frontière sur [problèmes ouverts](/research/open-problems).
+
+## Ce qui rouvrirait la question
+
+1. Une méthode publiée avec un gain de classe. La chiffrer d'abord face à l'index
+   des pistes et au tableau du plafond ; un contrôle qui ne mord qu'après la
+   profondeur 128 ne peut pas passer.
+2. Des tuiles de la solution deviennent disponibles hors de la recherche. Sur
+   cartes peintes, le meilleur indice supplémentaire isolé vaut environ 10 bits et
+   l'indice médian environ 6 ; un calcul de 10^15 demande plus de 10, probablement
+   16 à 24, indices répartis.
+3. Le matériel progresse de 15 ordres de grandeur ou plus. Tous les multiplicateurs
+   crédibles réunis font environ 2,5 ordres.
+4. Une contre-vérification ou un calcul renverse une fermeture : le relèvement
+   convexe est exact en 6x6 ; la strate lointaine des cœurs de cadre passe sous le
+   seuil de rentabilité ; le travail d'un solveur hors arbre croît de moins de 0,75
+   de celui de l'arbre de 6x6 à 7x7 ; l'avance d'un solveur à apprentissage sur la
+   seule propagation augmente avec la taille.
+
+## Ce qui n'a pas été lancé
+
+La linéarisation de degré 3 en 5x5 (mémoire insuffisante), la lecture du
+relèvement convexe en 6x6, les solveurs à apprentissage en 7x7 et sur préfixes de
+vraies pièces, un second lecteur pour la borne d'esquisse de 2,0 bits, et un
+certificat que le balayage par lignes est le meilleur ordre statique au goulot.
+Beaucoup de scripts importent des outils de dossiers d'expériences absents des
+preuves ou durent des minutes à des heures, et n'ont pas été relancés pour cette
+page ; seuls les trois de la recette l'ont été.
+
+## Reproduire
+
+`just experiments approach-pricing` réaffiche le tableau du plafond et relance deux
+contrôles légers. Les études derrière le tableau des familles sont dans le
+[dossier de preuves](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing),
+chaque note à côté de sa contre-vérification.

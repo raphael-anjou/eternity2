@@ -1,0 +1,97 @@
+---
+title: Cuánto vale una ficha conocida con el barrido por filas
+description: >-
+  Con un barrido por filas, una ficha conocida quita entre 1 y 10 bits del árbol
+  de búsqueda completo según la sola posición de su casilla en el barrido
+  (mediana de 5,8 bits, en tableros 16x16 pintados), y varias fichas juntas valen
+  menos que su suma. En esos tableros, 10 fichas bien repartidas dejan el árbol
+  por encima de 10^15 nodos y de 16 a 24 lo bajan por debajo, una cifra
+  comprobada solo de extremo a extremo. Nada de esto mide el puzle real, salvo
+  dos comprobaciones de transferencia.
+metaDescription: "Valor medido de una ficha conocida con barrido por filas en tableros 16x16 pintados: de 1 a 10 bits según la posición, subaditivo, 10 fichas repartidas aún por encima de 10^15 nodos, de 16 a 24 por debajo (solo comprobación de extremo a extremo). Incluye el mapa en tableros pequeños. Tableros de juguete, no es un avance en Eternity II."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+order: 53
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking]
+repro:
+  kind: seeded
+  cmd: just experiments orders-and-pins all
+  scope: "Repite las etapas de fichas fijas del 16x16 (mapa de una ficha, pistas quitadas una a una, juegos de fichas repartidas y aleatorias, comprobación sobre el árbol entero) y luego analyze.py; semillas fijas y filas deterministas, pero la ejecución completa son unas 10 horas-núcleo. El mapa de tableros pequeños es una segunda receta, just experiments pin-map all (unas 1,6 horas-núcleo). Ninguna toca las piezas reales más allá de las cinco pistas."
+hardware:
+  cores: 10
+  cpu: "Apple silicon laptop (10 cores) and an 8-core Apple M1"
+  gpus: 0
+  accelerator: none
+  machine: "Portátil Apple silicon de 10 núcleos, como mucho 2 procesos a la vez, más un Apple M1 de 8 núcleos para tres etapas; el mapa de tableros pequeños corrió en un núcleo"
+  wallClock: "unas 10,1 horas-núcleo para el estudio 16x16, unas 1,4 horas-núcleo para el mapa de tableros pequeños"
+  seedPolicy: "con semillas fijas; semillas del pintor 300051, 300061, 300097, 300117, 300131 para los tableros 16x16; tableros pequeños: semillas 1 a 20 (8x8) y 1 a 5 (10x10)"
+  measured: false
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Fichas fijas y órdenes: preinscripción, filas en bruto, summary.json y notas de revisión"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins
+  - label: "Mapa de fichas fijas en tableros pequeños: árboles exactos, tablas y figuras"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/pin-map
+---
+
+Una ficha conocida (una ficha fija) es una pieza cuya casilla verdadera se le da al solucionador. Esta página la mide en bits de búsqueda: cuánto se encoge el árbol completo del barrido por filas al fijar una casilla más, y cómo depende la respuesta de la casilla. Los costes de referencia y el presupuesto con que se compara (el barrido con cinco pistas, unos 10^15 nodos asumibles, la brecha en bits) están en el [centro de la serie](/research/lab/experiments/raphael-anjou/full-solve) y aquí no se vuelven a derivar.
+
+## Montaje
+
+La magnitud es el **árbol completo**: cada tablero parcial válido de un barrido por filas desde abajo, con pistas y fichas fijas puestas desde el principio y usadas solo cuando el barrido llega a ellas. El coste esperado hasta una primera solución es aproximadamente la mitad. Dos familias de tableros:
+
+- **Tableros 16x16 pintados** (cinco tableros): colores pintados sobre una solución plantada con los recuentos de color oficiales y las cinco casillas de pista oficiales, piezas barajadas. El árbol base va de 10^40,41 a 10^40,52 (5 tableros). Los árboles se estiman por muestreo de población y por un segundo estimador que sigue el camino plantado; ambos son insesgados y ambos pueden quedarse cortos.
+- **Tableros pequeños** (8x8 y 10x10, generados, enumeración exacta, sin muestreo): un mapa de fichas sueltas y de pares, y un solucionador adaptativo para comparar. Son tableros de juguete.
+
+## Resultados
+
+**Una ficha: de 1 a 10 bits, según la posición.** En los tableros pintados (56 casillas, media de 5 tableros), la mejor casilla, fila 10 columna 1, vale 10,05 bits (de 9,13 a 11,34 según el tablero), la casilla mediana 5,79, la peor, una esquina superior que el barrido alcanza la última, 1,01. Las casillas interiores de las filas 8 a 14 valen de 9,3 a 10,1 bits, las filas 0 a 3 en torno a 1,1 a 1,5, las casillas del borde inferior en torno a 5,8. Un modelo de primer momento predice el mapa (Spearman 0,95 sobre las 56 casillas). En los tableros pequeños aparece la misma forma: a 8x8 el valor medio es 2,08 bits, con las filas 0, 1, 2 en 3,87, 5,36, 3,40 y las filas 4 a 7 en 0,54 a 0,81. Invertir el barrido invierte el mapa (correlación 0,998 a 8x8, 0,995 a 10x10, frente a -0,64 y -0,23 sin la rotación).
+
+**Las fichas fijas son subaditivas.** Ocho fichas repartidas ganan 0,88 de la suma de sus ganancias individuales ([0,85; 0,92], 5 tableros); cuatro fichas voraces ganan 0,92 ([0,87; 0,96]). En los tableros pequeños, 10 080 pares dan una razón mediana de 0,957, y un par contiguo conserva 0,75 de la suma de sus valores.
+
+**Árbol agrupado tras k fichas, mediana entre tableros** (tableros pintados; bits ganados sobre la base entre paréntesis):
+
+| k | repartidas | aleatorias |
+|---|---|---|
+| 1 | 10^37,61 (9,6) | 10^38,81 (5,4) |
+| 4 | 10^32,09 (27,8) | 10^33,24 (24,1) |
+| 8 | 10^22,52 (59,5) | 10^28,75 (39,0) |
+| 10 | 10^23,79 (55,4) | no medido |
+| 16 | 10^12,79 (92,0) | 10^19,24 (70,4) |
+| 24 | 10^11,28 (97,0) | 10^14,56 (86,1) |
+| 48 | 10^8,47 (106,3) | 10^7,99 (107,8) |
+
+El reparto no es monótono (k = 10 queda por encima de k = 8) porque cada k coloca sus fichas a otras profundidades del barrido. Es la mejor regla probada, no un óptimo.
+
+**Frente a unos 10^15 nodos.** Diez fichas repartidas no bastan en ningún tablero: la cota inferior de Markov supera 10^15 en los cinco. El menor número de fichas repartidas cuya estimación agrupada baja de ahí es 16 en tres tableros y 24 en dos. Con 16 fichas aleatorias, al menos la mitad de los pares (tablero, sorteo) siguen demostrados por encima de 10^15.
+
+## Estado y límites
+
+- **Reverificado de forma independiente:** el mapa de una ficha, el valor de las pistas quitadas una a una y las cotas inferiores, por recálculo desde las filas en bruto y 17 repeticiones idénticas de 17; las cifras de los tableros pequeños, por 1 177 unidades repetidas sin discrepancias y un enumerador escrito aparte.
+- **Comprobado solo de extremo a extremo:** el rango de 16 a 24 fichas repartidas. La única comprobación exacta es la enumeración del árbol entero con 40 y 48 fichas (los 10 árboles terminan, 10^8,06 a 10^10,17, error de estimación de a lo sumo 0,0047 dex). Entre 10^12 y 10^23 nada se comprueba de forma exacta, y los dos estimadores pueden quedarse cortos a la vez. Ningún «por debajo» está validado por la barrera preinscrita.
+- **Las fichas agrupadas rompen los estimadores.** Con fichas elegidas de forma voraz usando el modelo sin solución plantada, los dos estimadores discrepan hasta 12,6 dex con k = 12 y la colocación del modelo falla en unos 11 dex. Esas cifras son una demostración, no un mejor caso.
+- **Transferencia a las piezas reales, dos comprobaciones.** El árbol oficial de cinco pistas, 10^40,453, cae dentro del rango pintado; quitar cada pista oficial cuesta de 2,85 a 2,99 dex para la central y las dos de abajo y de 0,39 a 0,47 dex para las dos de arriba en los tableros pintados, y los valores oficiales quedan a menos de 0,3 dex de ellos. Solo se miden en el juego real las pistas, nunca fichas adicionales.
+- **Tableros de juguete.** Todo lo de 8x8 y 10x10 es resultado de tablero de juguete. Con un solucionador adaptativo (un solucionador, 10 tableros, 8x8, un solo número de colores) el efecto de la colocación desaparece en buena parte desde 6 fichas conocidas (todas las reglas salvo solo borde) y desde 8 (todas), mientras que con 3 y 4 fichas las reglas aún se reparten en 6,8 a 13,6 y 6,1 a 11,1 bits. En los juguetes, agrupar las fichas al comienzo del barrido supera a repartirlas con barrido por filas; no se probó en el 16x16.
+
+## Qué implica para una solución completa
+
+Una sola ficha vale a lo sumo unos 10 bits, una típica unos 6, y la ganancia por ficha baja al añadir más. Alcanzar unos 10^15 nodos con fichas adicionales exige, pues, más de 10 fichas bien repartidas, probablemente de 16 a 24, en estos tableros y para esta magnitud de árbol completo. Es un enunciado sobre el árbol del barrido por filas: mide una cantidad, y del puzle real no se midió nada más allá de las cinco pistas oficiales. Las cifras de la serie están en el [centro](/research/lab/experiments/raphael-anjou/full-solve).
+
+## No ejecutado
+
+Una colocación voraz validada contra árboles exactos en 16x16; cualquier comprobación exacta entre 10^12 y 10^23 nodos; fichas aleatorias con k = 6, 10, 12; fichas adicionales en las piezas reales; un solucionador adaptativo en 16x16 o con las pistas en tableros pequeños.
+
+## Reproducir
+
+Recetas `just experiments orders-and-pins all` y `just experiments pin-map all`, y después `python3 -I research/experiments/orders-and-pins/scripts/analyze.py`. Cada cifra de arriba se imprime desde las filas en bruto versionadas en el `results/summary.json` de la carpeta correspondiente. Los récords están en [récords](/research/records); la frontera abierta, en [problemas abiertos](/research/open-problems).

@@ -1,0 +1,189 @@
+---
+title: El precio de una búsqueda completa
+description: >-
+  Agotar una búsqueda simple, fila por fila, sobre las piezas reales de
+  Eternity II con cinco pistas requiere unos 10^40,457 nodos (2^134,4),
+  medido, y la predicción del modelo aleatorio cae a menos de 0,04 cifras. En
+  esta estadística, el juego de piezas oficial es un miembro corriente de los
+  tableros pintados con los mismos recuentos de colores. Esto fija el precio de
+  la búsqueda completa; no encuentra ninguna forma de acortarla.
+metaDescription: "Tamaño medido de una búsqueda simple por filas sobre las piezas reales de Eternity II: 10^40,457 nodos con cinco pistas, 10^47,140 solo con la pista central, 10^50,039 sin pistas, cada uno a menos de 0,04 cifras del modelo aleatorio. Estimaciones, no recuentos."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "10-core Apple laptop, runs limited to 4 single-threaded processes"
+  accelerator: none
+  machine: "10-core Apple laptop"
+  wallClock: "about 32 s per five-clue repetition at N = 1e6 particles; about 4 to 5 s per repetition at N = 1e5"
+  seedPolicy: "seeded; every estimate is deterministic given its seed and binary"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments real-puzzle-profile m2
+  topic: real-puzzle-profile
+  produces: search
+  scope: "Vuelve a ejecutar la estimación por población del árbol de la búsqueda por filas sobre las piezas oficiales (cinco pistas, solo la pista central, ninguna pista) con las semillas archivadas; reproduce las estimaciones, no un recuento del árbol, que está fuera de alcance."
+order: 51
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking, structure]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/build/analysis/solution-counting
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Resultados brutos archivados, tablas y revisión independiente del experimento real-puzzle-profile"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/real-puzzle-profile
+  - label: "Segunda medición del mismo árbol y de otros órdenes de relleno (orders-and-pins)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins
+---
+
+Una búsqueda completa del 16×16 solo merece discusión cuando se conoce su
+tamaño. Este experimento lo mide para la estrategia más simple: colocar las
+piezas fila por fila, empezando por abajo, de izquierda a derecha, y contar
+cada tablero parcial válido (un nodo) hasta agotar el árbol. Tres preguntas:
+qué tamaño tiene ese árbol con las piezas reales, si un modelo de primer
+momento sobre tableros aleatorios lo predice, y si el juego oficial resulta
+raro frente a tableros pintados con los mismos recuentos de colores. No es un
+intento de récord y no se produce ningún tablero.
+
+## Planteamiento
+
+El árbol tiene unos 10^40 nodos, así que no se puede enumerar. Se estima con
+un método de población (Monte Carlo secuencial): 1.000.000 de partículas
+avanzan una casilla cada vez, remuestreadas sobre la marcha, y la estimación
+del ancho de cada nivel es insesgada. El estimador puede quedarse corto,
+porque una población puede colapsar en unas pocas familias; por eso el
+trabajo está en las comprobaciones previas a leer cualquier cifra real.
+
+Un nodo es un tablero parcial válido tras colocar una pieza en una casilla
+libre, con el borde gris, las pistas puestas desde el principio y el orden de
+recorrido filas 15 a 0, columnas 0 a 15. El modelo es un cálculo analítico de
+primer momento, no una simulación, de modo que el acuerdo con él no es
+circular.
+
+## Comprobaciones del estimador
+
+| Comprobación | Resultado |
+|---|---|
+| 30 tableros 6×6 de la escalera difícil, árbol exacto frente a estimación, 200 repeticiones | 10 pares (instancia, nivel) de 1.110 a más de 3 errores estándar (0,90 %); error log10 absoluto mediano 0,0050, máximo 0,023 |
+| Recuento exacto de marcos oficiales completos (el único recuento exacto 16×16 del repositorio) | estimación sobre exacto: 0,99994 |
+| 40 tableros generados 5×5 y 6×6, N = 1000 | error log10 absoluto mediano 0,0023, máximo 0,032 |
+
+Las tres superan sus umbrales preinscritos. Un segundo análisis recalculó
+después cada cifra principal desde las filas brutas y repitió las
+repeticiones con cinco pistas para N = 1e5, con totales idénticos
+(reverificado de forma independiente).
+
+## Resultados con las piezas reales
+
+Logaritmo decimal del número medio de nodos, cinco repeticiones por fila,
+intervalo de confianza del 95 % (t) sobre las repeticiones.
+
+| Pistas | N | log10 nodos | Intervalo al 95 % | Modelo | Medido menos modelo | Nivel más ancho (profundidad libre) |
+|---|---|---|---|---|---|---|
+| cinco | 1e6 | 40,457 | 40,440 a 40,473 | 40,49 | -0,033 | 158 |
+| cinco | 1e5 | 40,497 | 40,414 a 40,567 | 40,49 | +0,007 | 158 |
+| solo la pista central | 1e5 | 47,140 | 47,061 a 47,208 | 47,14 | +0,0004 | 160 |
+| ninguna | 1e5 | 50,039 | 50,017 a 50,059 | 50,03 | +0,009 | 161 |
+
+Con cinco pistas el árbol completo tiene 10^40,457 nodos, es decir 2^134,4.
+El nivel más ancho, a profundidad libre 158, contiene unos 10^39,16 nodos.
+Las cuatro pistas distintas de la central reducen el árbol en 10^6,68
+(47,140 frente a 40,457). Sin ninguna pista el árbol arrastra además la
+simetría de orden cuatro de las esquinas, porque nada fija la orientación. Una
+búsqueda que se detiene en la primera solución cuesta aproximadamente la
+mitad del árbol (un bit menos) cuando hay una sola solución; el árbol
+completo es la unidad adecuada para el precio.
+
+La medición concuerda con el modelo muy por dentro de cada barra de error, así
+que el modelo sirve para fijar el precio de variantes sin una nueva medición.
+Una repetición del mismo estimador en un segundo experimento, con las mismas
+piezas, dio 10^40,453 (intervalo 40,422 a 40,481), a 0,004 cifras de la
+primera.
+
+## ¿Es corriente el juego oficial?
+
+Se pintaron veinte tableros con exactamente los recuentos de colores
+oficiales (uniones del marco tomadas del multiconjunto oficial de colores de
+marco, uniones de costura e interiores repartidas uniformemente entre los
+colores interiores), con cinco pistas leídas en cada uno y dos estimaciones de
+N = 1e5 por tablero.
+
+| | log10 nodos |
+|---|---|
+| tableros pintados, mediana | 40,61 |
+| tableros pintados, rango de 20 | 40,33 a 40,76 |
+| tableros pintados, desviación típica (unos 0,05 son ruido del estimador) | 0,125 |
+| juego oficial (N = 1e6) | 40,457, con 5 de los 20 tableros pintados por debajo |
+
+En esta sola estadística el juego oficial es corriente: nada en el tamaño del
+árbol lo distingue de un tablero pintado con el mismo censo de colores. Otros
+cinco tableros pintados, medidos con N = 1e6 en el segundo experimento, dieron
+40,515, 40,412, 40,464, 40,480 y 40,438. Los tableros pintados quedan 0,12
+cifras por encima del modelo en la mediana; si se debe a la solución plantada
+o a un detalle del censo de colores que el modelo no recoge, no se determinó.
+La prueba no dice nada de ninguna otra propiedad de las piezas.
+
+## Límites de la estimación
+
+La población baja a unas 300 familias efectivas hacia la profundidad libre 175
+y se extingue en la profundidad 188 a 192, cuando el ancho estimado allí sigue
+rondando 10^35. Los anchos posteriores no están medidos. Se argumenta que los
+60 últimos niveles añaden como mucho cerca de 10^-4 del total (argumentado,
+no medido); la suma hasta la casilla libre 175 es 10^40,453, de modo que el
+99 % de la estimación está en la parte medida. El intervalo de cinco
+repeticiones no puede excluir un subárbol de cola pesada que la población
+nunca visita. Las estimaciones con N = 1e5 y N = 1e6 concuerdan, y el N mayor
+da un valor algo más bajo.
+
+## Qué implica para una resolución completa
+
+La búsqueda por filas con cinco pistas cuesta 2^134,4 nodos. Unos 10^15 nodos
+son asequibles, y la brecha con las búsquedas asequibles es de 56 a 73 bits;
+el [centro de la serie](/research/lab/experiments/raphael-anjou/full-solve)
+deriva esos números fijos una sola vez. Esta página aporta el lado izquierdo:
+el coste del método simple es una cantidad medida, no una salida de modelo, y
+es enorme. Ninguna mejora de factor constante cierra 56 bits. Dónde se
+concentra ese coste se trata en
+[marco y esquinas](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners),
+y lo que ahorra una casilla conocida adicional en
+[el valor de una casilla conocida](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile).
+Para el número esperado de soluciones, véase
+[el recuento de soluciones](/research/build/analysis/solution-counting). Los
+tableros récord están en [récords](/research/records).
+
+## Qué no se ejecutó
+
+- No se enumeró ningún árbol. Toda cifra es una estimación, con comprobaciones
+  exactas solo en tableros pequeños y en el recuento de marcos oficiales.
+- Las filas con una pista y sin pistas son solo de N = 1e5, y el nulo pintado
+  usó dos repeticiones con N = 1e5 en lugar de N = 1e6; no hay nulo con solo la
+  pista central.
+- Aquí solo se mide la búsqueda por filas desde la fila 15. El segundo
+  experimento midió otros 18 órdenes de relleno estáticos con las mismas
+  piezas: ninguno se muestra mejor (de 15 se muestra que no lo son, 3 quedan
+  sin decidir porque la población del estimador se extingue pronto).
+- Solo se fija el precio del tamaño del árbol exhaustivo. La caza estocástica
+  de récords, donde más rendimiento significa más intentos, es otra cuestión
+  (véanse [problemas abiertos](/research/open-problems) y
+  [callejones sin salida](/research/build/dead-ends)).
+
+## Reproducir
+
+```
+just experiments real-puzzle-profile build
+just experiments real-puzzle-profile m2      # about 4 minutes
+just experiments real-puzzle-profile paint   # painted boards
+python3 -I research/experiments/real-puzzle-profile/scripts/analyze.py
+```
+
+Las estimaciones son deterministas dadas la semilla y el binario. `RESULTS.md`
+en la carpeta del experimento enlaza cada número con su archivo bruto.

@@ -1,0 +1,179 @@
+---
+title: The price of a full search
+description: >-
+  Exhausting a plain row-scan search of the real Eternity II pieces with five
+  clues takes about 10^40.457 nodes (2^134.4), measured, and the random-model
+  prediction lands within 0.04 digits of it. The official piece set is an
+  ordinary member of the boards painted with the same colour counts on this
+  statistic. This prices the full search; it finds no way to shorten it.
+metaDescription: "Measured size of a plain row-scan search on the real Eternity II pieces: 10^40.457 nodes with five clues, 10^47.140 with the centre clue only, 10^50.039 with none, each within 0.04 digits of the random-model prediction. Estimates, not enumerations."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "10-core Apple laptop, runs limited to 4 single-threaded processes"
+  accelerator: none
+  machine: "10-core Apple laptop"
+  wallClock: "about 32 s per five-clue repetition at N = 1e6 particles; about 4 to 5 s per repetition at N = 1e5"
+  seedPolicy: "seeded; every estimate is deterministic given its seed and binary"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments real-puzzle-profile m2
+  topic: real-puzzle-profile
+  produces: search
+  scope: "Re-runs the population estimate of the row-scan tree on the official pieces (five clues, centre clue only, no clue) with the committed seeds; it reproduces the estimates, not an enumeration of the tree, which is out of reach."
+order: 51
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking, structure]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/build/analysis/solution-counting
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Committed raw results, tables and independent re-check of the real-puzzle-profile experiment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/real-puzzle-profile
+  - label: "Second measurement of the same tree and of other fill orders (orders-and-pins)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins
+---
+
+A full search of the 16×16 is only worth discussing once its size is known.
+This experiment measures it for the simplest strategy: place pieces row by
+row, bottom row first, left to right, and count every valid partial board
+(a node) until the whole tree is exhausted. The questions were how big that
+tree is on the real pieces, whether a first-moment model of random boards
+predicts it, and whether the official piece set looks unusual next to boards
+painted from the same colour counts. Nothing here is a record attempt, and no
+board is produced.
+
+## Setup
+
+The tree has about 10^40 nodes, so it cannot be enumerated. It is
+estimated by a population (sequential Monte Carlo) method: 1,000,000
+particles are extended one cell at a time, resampled as they go, and the
+estimate of each level's width is unbiased. The
+estimator can fail low, because a population can collapse onto a few
+families, so the work is in the checks before any real number is read.
+
+Node means a valid partial board after a placement on a free cell, with the
+rim grey, the clues on the board from the start, and the scan order rows 15
+to 0, columns 0 to 15. The model is an analytic first-moment computation, not
+a simulation, so agreement with it is not circular.
+
+## Checks of the estimator
+
+| Check | Result |
+|---|---|
+| 30 hard-ladder 6×6 boards, exact tree against estimate, 200 repetitions | 10 of 1,110 (instance, level) pairs more than 3 standard errors off (0.90%); median absolute log10 error 0.0050, maximum 0.023 |
+| Exact count of complete official frames (the only exact 16×16 count in the repository) | estimate over exact 0.99994 |
+| 40 generated 5×5 and 6×6 boards, N = 1000 | median absolute log10 error 0.0023, maximum 0.032 |
+
+All three pass their preregistered limits. A second analysis then recomputed
+every headline number from the raw rows and re-ran the five-clue N = 1e5
+repetitions, with identical totals (independently re-checked).
+
+## Results on the real pieces
+
+Base-10 logarithm of the mean node count, five repetitions per row, 95%
+t interval over repetitions.
+
+| Clues | N | log10 nodes | 95% interval | Model | Measured minus model | Widest level (free depth) |
+|---|---|---|---|---|---|---|
+| five | 1e6 | 40.457 | 40.440 to 40.473 | 40.49 | -0.033 | 158 |
+| five | 1e5 | 40.497 | 40.414 to 40.567 | 40.49 | +0.007 | 158 |
+| centre clue only | 1e5 | 47.140 | 47.061 to 47.208 | 47.14 | +0.0004 | 160 |
+| none | 1e5 | 50.039 | 50.017 to 50.059 | 50.03 | +0.009 | 161 |
+
+With five clues the full tree is 10^40.457 nodes, or 2^134.4. The widest
+level, at free depth 158, holds about 10^39.16 nodes. The four clues beyond
+the centre one cut the tree by 10^6.68 (47.140 against 40.457).
+With no clue the tree also carries the four-fold corner symmetry, since no
+clue fixes the orientation. A search that stops at the first solution costs
+about half the tree (one bit less) when there is one solution; the full-tree
+figure is the right unit for the price.
+
+The measurement agrees with the model to well inside every error bar, so the
+model can be used to price variants without a new run. A rerun of the same
+estimator in a second experiment, on the same pieces, gave 10^40.453 with
+interval 40.422 to 40.481, within 0.004 digits of the first.
+
+## Is the official set ordinary?
+
+Twenty boards were painted with the official colour counts exactly (frame
+joints from the official frame-colour multiset, seam and inner joints a
+uniform deal of the inner colours), five clues read off each, two estimates
+of N = 1e5 each.
+
+| | log10 nodes |
+|---|---|
+| painted boards, median | 40.61 |
+| painted boards, range of 20 | 40.33 to 40.76 |
+| painted boards, standard deviation (about 0.05 of it estimator noise) | 0.125 |
+| official set (N = 1e6) | 40.457, with 5 of the 20 painted boards below it |
+
+On this one statistic the official set is ordinary: nothing in the tree size
+distinguishes it from a board painted from the same colour census. Five
+other painted boards, run at N = 1e6 in the second experiment, gave 40.515,
+40.412, 40.464, 40.480 and 40.438. The painted boards sit 0.12 digits above
+the model in the median; whether that is a planted-solution effect or a detail
+of the colour census the model does not carry was not determined. The test
+says nothing about any other property of the pieces.
+
+## Limits of the estimate
+
+The population falls to about 300 effective families by free depth 175 and
+dies at depth 188 to 192, while the estimated width there is still about
+10^35. Widths past that point are not measured. The remaining 60 levels are
+argued to add at most about 10^-4 of the total (not measured); the sum to
+free cell 175 is 10^40.453, so 99% of the estimate lies in the measured
+part. The five-repetition interval cannot exclude a heavy-tailed subtree the
+population never visits. The N = 1e5 and N = 1e6 estimates agree, larger N
+giving a slightly lower value.
+
+## What it means for a full solution
+
+The row scan with five clues costs 2^134.4 nodes. About 10^15 nodes are
+affordable, and the gap to the affordable searches is 56 to 73 bits; the
+[series hub](/research/lab/experiments/raphael-anjou/full-solve) derives
+those fixed numbers once. This page contributes the left-hand side: the cost
+of the plain method is a measured quantity, not a model output, and it is
+huge. A constant-factor speedup cannot close 56 bits. Where the cost sits is
+taken up in [frame and corners](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners),
+and what one known extra tile saves in
+[the worth of a known tile](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile).
+For the expected number of solutions see
+[solution counting](/research/build/analysis/solution-counting). Record
+boards are on [records](/research/records).
+
+## What was not run
+
+- No tree was enumerated. Every figure is an estimate, with exact checks only
+  on small boards and on the official frame count.
+- The one-clue and no-clue rows are N = 1e5 only, and the null boards used two
+  repetitions at N = 1e5 rather than N = 1e6; there is no centre-clue null.
+- Only the row scan from row 15 is measured here. The second experiment
+  measured 18 other static fill orders on the same pieces: none is shown to
+  beat it (15 are shown not to, 3 are undecided because the estimator's
+  population dies early).
+- Only the size of the exhaustive tree is priced. Stochastic record hunting,
+  where more throughput means more attempts, is a separate question (see
+  [open problems](/research/open-problems) and [dead ends](/research/build/dead-ends)).
+
+## Reproduce
+
+```
+just experiments real-puzzle-profile build
+just experiments real-puzzle-profile m2      # about 4 minutes
+just experiments real-puzzle-profile paint   # painted boards
+python3 -I research/experiments/real-puzzle-profile/scripts/analyze.py
+```
+
+Estimates are deterministic given the seed and binary. `RESULTS.md` in the
+experiment folder maps each number to its raw file.

@@ -1,0 +1,164 @@
+---
+title: Seven families of approaches priced out against the row-scan tree
+description: >-
+  None of seven families of approaches (search that learns, lossy representations,
+  the shape of the tree, adaptive orders, tile-set structure, algebraic and
+  search-space reformulation), nor the far ideas, frame nogoods or alternative
+  fill orders, is priced at 10 bits or more with a mechanism behind it. The
+  largest surviving gain is about 5.5 bits, against a gap of 56 to 73 bits; a few
+  closures rest on one reader or one solver family and are marked as such.
+metaDescription: "Seven families of approaches priced in bits against the row-scan tree of Eternity II by desk studies and independent re-checks. The largest surviving gain is about 5.5 bits against a gap of 56 to 73 bits; 15 of 18 static fill orders do not beat row scan."
+kind: finding
+contribution: negative
+author: raphael-anjou
+rigor: measured
+outcome: parked
+order: 55
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking, exact-methods, learning]
+repro:
+  kind: exact
+  cmd: just experiments approach-pricing
+  topic: approach-pricing
+  produces: artifact
+  scope: "Reprints the ceiling table of a perfect free cut from the committed level profile and reruns two cheap stdlib checks; it does not rerun the studies behind the family table, many of which take minutes to hours or import tools not packaged with the folder."
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "approach-pricing: the family table, the notes with their independent re-checks, the route index"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+  - label: "orders-and-pins: static fill orders measured on the real pieces (Part A)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins
+---
+
+Can any family of approaches remove the 56 to 73 bits between the row-scan tree
+and what is affordable? The fixed numbers (2^134.4 nodes with five clues, about
+10^15 nodes affordable) are on the [series hub](/research/lab/experiments/raphael-anjou/full-solve)
+and are not re-derived here. The rule for reopening a family: a price of 10 bits
+or more and a falsifying experiment under a day. Expected solutions: about 14,702
+with the starter clue, about 1 with all five.
+
+## How each family was priced
+
+Each family got a desk study that states a mechanism and prices it in bits
+against the row-scan tree, then a second analysis that re-derived the numbers,
+re-ran the scripts and corrected what it found. The table carries the largest
+gain that survived that second analysis. Results on generated boards are toys,
+never Eternity II progress. The gap between a gain and 56 to 73 bits is the
+point, so a family is "empty" here only in the sense the last column says.
+
+## The table
+
+| Family | Largest gain surviving re-check | Status as the re-check states it | Note |
+|---|---|---|---|
+| Search that learns | About 2 bits (ceiling 6.6). A clause-learning solver needs 2^5 to 2^6.5 fewer conflicts than tree nodes on 5x5 and 6x6 (two sizes only) | The verdict "empty" is **unproven** as written. It holds only for reasons attached to row-scan nodes, used one at a time | [gap-1](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-1-search-that-learns.md), [re-check](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-1-search-that-learns-recheck.md) |
+| Lossy representations | Two-list join 3.0 bits (not 5.9). A sound sketch saves at most 2.0 | Empty for colour-blind sketches and rectangular region lists. The 2.0-bit bound is derived, weakly checked on toys and has **no second reader** | [gap-2](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-2-lossy-representations.md), [re-check](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-2-lossy-representations-recheck.md) |
+| Shape of the tree | 1 to 3 bits with oracle cutoffs; a loss when blind | Empty for blind restarts and portfolios | [gap-3](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-3-shape-of-the-tree.md), [re-check](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-3-shape-of-the-tree-recheck.md) |
+| Adaptive orders | Under 3 bits. Arc consistency 5.5 bits of nodes (it costs about 13 bits per node). Finishing rows one or two at a time: at most 5.3 or 6.7 (proved) | Empty for row-shaped rules. Free smallest-domain rules are 13 to 49 bits worse | [gap-4](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-4-adaptive-orders.md), [re-check](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-4-adaptive-orders-recheck.md) |
+| Tile-set structure | 0 bits before depth 192 | Empty: no colour automorphism, invariant group Z^2 + Z/2 | [gap-5](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-5-tile-set-structure.md), [re-check](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-5-tile-set-structure-recheck.md) |
+| Algebraic reformulation | None found among fifteen reformulations. Degree-2 linearisation fixes 0 of 10 boards at 4x4 and 0 of 5 at 5x5 | **Not a barrier**, only none found. Degree 3 at 5x5 did not fit in memory. The linearisation note is **not independently checked** | [gap-6a](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-6a-reformulation-algebra.md), [re-check](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-6a-reformulation-algebra-recheck.md), [linearisation](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-6a-linearisation-degree.md) |
+| Search-space reformulation | Row scan is within 0.24 bit of the best static order | Empty for static reformulations; no certificate that row scan is the best order | [gap-6b](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-6b-reformulation-search-space.md), [re-check](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/gap-6b-reformulation-search-space-recheck.md) |
+| Far ideas (21, 18 and 32 listed in three studies) | None priced at 10 bits or more with a mechanism | Some dismissals are inherited from unchecked rows; four statements were ruled wrong | [re-check](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/far-ideas-and-isolation-recheck.md) |
+| Frame nogoods | About 17.4 bits of cheap information about the frame, all at the four clue corners | Independently re-checked twice. The interior under a frame that passes the corners costs about 10^13.6 nodes on average (this replaces 10^8.3). The far stratum is **undecided** | [note](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/nogood-frame-search-price.md), [re-check](https://github.com/raphael-anjou/eternity2/blob/main/research/experiments/approach-pricing/notes/nogood-frame-search-price-recheck.md) |
+
+Three of these rows are weaker than the word "empty" suggests. Search that
+learns is unproven in general: the closure covers a store of reasons bolted onto
+a row scan, not a clause-learning solver as such, and the measured lead over
+propagation alone is flat on two sizes only (see
+[learning against propagation](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation)).
+The lossy-representation bound needs a second reader. The linearisation run was
+not independently checked. The 17.4 bits for frame nogoods is information about
+the frame, not a saving in nodes: the interior under a frame that passes the
+corners is still about 10^13.6 nodes.
+
+Semidefinite relaxations are covered on their own page,
+[relaxations on small boards](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards).
+
+## Static fill orders on the real pieces
+
+Is some static fill order cheaper than row scan? Eighteen orders were measured
+on the official pieces with the five clues (population estimates of the full
+tree, five repetitions each; [orders-and-pins](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins), part A).
+
+| Result | Orders | Reading |
+|---|---|---|
+| Does not beat row scan | 15 of 18 | Measured, or bounded below by a Markov bound, above row scan's 10^40.453 |
+| Undecided | 3 (three annealed orders) | The estimator's population dies at free depth 38 to 48, while row scan's dies at 191 to 198. Their estimates are lower bounds on the tree, not sizes |
+
+The best line scan is row scan from the bottom; the worst line scan, from the
+top right to left, is 1.10 bits above it. The three undecided orders are
+undecided in both directions: the data neither show them cheaper nor show them
+dearer. Part B of the same folder (what a pinned tile is worth) is on
+[worth of a known tile](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile).
+
+## Why the ceiling stays low
+
+A check that removes every wrong node from free depth d onward at no cost saves
+at most 57.1 bits from depth 52, 29.8 from depth 80, 17.1 from depth 96, 6.8
+from depth 128 and 0.5 from depth 158. Real wrong-board tests bite late: arc
+consistency refutes 57 to 90 percent of sampled wrong prefixes at depths 96 to
+128. That is why the largest gain priced is about 5.5 bits of nodes. See
+[late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
+
+## Two audits of the closures
+
+A route audit examined 78 lines of the index of routes tried: 47 closures, of
+which 32 sound, 10 weak and bearing on a solve, 5 weak but relevant to records
+only. It names three reopenings, none above 1 percent odds of a solve: whether the
+convex lift is exact at 6x6, the growth of non-tree solvers against the tree on
+the same boards, and learning solvers at 7x7 and on real-piece prefixes with a
+propagation-only control. The audit is not independently checked.
+
+An anomaly hunt looked for places where measurement disagrees with its model.
+Of 51 candidates, 14 disagree beyond noise at face value; none survives a
+painted-board null and a count of comparisons. The three-row staircase (+2.85
+bits) is not reproduced at ten times the population (135.2 and 135.7 bits, above
+row scan). No gain is shown. This note is not independently checked either.
+
+## What this means for a full solution
+
+The largest surviving gain is about 5.5 bits, against a gap of 56 to 73 bits.
+Nothing priced here brings the 16x16 within reach of search. It does not prove that no approach exists:
+the weak closures above are the places a reader should push. Current records are
+on [records](/research/records) and the frontier on
+[open problems](/research/open-problems).
+
+## What would reopen this
+
+1. A published method with a class-level gain. Price it against the index of
+   routes and the ceiling table first; a check that only bites after depth 128
+   cannot pass.
+2. Tiles of the solution become available from outside the search. On painted
+   boards the best single extra pin is worth about 10 bits and the median one
+   about 6, and a 10^15 run needs more than 10, probably 16 to 24, spread pins.
+3. Hardware improves by 15 orders of magnitude or more. Every credible multiplier
+   together is about 2.5 orders.
+4. A re-check or a run overturns a closure: the convex lift is exact at 6x6; the
+   far stratum of frame cores resolves below break-even; a non-tree solver's
+   work grows by less than 0.75 of the tree's from 6x6 to 7x7; a learning
+   solver's lead over propagation alone rises with size.
+
+## What was not run
+
+Degree-3 linearisation at 5x5 (out of memory), the 6x6 convex-lift reading, learning
+solvers at 7x7 and on real-piece prefixes, a second reader for the 2.0-bit sketch
+bound, and a certificate that row scan is the best static order at the
+bottleneck. Many scripts import tools from experiment folders not packaged
+with the evidence or run for minutes to hours and were not re-run for this page;
+only the three named in the recipe were.
+
+## Reproduce
+
+`just experiments approach-pricing` reprints the ceiling table and reruns two
+cheap checks. The studies behind the family table are in the
+[evidence folder](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing),
+each note beside its re-check.

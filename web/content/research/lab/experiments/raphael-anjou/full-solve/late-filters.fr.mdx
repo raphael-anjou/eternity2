@@ -1,0 +1,164 @@
+---
+title: "Filtres tardifs : tout contrôle qui marche marche trop tard"
+description: >-
+  Un filtre ajouté au balayage par lignes ne peut économiser que ce que sa
+  profondeur permet, et les contrôles qui réfutent presque tous les mauvais
+  plateaux ne mordent qu'aux profondeurs 144 à 192, après le niveau le plus large
+  de l'arbre (158). Une coupe gratuite parfaite à la profondeur 144 économiserait
+  2,4 bits sur les 134,4 que coûte le balayage : aucun filtre tardif ne comble
+  l'écart. Le tableau des plafonds est de l'arithmétique dérivée d'un profil
+  mesuré, pas une expérience.
+metaDescription: "Pourquoi aucun filtre tardif ne comble l'écart d'Eternity II : une coupe gratuite parfaite à la profondeur 144 de l'arbre du balayage par lignes économise au plus 2,4 bits sur 134,4, et les tests qui réfutent les mauvais plateaux mordent de 144 à 192. Arithmétique dérivée d'un profil mesuré."
+kind: concept
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+order: 54
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking]
+hardware:
+  cores: 1
+  cpu: "10-core Apple laptop"
+  accelerator: none
+  machine: "Portable ; le script des plafonds est du Python standard et tourne en quelques secondes"
+  wallClock: "Tableau des plafonds : quelques secondes. Le profil par niveau qu'il lit a demandé environ 32 s par répétition à N = 1e6 particules."
+  seedPolicy: "Le tableau des plafonds est déterministe pour le fichier de profil versionné"
+  measured: false
+repro:
+  kind: exact
+  cmd: just experiments approach-pricing
+  produces: search
+  scope: "Réimprime en quelques secondes le tableau des plafonds (profondeurs 52 à 158) depuis le profil par niveau versionné. Ne rejoue ni le profil, ni l'inclinaison du recensement des couleurs, ni les parts de cohérence d'arc, qui viennent des deux expériences liées dans les sources."
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Chiffrage des approches : script des plafonds, profil par niveau et notes"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+  - label: "Statistiques de préfixe : inclinaison du recensement et suivi de cohérence d'arc"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/prefix-statistics
+  - label: "Profil du puzzle réel : taille de l'arbre du balayage par lignes selon la profondeur"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/real-puzzle-profile
+---
+
+Un contrôle peu coûteux, ajouté au balayage par lignes, peut-il élaguer assez
+d'arbre pour compter ? La réponse tient à un seul nombre par contrôle : la
+profondeur à partir de laquelle il commence à écarter de mauvais plateaux. Rien
+de ce qu'un filtre fait avant cette profondeur ne compte, et l'arbre y est
+mince. Les contrôles essayés mordent tard, donc la réponse est non.
+
+## Le cadre
+
+L'arbre exact du balayage par lignes sur les vraies pièces, avec les cinq
+indices, contient 10^40,457 nœuds, soit 2^134,4 (intervalle à 95 % : 10^40,440 à
+10^40,473, cinq répétitions d'un million de particules ; voir
+[la taille mesurée](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search)).
+Son niveau le plus large est à la profondeur libre 158 (la profondeur libre
+compte les cases posées hors indices). Environ 10^15 nœuds sont abordables pour
+un calcul modeste : l'écart est donc d'environ 84 bits, et de 56 à 73 bits face
+aux efforts plus grands chiffrés sur le
+[hub de la série](/research/lab/experiments/raphael-anjou/full-solve).
+
+Prenons un filtre qui écarte tout nœud faux à partir de la profondeur libre d,
+gratuitement et sans coupe erronée. Il ne peut pas faire mieux que la part de
+l'arbre située à la profondeur d ou au-delà. Le gain en bits est le log2 du
+total rapporté aux nœuds situés au-dessus de cette profondeur.
+
+## Le plafond d'une coupe gratuite parfaite
+
+| Profondeur libre | 52 | 64 | 80 | 96 | 112 | 128 | 144 | 158 |
+|---|---|---|---|---|---|---|---|---|
+| Économie maximale (bits) | 57,1 | 44,8 | 29,8 | 17,1 | 10,7 | 6,8 | 2,4 | 0,5 |
+
+**Statut : arithmétique dérivée du profil par niveau mesuré, recalculée par une
+seconde analyse. Ce n'est pas une expérience.** Le profil est mesuré et vérifié
+indépendamment ; le tableau en est une somme, sans exécution propre. Il borne le
+gain brut de tout filtre qui n'écarte rien avant la profondeur d. Il ignore ce
+que le filtre coûte : le gain réel est donc encore plus petit. Un filtre qui agit
+aussi plus tôt est borné par le plafond à sa profondeur la plus précoce, pas la
+plus tardive.
+
+## Où les tests mordent
+
+Deux mesures sur des plateaux 16x16 générés, avec le recensement officiel des
+couleurs (plateaux jouets, jamais un progrès sur Eternity II), situent les
+contrôles sur cet axe.
+
+**Cohérence d'arc.** Appliquée seule, sans recherche, à des préfixes tirés du
+balayage par lignes à chaque profondeur. Ce suivi n'a **pas été vérifié
+indépendamment**, et le moteur a été modifié après le jugement de l'expérience
+qu'il prolonge. Il porte sur 15 plateaux, quatre directions de balayage chacun
+(60 arbres).
+
+| Profondeur libre | 96 | 112 | 128 | 144 | 152 | 160 |
+|---|---|---|---|---|---|---|
+| Préfixes faux tirés encore cohérents | 0,427 | 0,096 | 0,179 | 0,064 | 0,007 | 0 |
+| Réfutés (pour cent, dérivé) | 57 | 90 | 82 | 94 | 99 | 100 |
+
+Elle n'a jamais réfuté le vrai préfixe. L'observation plus grossière de
+l'expérience principale, reproduite indépendamment, porte sur 192 lignes
+plateau-direction : la cohérence d'arc réfute tous les préfixes tirés dans 189
+d'entre elles à la profondeur 160 et dans les 192 à la profondeur 176. La part
+non réfutée compte des préfixes tirés, pas du travail : ce n'est pas l'économie.
+L'économie chiffrée pour la cohérence d'arc est d'environ 5,5 bits de nœuds,
+tandis qu'un contrôle coûte environ 13 bits par nœud : elle ne rapporte donc
+rien.
+
+**Recensement des couleurs.** Une statistique du multiensemble des tuiles posées
+et des couleurs du front (une estimation au premier moment du nombre de
+complétions, 33 ns par évaluation) penche vers le préfixe planté d'environ 2
+écarts types aux profondeurs 144 et 160 (48 plateaux ; +1,96 [1,53 ; 2,42] à
+144). Celle-ci est **revérifiée indépendamment**. C'est ce que prédit un modèle
+de biais de taille, multiplié par 1,5 à 1,8. Comme élagage à la profondeur 144
+dans une seule direction de balayage, elle gagne 1,02 bit [0,72 ; 1,27], pour un
+plafond de 2,35 à cet endroit. Avec deux directions, le gain est de -0,04 ; avec
+quatre, de -1,88. Les valeurs imprimées aux profondeurs 96 et 128 reposent sur
+trop peu d'échantillons effectifs et ne sont pas des gains. Aucun transfert aux
+vraies pièces n'est affirmé.
+
+## Ce que cela veut dire pour une solution complète
+
+Le plafond à 144 est de 2,4 bits et le gain mesuré y est d'environ 1. Face à un
+écart de 56 à 84 bits, un filtre tardif n'est qu'un facteur constant (2 pour 1
+bit, 5 pour le plafond de 2,4 bits), et le plus grand gain chiffré où que ce soit
+est d'environ 5,5 bits de nœuds. Les tests qui réfutent presque tous les mauvais
+plateaux agissent dans la queue mince de l'arbre. Un filtre qui rapporterait
+devrait mordre avant la profondeur 96 (17,1 bits de plafond) et ne presque rien
+coûter ; on n'en a pas trouvé, et la cohérence d'arc sur les plateaux générés
+laisse debout 43 % des préfixes de profondeur 96.
+
+Le même tableau chiffre une échappatoire : un a priori grossier de couleurs
+stratifiées (quadrants) vaudrait 23,6 bits sous balayage par lignes dans un
+modèle au premier moment. C'est dérivé, rien n'a été mesuré sur les vraies
+pièces, et la piste reste fermée. Voir
+[les approches chiffrées](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out).
+
+## Ce qui n'a pas été fait
+
+- Aucun filtre mordant avant la profondeur 96 n'a été construit sur les vraies
+  pièces.
+- Les inclinaisons et les parts viennent toutes de plateaux générés avec une
+  solution plantée ; le préfixe du vrai puzzle est inconnu.
+- L'élagage à plusieurs profondeurs à la fois n'a pas été mesuré.
+- Les profondeurs au-delà d'environ 190 ne sont pas mesurées ; la population de
+  l'échantillonneur s'y éteint, et le profil argumente que la queue est
+  négligeable (10^-4 du total).
+
+## Reproduire
+
+```
+just experiments approach-pricing
+```
+
+Cela réimprime le tableau des plafonds en quelques secondes. Les nombres du
+recensement et de la cohérence d'arc se reproduisent avec
+`just experiments prefix-statistics analyze` et le script `ac_followup.py` de ce
+dossier.

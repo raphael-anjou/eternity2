@@ -1,0 +1,205 @@
+---
+title: "Keying and replay experiments: no gain found, one effect measured"
+description: >-
+  Five preregistered experiments on remembering and keying dead ends found no
+  gain that matters for a full solution. Three were killed (difference-map
+  bands, cut-keyed replay, keying with five clues) and two were kept as
+  measurements (quota keying, and the quota curve with five clues). The kept
+  quota result is a rate effect of 53 times, about 5.7 bits, against a gap of 56
+  to 73 bits.
+metaDescription: "Five preregistered experiments on keying and replaying dead ends: three killed, two kept as measurements. With five clues the quota curve, not the colour keying, decides whether a run reaches depth 201 (about 5.7 bits of rate against a 56 to 73 bit gap)."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+hardware:
+  cores: 12
+  threads: 12
+  cpu: "Single-threaded runs spread over a 14-core low-power x86 laptop (12 threads), an 8-core Apple M1 (7 threads) and an Apple laptop (4 threads)"
+  accelerator: none
+  machine: "three laptops, runs pinned to one thread each"
+  wallClock: "5.67 thread-hours for the five-clue quota experiment (5.06 test, 0.52 calibration, 0.09 gates); 6.81 core-hours for the difference-map test grid; 16.1 thread-hours for quota keying; 20.6 for five-clue keying; 2.13 for cut-keyed replay"
+  seedPolicy: "seeded and deterministic per row; wall-clock seconds vary by host"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments five-clue-quota test 4 local
+  topic: five-clue-quota
+  produces: search
+  scope: "Runs the local share (openings 514 to 516) of the kept five-clue quota experiment, 1e9 nodes per run; the full 16 openings need the three seed groups, and every row reproduces node for node, only seconds differ."
+order: 57
+updated: 2026-11-14
+date: 2026-11
+topics: [backtracking, search-space]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/port-fidelity
+  - /research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "difference-map-bands: preregistration, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/difference-map-bands
+  - label: "cut-keyed-replay: preregistration, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/cut-keyed-replay
+  - label: "quota-keying: preregistration, amendments, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/quota-keying
+  - label: "five-clue-keying: preregistration, amendments, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/five-clue-keying
+  - label: "five-clue-quota: preregistration, amendments, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/five-clue-quota
+---
+A search that forgets why a branch died pays for it again. These experiments
+remember dead ends, or key the search on a few colours so they are recognised
+sooner. Each question, baseline and stop line was fixed before any test run.
+Each result was independently re-checked; where a README and that re-check
+disagreed, the re-check decided and the README was corrected. The price of a
+full search and the gap are on the
+[series page](/research/lab/experiments/raphael-anjou/full-solve).
+
+## The five at a glance
+
+Boards of 6x6 to 8x8 are generated boards (toys), never Eternity II progress.
+The three real-piece experiments use the official 16x16 pieces, with no record
+attempt.
+
+| Experiment | Question | Baseline | Stop line | Outcome | Headline number |
+|---|---|---|---|---|---|
+| difference-map-bands (generated) | Do exact band projections slow a difference map's growth with size? | width 0, `bb-mrv` | killed if no fall of the slope | **killed** at this cap | 0 of 30 solved at 7x7, every width; `bb-mrv` 23 of 30 |
+| cut-keyed-replay (generated) | Does partitioning propagation on a cut line prune because of the cut? | `bb-mrv` nodes, random key | killed if a random key is within 0.1 | **killed** | cut 0.486 of nodes, random 0.419, work 1.21 |
+| quota-keying (real) | Is the published colour keying worth 450 to 4,600 times? | default keying | contradicted if gain below 45 | **kept**; claim contradicted | gain 1.31 [0.69, 2.43] |
+| five-clue-keying (real) | With five clues, is a one-ring keying a lever? | default, random keys | not a lever if best vs random includes 1 | **killed**, confounded | 0 of 2,240 runs reach legal depth 201 |
+| five-clue-quota (real) | Keying or quota curve? | default keying and quota | slack explains if 0 of 12+ vs 8+ openings | **kept**: slack explains it | 0 of 16 against 14 of 16 openings |
+
+"Kept" means the measurement is valid, reproduces exactly and its readings
+stand. It does not mean a method works.
+
+## Difference-map bands (killed)
+
+Exact projections onto bands of width k (a dynamic program), k = 0 to 3, were
+added to a difference map (an iterative projection method) on 30 generated
+boards per size, 3 seeds each, 20,000 iterations per run. At 7x7 and 8x8 no
+instance was solved at any width (one run of 90 aside), so no growth exponent
+was measured: the kill is of this method at this cap. At 6x6, the only size
+with finite medians, the iteration ratio to width 0 has intervals [0.41, 1.36],
+[0.43, 1.30] and [0.77, +inf] for widths 1 to 3, all containing 1, and a width
+costs 3 to 33 times more per iteration. A larger cap could give finite 7x7
+medians at low width, but the 6x6 trend and the censored runs point the wrong
+way. Independently re-checked: 90 rows
+rerun, identical.
+
+## Cut-keyed replay (killed)
+
+Partitions keyed on the colours of two cut edges were replayed over the exact
+trees of `bb-mrv` on 60 generated boards. The cut key keeps 0.486 [0.469,
+0.500] of the nodes at 7x7, just under the 0.5 line. A random key with the same
+partition count, drawn off the cut line, keeps fewer: 0.419 at 7x7, on every
+control seed and on 30 of 30 instances (0.444 against 0.483 at 6x6). The
+pruning comes from partitioning in general (every keyed arm keeps 0.42 to
+0.49), not from the cut, and every arm costs more propagation work than
+`bb-mrv` (1.211 for the cut key). Not tested: a cut key inside a row-scan
+solver. Independently re-checked: 6x6 and a sample of 7x7 rows reproduce.
+
+## Quota keying (kept)
+
+The published record engine prunes below a quota of "privileged" colour sides
+placed by each cell. An earlier desk study claimed its keying makes reaching
+depth 201 450 to 4,600 times cheaper (depth counts cells placed, out of 256). Measured on the real pieces, every node
+charged, 10 openings per arm, 1e9 nodes per run, published triple (colours 5,
+20, 7 in this repository's numbering) against the port's default:
+
+- **Keying gain: contradicted.** 1.31 [0.69, 2.43] with no clue, 0.74 [0.42,
+  1.27] with the centre clue. With five clues the published keying never
+  reached depth 201 in 10 runs; the default did 135 times. Scope: 1e9 nodes,
+  one attempt, this port (the desk study ran 1e10 with five clues).
+- **Legal break path: supported, at a price.** Forbidding illegal break
+  placements gives 7.63 [4.82, 13.9] times more legal nodes past depth 201 per
+  node, but runs about 23 times slower per node (1.25 arrivals per second
+  against 19.2).
+- **Staging: dead for the desk study's schedule on this port.** Requiring all
+  122 privileged sides by depth 176 cuts deep nodes (depth 230 and beyond) to
+  0.051 [0.031, 0.081] of the published schedule's; a third colour by depth 200
+  cuts them to 0, which a row scan can barely supply, so that is not a yield
+  measurement. Dead if both ratios fall below 3.
+
+Independently re-checked: 19 rows rerun, identical.
+
+## Five-clue keying (killed)
+
+With the five official clues, 680 keyings (one ring colour, two interior
+colours, quota scaled to the keying) were screened on 3 openings, and the best
+five, the published triple and five random keys confirmed on 20 more. None of
+the 2,240 one-ring runs placed a legal node at depth 201 or more; the default
+keying placed 9,758 on the 20 confirmation openings. The reading "not a lever"
+is a floor effect (best against random is 0 over 0, set to 1), and the default
+differed in two things at once, keying and quota slack. The surviving claim is
+narrow: no one-ring keying under the scaled quota works. Re-checked: 20 rows
+rerun, identical.
+
+## Five-clue quota (kept)
+
+This separated the two. Same five clues, 16 openings, 32 arms. The default
+keying, asked for 147 of its 150 sides by cell 160 instead of 119, never passes
+depth 35: 0 of 16 openings reach depth 201 (12 under its own quota). One-ring
+keyings asked for the same 79% share of their sides have 14 of 16 (published
+triple) and 12 to 13 (keying 1, 7, 9) positive openings, against 2 and 1 under
+their earlier 97.5% quota. Legal nodes past depth 201 per second for the
+published triple rise from 0.19 to 10.0. **Quota slack, not the colour set,
+explained the previous experiment.**
+
+Not shown: at matched slack the default is still ahead on the point estimate
+(one-ring keyings at 0.61 [0.30, 1.53] and 0.74 [0.29, 2.18] of its rate per
+second), with intervals including 1, so keying is not shown to matter on 16
+openings. Which segment of the curve binds is not localised. The port's
+top-row orientation fix is free (0.98 [0.95, 1.04]). Deepest legal depth of any
+run: 220. Independently re-checked: 8 rows rerun, identical.
+
+## What this means for a full solution
+
+None of the five makes a full solve cheaper. Taking base-2 logarithms of the
+ratios above (derived), and pretending every effect transferred and added,
+which they do not:
+
+| Effect | Factor | Bits |
+|---|---|---|
+| cut key, generated boards, nodes only (work rises) | 1 / 0.486 | 1.0 |
+| published keying gain, no clue | 1.31 | 0.4 |
+| legal break path, per node (a wall-clock loss) | 7.63 | 2.9 |
+| quota slack, rate of reaching depth 201 | about 53 | 5.7 |
+
+The row scan with five clues costs 2^134.4 nodes, about 10^15 nodes are
+affordable, and the gap is 56 to 73 bits. All four together are about 10 bits,
+leaving at least 46 of the 56. The kept result is a rate of reaching a depth,
+not a smaller tree, and a deeper run is not a higher-scoring board (see
+[the records](/research/records)). See also
+[late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
+
+## What was not run
+
+No other quota curve shape, no budget above 1e9 nodes per run, no restarts, no
+border interleaving, no cut key inside a row-scan solver, no other band
+projection.
+
+## Reproduce
+
+The kept experiment:
+
+```
+just experiments five-clue-quota test 4 local
+```
+
+The other four:
+
+```
+just experiments difference-map-bands
+just experiments cut-keyed-replay test 7 12
+just experiments quota-keying main 12
+just experiments five-clue-keying screen 12
+```
+
+Earlier stages and analysis scripts are in each folder's README.

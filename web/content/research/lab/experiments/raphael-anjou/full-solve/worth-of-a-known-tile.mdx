@@ -1,0 +1,96 @@
+---
+title: What a known tile is worth under row scan
+description: >-
+  Under a row scan, one known tile removes between 1 and 10 bits of the full
+  search tree depending only on where its cell sits in the scan (median 5.8 bits,
+  on painted 16x16 boards), and several tiles together are worth less than the
+  sum. On those boards, 10 spread tiles leave the tree above 10^15 nodes and 16
+  to 24 bring it under, a figure checked end to end only. Nothing here is a
+  measurement of the real puzzle beyond two transfer checks.
+metaDescription: "Measured worth of a known tile under row scan on painted 16x16 boards: 1 to 10 bits by position, sub-additive, 10 spread tiles still above 10^15 nodes, 16 to 24 under (end-to-end check only). Small-board map included. Toy boards, not Eternity II progress."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+order: 53
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking]
+repro:
+  kind: seeded
+  cmd: just experiments orders-and-pins all
+  scope: "Re-runs the 16x16 pin stages (one-pin map, leave-one-out clues, spread and random pin sets, whole-tree check) and then analyze.py; seeds are fixed and rows are deterministic, but the full run is about 10 core-hours. The small-board map is a second recipe, just experiments pin-map all (about 1.6 core-hours). Neither run touches the real pieces beyond the five clues."
+hardware:
+  cores: 10
+  cpu: "Apple silicon laptop (10 cores) and an 8-core Apple M1"
+  gpus: 0
+  accelerator: none
+  machine: "10-core Apple silicon laptop, at most 2 processes at a time, plus an 8-core Apple M1 for three stages; the small-board map ran on one core"
+  wallClock: "about 10.1 core-hours for the 16x16 pin study, about 1.4 core-hours for the small-board map"
+  seedPolicy: "seeded; painter seeds 300051, 300061, 300097, 300117, 300131 for the 16x16 boards; small boards seeds 1 to 20 (8x8) and 1 to 5 (10x10)"
+  measured: false
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/frame-and-corners
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Pins and orders: preregistration, raw rows, summary.json and review notes"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/orders-and-pins
+  - label: "Pin map on small boards: exact trees, tables and figures"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/pin-map
+---
+
+A known tile (a pin) is a piece whose true cell is given to the solver. This page prices that in bits of search: how much smaller does the full row-scan tree get when one more cell is fixed, and how does the answer depend on the cell? The fixed costs and budget it is measured against (the row scan with five clues, about 10^15 nodes affordable, the gap in bits) are on the [series hub](/research/lab/experiments/raphael-anjou/full-solve) and are not re-derived here.
+
+## Setup
+
+The quantity is the **full tree**: every valid partial board under a row scan from the bottom, with clues and pins on the board from the start and used only when the scan reaches them. The expected cost to a first solution is about half of it. Two sets of boards:
+
+- **Painted 16x16 boards** (five boards): colours painted onto a planted solution with the official colour counts and the five official clue cells, pieces shuffled. The base tree is 10^40.41 to 10^40.52 (5 boards). Trees are estimated by population sampling plus a second estimator that follows the planted path; both are unbiased and both can fail low.
+- **Small boards** (8x8 and 10x10, generated, exact enumeration, no sampling): a map of single tiles and pairs, and an adaptive solver for comparison. These are toy boards.
+
+## Results
+
+**One tile: 1 to 10 bits, set by position.** On the painted boards (56 cells, mean over 5 boards) the best cell, row 10 column 1, is worth 10.05 bits (9.13 to 11.34 across boards), the median cell 5.79, the worst, a top corner that the scan reaches last, 1.01. Interior cells in rows 8 to 14 are worth 9.3 to 10.1 bits, rows 0 to 3 about 1.1 to 1.5, bottom frame cells about 5.8. A first-moment model predicts the map (Spearman 0.95 over the 56 cells). On the small boards the same shape appears: at 8x8 the mean worth is 2.08 bits, with rows 0, 1, 2 at 3.87, 5.36, 3.40 and rows 4 to 7 at 0.54 to 0.81. Reversing the scan reverses the map (correlation 0.998 at 8x8, 0.995 at 10x10, against -0.64 and -0.23 without the rotation).
+
+**Pins are sub-additive.** Eight spread pins gain 0.88 of the sum of their single gains ([0.85, 0.92], 5 boards); four greedy pins gain 0.92 ([0.87, 0.96]). On the small boards, 10,080 pairs give a median ratio of 0.957, and a touching pair keeps 0.75 of its summed worth.
+
+**Pooled tree after k pins, median over boards** (painted boards; bits gained over the base in brackets):
+
+| k | spread | random |
+|---|---|---|
+| 1 | 10^37.61 (9.6) | 10^38.81 (5.4) |
+| 4 | 10^32.09 (27.8) | 10^33.24 (24.1) |
+| 8 | 10^22.52 (59.5) | 10^28.75 (39.0) |
+| 10 | 10^23.79 (55.4) | not run |
+| 16 | 10^12.79 (92.0) | 10^19.24 (70.4) |
+| 24 | 10^11.28 (97.0) | 10^14.56 (86.1) |
+| 48 | 10^8.47 (106.3) | 10^7.99 (107.8) |
+
+Spread is not monotone (k = 10 sits above k = 8) because each k places its pins at different scan depths. Spread is the best rule tried, not an optimum.
+
+**Against about 10^15 nodes.** Ten spread pins are not enough on any board: the Markov lower bound is above 10^15 for all five. The smallest spread count whose pooled estimate falls under it is 16 on three boards and 24 on two. With 16 random pins, at least half of the (board, set) pairs are still shown above 10^15.
+
+## Status and limits
+
+- **Independently re-checked:** the single-pin map, the leave-one-out clue worths and the lower bounds, by recomputation from the raw rows and 17 of 17 identical reruns; the small-board numbers, by 1,177 rerun units with no mismatch and a separately written enumerator.
+- **Checked end to end only:** the 16 to 24 spread-pin range. The only exact check is whole-tree enumeration at 40 and 48 spread pins (all 10 trees complete, 10^8.06 to 10^10.17, estimator miss at most 0.0047 dex). Between 10^12 and 10^23 nothing is checked exactly, and both estimators can fail low together. No "under" is validated by the preregistered gate.
+- **Clustered pins break the estimators.** For pins chosen greedily with the unplanted model, the two estimators disagree by up to 12.6 dex at k = 12 and the model's placement is wrong by about 11 dex. Those numbers are a demonstration, not a best case.
+- **Transfer to the real pieces, two checks.** The official five-clue tree, 10^40.453, lies inside the painted range; leaving out each official clue costs 2.85 to 2.99 dex for the centre and the two bottom clues and 0.39 to 0.47 dex for the two top ones on the painted boards, and the official values are within 0.3 dex of them. Only the clues, never extra pins, are measured on the real set.
+- **Toy boards.** Everything on 8x8 and 10x10 is a toy-board result. Under an adaptive solver (one solver, 10 boards, 8x8, one colour count) the placement effect largely disappears from 6 known tiles (all rules but frame-only) and from 8 (all rules), while at 3 and 4 tiles the rules still span 6.8 to 13.6 and 6.1 to 11.1 bits. On the toy boards, placing tiles together at the head of the scan beats spreading them under row scan; that was not tested on the 16x16.
+
+## What it means for a full solution
+
+A single tile is worth at most about 10 bits, a typical one about 6, and the gain per tile falls as tiles are added. Reaching about 10^15 nodes with extra pins therefore takes more than 10 well-spread tiles, probably 16 to 24, on these boards and for this full-tree quantity. That is a statement about the row-scan tree: it prices a measurement, and nothing about the real puzzle was measured beyond the five official clues. Series numbers are on the [hub](/research/lab/experiments/raphael-anjou/full-solve).
+
+## Not run
+
+Greedy placement validated against exact trees at 16x16; any exact check between 10^12 and 10^23 nodes; random pins at k = 6, 10, 12; extra pins on the real pieces; an adaptive solver at 16x16 or with the clues on small boards.
+
+## Reproduce
+
+Recipes `just experiments orders-and-pins all` and `just experiments pin-map all`, then `python3 -I research/experiments/orders-and-pins/scripts/analyze.py`. Every number above is printed from the committed raw rows into `results/summary.json` of the respective folder. Record numbers live on [records](/research/records); the open frontier is on [open problems](/research/open-problems).

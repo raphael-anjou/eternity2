@@ -1,0 +1,94 @@
+---
+title: El precio de una solución completa
+description: >-
+  Una búsqueda exacta del 16x16 con cinco pistas cuesta unos 2^134,4 nodos, y
+  ninguna vía examinada cierra la brecha de 56 a 73 bits con lo que se puede
+  costear. El trabajo queda aparcado, con las condiciones de reapertura
+  declaradas. Esta página reúne las cifras fijas e indexa las diez páginas que
+  las respaldan.
+metaDescription: "Lo que cuesta una solución exacta de Eternity II por búsqueda: 10^40,457 nodos (2^134,4) con cinco pistas, una brecha de 56 a 73 bits frente a los presupuestos asequibles, y diez páginas de mediciones y estudios teóricos que no encontraron vía para cerrarla. Aparcado, con condiciones de reapertura."
+kind: page
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+outcome: parked
+order: 50
+updated: 2026-11-14
+date: 2026-11
+topics: [search-space, backtracking, exact-methods]
+repro:
+  kind: exact
+  cmd: just experiments approach-pricing
+  produces: search
+  scope: "Reimprime en segundos la tabla del techo de un corte gratuito perfecto a partir del perfil de niveles versionado. No repite el perfil del barrido por filas, las pruebas en tableros pequeños ni las recomprobaciones, que están en las carpetas de experimentos citadas en las fuentes."
+related:
+  - /research/lab/experiments/raphael-anjou
+  - /research/build/analysis/solution-counting
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Valoración de enfoques: pregunta, cifras, vías, condiciones de reapertura"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+  - label: "Perfil del puzle real: el árbol del barrido por filas, medido"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/real-puzzle-profile
+  - label: "Registro de trabajo de las dos noches, con el registro de correcciones"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/program/night
+---
+
+## La pregunta y la respuesta
+
+¿Cuánto costaría una solución exacta del 16x16 por búsqueda, y puede alguna familia de ideas conocida cerrar la brecha entre ese coste y lo que se puede permitir? Respuesta: ninguna vía examinada la cierra. La mayor ganancia que resistió una recomprobación independiente es de unos 5,5 bits de nodos, frente a una brecha de 56 a 73 bits. El trabajo queda aparcado, no demostrado imposible: varios cierres descansan en un solo lector o en una sola familia de solucionadores, y las páginas lo señalan. Las condiciones que lo reabrirían están más abajo.
+
+## Las cifras fijas
+
+El resto de páginas de la serie remite aquí en lugar de repetirlas.
+
+| Magnitud | Valor | Origen |
+|---|---|---|
+| Árbol del barrido por filas, piezas reales, cinco pistas | 10^40,457 nodos, 2^134,4 (intervalo al 95 %: 10^40,440 a 10^40,473) | medido, `research/experiments/real-puzzle-profile/RESULTS.md` |
+| Asequible: esfuerzo distribuido muy grande | 2^78 nodos | `research/experiments/approach-pricing/README.md` |
+| Asequible: 1.000 años-núcleo a 1e8 nodos por segundo | 2^61,5 nodos | mismo archivo |
+| Brecha frente a esos dos presupuestos | 56 a 73 bits | mismo archivo |
+| Brecha frente a una ejecución modesta de unos 10^15 nodos (unos 2^50) | unos 84 bits | derivado aquí: 134,4 menos 50 |
+| Soluciones esperadas | unas 14.702 con la pista inicial, unas 1 con las cinco | [recuento de soluciones](/research/build/analysis/solution-counting) |
+
+Los 84 bits corresponden a la ejecución de 10^15 y los 56 a 73 bits a los dos presupuestos mayores; nunca se mezclan. El tamaño de un árbol es una estimación con un muestreador de partículas (un millón de partículas), no un recuento; la predicción del modelo aleatorio cae a 0,04 dígitos de ella.
+
+## La razón en una frase
+
+Toda comprobación que funciona, funciona demasiado tarde. Las pruebas que refutan los tableros erróneos solo refutan a casi todos a partir de la profundidad 144 a 192, mientras que el nivel más ancho del árbol medido está en la profundidad 158, y un corte gratuito perfecto en la profundidad 144 ahorraría como mucho 2,4 bits de 134,4. El argumento y su tabla de techos están en [filtros tardíos](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
+
+## Las diez páginas
+
+Los resultados sobre tableros generados son resultados de juguete y nunca un avance en Eternity II.
+
+| Página | Qué se midió | Resultado | Estado |
+|---|---|---|---|
+| [El precio de una búsqueda completa](/research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search) | Tamaño del árbol del barrido por filas con las piezas reales, con cinco pistas, una o ninguna | 10^40,457 nodos con cinco pistas; no se encontró forma de acortarlo | medido (estimaciones) |
+| [Marco y esquinas](/research/lab/experiments/raphael-anjou/full-solve/frame-and-corners) | Coste de refutar marcos erróneos de las piezas reales | La refutación barata de un marco completo está muerta; la información barata (unos 17,4 bits) está en las esquinas de las pistas; marcos lejos de ellas: sin decidir | aparcado |
+| [Lo que vale una ficha conocida](/research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile) | Bits que quita una ficha fijada, según la casilla, en tableros 16x16 pintados | De 1 a 10 bits según la posición (mediana 5,8), subaditivo; 10 fichas dispersas dejan aún más de 10^15 nodos, de 16 a 24 quedan por debajo | medido en tableros pintados; solo comprobación de extremo a extremo |
+| [Filtros tardíos](/research/lab/experiments/raphael-anjou/full-solve/late-filters) | Techo de un corte gratuito según la profundidad | Un corte gratuito en la profundidad 144 ahorra como mucho 2,4 bits | refutado (aritmética derivada de un perfil medido) |
+| [Siete familias valoradas](/research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out) | Estudios teóricos y recomprobaciones de siete familias de enfoques | Mayor ganancia resistente: unos 5,5 bits; ninguna valorada en 10 bits o más | aparcado; algunos cierres descansan en un solo lector |
+| [Relajaciones en tableros pequeños](/research/lab/experiments/raphael-anjou/full-solve/relaxations-on-small-boards) | Elevación semidefinida y forma de rango bajo en juguetes de 4x4 a 6x6 | Limpia en 3 de 5 tableros 5x5, inexacta en uno, sin decidir en otro; no se puede ejecutar en 16x16; la forma de rango bajo es una búsqueda aleatoria que el recocido supera | refutado (tableros de juguete) |
+| [Aprendizaje frente a propagación](/research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation) | Aprendizaje de cláusulas frente a un solucionador de solo propagación, de 5x5 a 7x7 | El aprendizaje aporta +1,31 bits en 5x5 y +2,03 en 6x6; sin valor en 7x7; la línea de parada es indecidible con estos datos | sin decidir (tableros de juguete, recomprobado de forma independiente) |
+| [Fidelidad del port](/research/lab/experiments/raphael-anjou/full-solve/port-fidelity) | Siete diferencias entre nuestro port y un motor de tipo récord | Las siete corregidas; con cinco pistas, los valores fieles rinden peor que los antiguos | refutado como mejora |
+| [Diez experimentos de motor](/research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks) | Coste del nodo, órdenes, retrocesos y cotas de 6x6 a 9x9 | Un nodo de 5,3 a 6,1 veces más barato para la búsqueda idéntica; ningún método redujo el árbol | refutado para el árbol (tableros de juguete) |
+| [Experimentos de claves](/research/lab/experiments/raphael-anjou/full-solve/keying-experiments) | Repetición y claves de memoria de callejones sin salida | Tres descartados, dos conservados como mediciones; un efecto de tasa de 53 veces, unos 5,7 bits | refutado como vía |
+
+## Qué lo reabriría
+
+Tomado de las condiciones de reapertura del registro de valoración. Basta una.
+
+1. Un método publicado muestra una ganancia de clase. Se valora primero contra el índice de vías y la tabla de techos.
+2. Fichas de la solución quedan disponibles desde fuera de la búsqueda. Una ficha extra vale unos 10 bits en el mejor caso y unos 6 de mediana en tableros pintados, y una ejecución de 10^15 necesita más de 10 fichas dispersas, probablemente de 16 a 24.
+3. El hardware mejora 15 órdenes de magnitud o más. Todos los multiplicadores creíbles juntos suman unos 2,5 órdenes.
+4. Una recomprobación o una ejecución derriba un cierre: la elevación convexa resulta exacta en 6x6; el estrato lejano de los núcleos de marco se resuelve por debajo del punto de equilibrio; el trabajo de un solucionador sin árbol crece menos de 0,75 veces el del árbol de 6x6 a 7x7; la ventaja de un solucionador con aprendizaje sobre la propagación sola crece con el tamaño.
+
+La regla habitual de reapertura es un precio de 10 bits o más y un experimento que pueda refutarlo en menos de un día.
+
+## El registro completo
+
+El registro de trabajo de las dos noches (12 y 13 de noviembre de 2026) está en el repositorio, en [research/program/night](https://github.com/raphael-anjou/eternity2/tree/main/research/program/night): los informes diarios, el registro, los estudios teóricos y sus recomprobaciones, y el índice de vías. Unas sesenta afirmaciones hechas durante el trabajo fueron retiradas o corregidas, entre ellas una cifra del coste del interior bajo un marco verdadero (sustituida por unos 10^13,6 nodos de media), y el registro las conserva todas con su sustituta. Lea el registro de correcciones antes de citar una cifra de las notas de trabajo; las páginas de esta serie solo recogen lo que quedó en pie después.
+
+Para las puntuaciones récord y la frontera abierta, véanse los [récords](/research/records) y los [problemas abiertos](/research/open-problems).

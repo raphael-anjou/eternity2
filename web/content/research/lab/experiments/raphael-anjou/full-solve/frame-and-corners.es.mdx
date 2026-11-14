@@ -1,0 +1,94 @@
+---
+title: "Marco y esquinas: refutar un marco falso no sale barato"
+description: >-
+  Refutar un marco completo falso de las piezas reales no sale barato: se cumple
+  la línea de fracaso preregistrada, y refutar marcos parciales cuesta de 2,2 a
+  2,5 bits más de lo que ahorra. La información barata sobre el marco, unos 17,4
+  bits, está en las cuatro esquinas con pista. Si los marcos alejados de las
+  esquinas se refutan barato sigue sin decidirse.
+metaDescription: "Medido en las piezas reales de Eternity II con las cinco pistas: la refutación barata de un marco completo está muerta, los marcos parciales cuestan de 2,2 a 2,5 bits sobre el punto de equilibrio, la información barata está en las esquinas con pista, y los marcos alejados de las esquinas quedan sin decidir."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: parked
+hardware:
+  cores: 10
+  threads: 12
+  cpu: "x86 host, 12 threads, at most 10 used"
+  gpus: 0
+  accelerator: none
+  machine: "12-thread x86 host, 10 jobs in parallel"
+  wallClock: "about 59 core-hours (test stage 4.8 h, extra far-from-corner set 1.1 h)"
+  seedPolicy: "frame samples and counts seeded; refuter timings depend on the host"
+  measured: false
+repro:
+  kind: heavy
+  cmd: just experiments frame-cores
+  produces: search
+  scope: "Repite toda la medición preregistrada (unas 59 horas-núcleo) y regenera las tablas desde las filas en bruto; las muestras de marcos y los recuentos llevan semilla, los tiempos de los refutadores no. Las cifras de 17,4 bits y 10^13,6 salen de las notas de tasación, no de este comando."
+order: 52
+updated: 2026-11-14
+date: 2026-11
+topics: [structure, search-space]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/worth-of-a-known-tile
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/lab/experiments/raphael-anjou/full-solve/learning-against-propagation
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "Frame cores: preregistro, enmiendas, resultados y tablas"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/frame-cores
+  - label: "Approach pricing: notas de tasación de los nogoods de marco y salidas de la revisión"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/approach-pricing
+---
+
+Una búsqueda que fija primero las 60 piezas del borde y rellena después el interior solo compensa si los marcos falsos mueren barato. Esta página plantea tres preguntas sobre las piezas reales con las cinco pistas. ¿Se puede refutar barato un marco completo falso? ¿Se puede refutar un marco parcial (un arco del borde) por menos de lo que cuesta la búsqueda que evita? ¿Y dónde está la información barata sobre el marco? Para los precios fijos (barrido por filas 2^134,4, unos 10^15 nodos asequibles, una brecha de 56 a 73 bits) véase [el hub de la serie](/research/lab/experiments/raphael-anjou/full-solve).
+
+## Montaje
+
+Los marcos se muestrearon con un muestreador de Monte Carlo secuencial sobre el anillo del borde (5.000 partículas, muestreo aproximadamente uniforme). El estrato H conserva los marcos que superan las cuatro pruebas de bloques de pista (las tres casillas interiores libres junto a una pista de esquina deben poder rellenarse con piezas distintas); el marco verdadero está en H. Hay 60 marcos H, 30 marcos uniformes (U), otros 60 marcos H sin bloque 3x3 de pista muerto («realfar») y tres tableros generados como control. Refutadores: relleno en profundidad simple en dos órdenes, el mismo con una comprobación de emparejamiento, y el solucionador SAT Glucose con el marco como supuestos. Los umbrales y dos enmiendas se registraron antes de cualquier ejecución de la prueba. No es un intento de récord, y los resultados en tableros generados nunca son progreso en Eternity II.
+
+## Resultados
+
+| Pregunta | Resultado | Estado |
+|---|---|---|
+| Refutación barata de un marco completo (H real, 60 marcos) | Muerta. Mediana inferior de la aceleración sobre la búsqueda simple: 0,89, 0,12 y 1,00 (emparejamiento por filas, en espiral, SAT) frente a una línea de 100 | medido, revisado de forma independiente |
+| Refutar un arco de 44, 42, 40, 38 casillas de borde | El SAT refuta 42, 41, 34, 30 de 60 arcos en 60 s; coste anidado 27,7; 31,4; 35,4; 39,5 bits frente a presupuestos de 25,5; 29,0; 32,9; 37,0 | medido, revisado de forma independiente |
+| Información barata sobre el marco | Unos 17,4 bits, todos en las cuatro esquinas con pista | revisado de forma independiente dos veces |
+| Marcos alejados de las esquinas con pista | Sin decidir | medido, sin decidir |
+
+**Un marco completo falso no se refuta barato.** La búsqueda simple queda censurada en 25 de 60 marcos. El SAT refuta un marco de inmediato o no lo refuta: en H real todas las refutaciones terminaron en 0,35 s como máximo (46 marcos), y el resto tocó el tope de 600 s.
+
+**Refutar arcos queda por encima del punto de equilibrio en todos los tamaños.** El coste anidado supera su presupuesto en 2,2 a 2,5 bits en los cuatro tamaños. Con 38 casillas el presupuesto supera el tope de 120 s, así que ese nivel no puede concluir: se declara, no se lee. Una línea preregistrada más laxa (al menos 15 de 60 arcos refutados en 60 s) se cumple, pero es el efecto de esquina descrito abajo, y manda el coste anidado.
+
+**La información barata está en las esquinas.** Un marco supera los cuatro bloques de pista con probabilidad 2^-17,4 (2^-17,41 en conjunto, un error estándar de 17,38 a 17,43). En esta medición la misma cantidad es 17,24 bits en las piezas reales. Los marcos «cercanos» mueren con un núcleo de 3 casillas de borde (mediana): 23 de 60 marcos H son cercanos (la refutación más barata queda a distancia de anillo 3 o menos de una esquina), y 21 de esos 23 tienen un bloque 3x3 de pista muerto (29 de 60 marcos H lo tienen). Su coste mediano es de 29,83 bits. La misma facilidad aparece en los tres tableros generados (medianas de los cercanos 31,39; 28,99; 32,22): viene de la geometría de las esquinas con pista, no de las piezas reales.
+
+**Los marcos alejados de las esquinas quedan sin decidir.**
+
+| Estrato | Marcos | Censurados | Mediana en bits [intervalo al 95 %] |
+|---|---|---|---|
+| H real, cercanos | 23 | 0 | 29,83 [28,30; 33,78] |
+| H real, alejados | 37 | 16 | 75,12 [42,64; inf] |
+| Conjunto adicional, alejados | 52 | 29 | inf [58,43; inf] |
+
+La mediana de los alejados queda por debajo de la línea de 120 bits, pero su intervalo no está acotado: no se aplica ni la línea de éxito ni la de fracaso. Parte de la censura del conjunto adicional es un fallo del contador, no del refutador (5 de los 29 marcos: el contador no devolvió ninguna partícula superviviente, y el marco se anotó sin nogood utilizable aunque un refutador lo probó). Esa decisión es conservadora para la mediana.
+
+La mediana global de 36,75 bits [32,90; 53,19] en H real cumple, a la letra, una condición necesaria. No es un resultado: la mediana cae sobre los marcos de esquina, y no dice nada de una búsqueda guiada por núcleos aprendidos.
+
+## Qué implica para una solución completa
+
+La información de las esquinas es real y barata, y cubre una parte pequeña de la brecha. Un marco que supera las esquinas deja un interior por explorar: unos 10^13,6 nodos de media con búsqueda en espiral, una cifra de modelo que sustituye a un 10^8,3 anterior (media sobre todos los marcos válidos, casi todos los cuales mueren en las esquinas). Está revisada de forma independiente como modelo, no medida: confirmar el marco verdadero en tableros 16x16 generados tocó el tope de 600 s con los cinco refutadores, así que el coste de confirmación medido es solo una cota inferior. Que una búsqueda que empiece por el marco supere al barrido por filas depende de los marcos alejados, y esa es la parte que queda sin decidir. Esta página no deduce de ahí ningún ahorro.
+
+## Qué no se ejecutó
+
+Emparejamiento y espiral sobre arcos; búsqueda simple sobre arcos de 42, 40 y 38 casillas; arcos de 34 y 30 casillas; una variante con solucionador incremental; cualquier confirmación 16x16 de un marco verdadero más allá del tope. La cifra 10^13,6 es un modelo, sin ejecución sobre las piezas reales.
+
+## Reproducir
+
+`just experiments frame-cores` repite la medición (unas 59 horas-núcleo). El README y las tablas de la [carpeta de evidencia](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/frame-cores) contienen todas las cifras de arriba. Véanse los [récords](/research/records) y los [problemas abiertos](/research/open-problems) para la frontera, y los [callejones sin salida](/research/build/dead-ends) para las pruebas locales baratas.

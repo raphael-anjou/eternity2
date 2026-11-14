@@ -1,0 +1,220 @@
+---
+title: "Experimentos de indexación y repetición: ninguna ganancia hallada, un efecto medido"
+description: >-
+  Cinco experimentos preinscritos sobre recordar e indexar los callejones sin
+  salida no hallaron ninguna ganancia que importe para una resolución completa.
+  Tres se descartaron (bandas del mapa de diferencias, repetición indexada por el
+  corte, indexación con cinco pistas) y dos se conservaron como mediciones
+  (indexación por cuota, y curva de cuota con cinco pistas). El resultado
+  conservado sobre la cuota es un efecto de ritmo de 53 veces, unos 5.7 bits,
+  frente a una brecha de 56 a 73 bits.
+metaDescription: "Cinco experimentos preinscritos sobre indexar y repetir callejones sin salida: tres descartados, dos conservados como mediciones. Con cinco pistas, la curva de cuota, y no la indexación por colores, decide si se llega a la profundidad 201 (unos 5.7 bits de ritmo frente a una brecha de 56 a 73 bits)."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+outcome: refuted
+hardware:
+  cores: 12
+  threads: 12
+  cpu: "Single-threaded runs spread over a 14-core low-power x86 laptop (12 threads), an 8-core Apple M1 (7 threads) and an Apple laptop (4 threads)"
+  accelerator: none
+  machine: "three laptops, runs pinned to one thread each"
+  wallClock: "5.67 thread-hours for the five-clue quota experiment (5.06 test, 0.52 calibration, 0.09 gates); 6.81 core-hours for the difference-map test grid; 16.1 thread-hours for quota keying; 20.6 for five-clue keying; 2.13 for cut-keyed replay"
+  seedPolicy: "seeded and deterministic per row; wall-clock seconds vary by host"
+  measured: false
+repro:
+  kind: seeded
+  cmd: just experiments five-clue-quota test 4 local
+  topic: five-clue-quota
+  produces: search
+  scope: "Repite la parte local (aperturas 514 a 516) del experimento conservado sobre la cuota con cinco pistas, 1e9 nodos por ejecución; las 16 aperturas requieren los tres grupos de semillas, y cada fila se reproduce nodo a nodo, solo varían los segundos."
+order: 57
+updated: 2026-11-14
+date: 2026-11
+topics: [backtracking, search-space]
+related:
+  - /research/lab/experiments/raphael-anjou/full-solve
+  - /research/lab/experiments/raphael-anjou/full-solve/price-of-a-full-search
+  - /research/lab/experiments/raphael-anjou/full-solve/late-filters
+  - /research/lab/experiments/raphael-anjou/full-solve/port-fidelity
+  - /research/lab/experiments/raphael-anjou/full-solve/search-engine-tracks
+  - /research/lab/experiments/raphael-anjou/full-solve/approaches-priced-out
+  - /research/records
+  - /research/open-problems
+  - /research/build/dead-ends
+sources:
+  - label: "difference-map-bands: preregistration, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/difference-map-bands
+  - label: "cut-keyed-replay: preregistration, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/cut-keyed-replay
+  - label: "quota-keying: preregistration, amendments, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/quota-keying
+  - label: "five-clue-keying: preregistration, amendments, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/five-clue-keying
+  - label: "five-clue-quota: preregistration, amendments, results and independent assessment"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/five-clue-quota
+---
+
+Una búsqueda que olvida por qué murió una rama la paga dos veces. Estos
+experimentos recuerdan los callejones sin salida, o indexan la búsqueda por unos
+pocos colores para reconocerlos antes. Cada pregunta, cada referencia y cada
+umbral de parada se fijaron antes de cualquier prueba. Cada resultado fue
+reverificado de forma independiente; cuando un README y esa reverificación
+discrepaban, decidió la reverificación y se corrigió el README. El precio de una
+búsqueda completa y la brecha están en la
+[página de la serie](/research/lab/experiments/raphael-anjou/full-solve).
+
+## Los cinco de un vistazo
+
+Los tableros de 6x6 a 8x8 son tableros generados (de juguete), nunca un avance
+en Eternity II. Los tres experimentos con piezas reales usan las piezas
+oficiales del 16x16, sin intento de récord.
+
+| Experimento | Pregunta | Referencia | Umbral de parada | Resultado | Cifra clave |
+|---|---|---|---|---|---|
+| difference-map-bands (generados) | ¿Frenan unas proyecciones exactas sobre bandas el crecimiento de un mapa de diferencias con el tamaño? | ancho 0, `bb-mrv` | descartada si la pendiente no baja | **descartada** con este tope | 0 resueltas de 30 en 7x7, cualquier ancho; `bb-mrv` 23 de 30 |
+| cut-keyed-replay (generados) | ¿Poda la propagación particionada por una línea de corte gracias al corte? | nodos de `bb-mrv`, clave aleatoria | descartada si una clave aleatoria queda a 0.1 | **descartada** | corte 0.486 de los nodos, aleatoria 0.419, trabajo 1.21 |
+| quota-keying (reales) | ¿Vale la indexación por colores del motor publicado de 450 a 4 600 veces? | indexación por defecto | contradicha si la ganancia queda bajo 45 | **conservada**; afirmación contradicha | ganancia 1.31 [0.69, 2.43] |
+| five-clue-keying (reales) | Con cinco pistas, ¿es palanca una indexación de un anillo? | por defecto, claves aleatorias | no es palanca si mejor contra aleatoria incluye 1 | **descartada**, confundida | 0 de 2 240 ejecuciones llegan a la profundidad legal 201 |
+| five-clue-quota (reales) | ¿Indexación o curva de cuota? | indexación y cuota por defecto | la holgura explica si 0 de 12+ frente a 8+ aperturas | **conservada**: la holgura lo explica | 0 de 16 frente a 14 de 16 aperturas |
+
+«Conservada» significa que la medición es válida, se reproduce exactamente y sus
+lecturas se sostienen. No significa que un método funcione.
+
+## Bandas del mapa de diferencias (descartada)
+
+Se añadieron proyecciones exactas sobre bandas de ancho k (una programación
+dinámica), k = 0 a 3, a un mapa de diferencias (un método de proyecciones
+iteradas) sobre 30 tableros generados por tamaño, 3 semillas cada uno, 20 000
+iteraciones por ejecución. En 7x7 y 8x8 no se resolvió ninguna instancia con
+ningún ancho (salvo una ejecución de 90), así que no se midió ningún exponente
+de crecimiento: la muerte vale para este método con este tope. En 6x6, el único
+tamaño con medianas finitas, la razón del número de iteraciones respecto al
+ancho 0 tiene intervalos [0.41, 1.36], [0.43, 1.30] y [0.77, +inf] para los
+anchos 1 a 3, todos con el 1 dentro, y cada ancho cuesta de 3 a 33 veces más por
+iteración. Un tope mayor podría dar medianas finitas en 7x7 con anchos bajos,
+pero la tendencia en 6x6 y las ejecuciones censuradas apuntan en sentido
+contrario. Reverificada de forma independiente: 90 filas repetidas, idénticas.
+
+## Repetición indexada por el corte (descartada)
+
+Se repitieron particiones indexadas por los colores de dos aristas de corte
+sobre los árboles exactos de `bb-mrv`, en 60 tableros generados. La clave de
+corte conserva 0.486 [0.469, 0.500] de los nodos en 7x7, justo bajo la línea de
+0.5. Una clave aleatoria con el mismo número de particiones, tomada fuera de la
+línea de corte, conserva menos: 0.419 en 7x7, con cada semilla de control y en
+30 instancias de 30 (0.444 frente a 0.483 en 6x6). La poda viene de particionar
+en general (todos los brazos indexados conservan de 0.42 a 0.49), no del corte,
+y todos los brazos cuestan más trabajo de propagación que `bb-mrv` (1.211 para
+la clave de corte). No probado: una clave de corte dentro de un solucionador por
+barrido de filas. Reverificada de forma independiente: las filas 6x6 y una
+muestra de filas 7x7 se reproducen.
+
+## Indexación por cuota (conservada)
+
+El motor récord publicado poda por debajo de una cuota de lados de colores
+«privilegiados» colocados en cada casilla. Un estudio previo afirmaba que esa
+indexación abarata de 450 a 4 600 veces llegar a la profundidad 201 (la
+profundidad cuenta casillas colocadas, de 256). Medido con las piezas reales,
+cobrando cada nodo, 10 aperturas por brazo, 1e9 nodos por ejecución, con la
+terna publicada (colores 5, 20, 7 en la numeración de este repositorio) frente
+al valor por defecto del port:
+
+- **Ganancia de indexación: contradicha.** 1.31 [0.69, 2.43] sin pista, 0.74
+  [0.42, 1.27] con la pista central. Con cinco pistas la indexación publicada
+  nunca llegó a la profundidad 201 en 10 ejecuciones; la de por defecto lo hizo
+  135 veces. Alcance: 1e9 nodos, un intento, este port (el estudio previo llegó
+  a 1e10 con cinco pistas).
+- **Camino de ruptura legal: confirmado, pero caro.** Prohibir las colocaciones
+  ilegales en las rupturas da 7.63 [4.82, 13.9] veces más nodos legales más allá
+  de la profundidad 201 por nodo, pero va unas 23 veces más lento por nodo (1.25
+  llegadas por segundo frente a 19.2).
+- **Escalonado: muerto para el calendario del estudio previo, en este port.**
+  Exigir los 122 lados privilegiados desde la profundidad 176 reduce los nodos
+  profundos (profundidad 230 o más) a 0.051 [0.031, 0.081] de los del calendario
+  publicado; un tercer color desde la profundidad 200 los reduce a 0, algo que un
+  barrido de filas apenas puede dar: no es una medida de rendimiento. Muerto si
+  ambas razones caen por debajo de 3.
+
+Reverificada de forma independiente: 19 filas repetidas, idénticas.
+
+## Indexación con cinco pistas (descartada)
+
+Con las cinco pistas oficiales, se cribaron 680 indexaciones (un color de anillo,
+dos colores interiores, cuota ajustada a la indexación) sobre 3 aperturas, y se
+confirmaron las cinco mejores, la terna publicada y cinco claves aleatorias en 20
+más. Ninguna de las 2 240 ejecuciones de un anillo colocó un nodo legal en la
+profundidad 201 o más; la indexación por defecto colocó 9 758 en las 20 aperturas
+de confirmación. La lectura «no es palanca» es un efecto suelo (mejor contra
+aleatoria da 0 entre 0, fijado en 1), y la de por defecto difería en dos cosas a
+la vez, la indexación y la holgura de la cuota. Lo que queda es estrecho:
+ninguna indexación de un anillo funciona con la cuota ajustada. Reverificada: 20
+filas repetidas, idénticas.
+
+## Cuota con cinco pistas (conservada)
+
+Esta separó las dos. Mismas cinco pistas, 16 aperturas, 32 brazos. La indexación
+por defecto, a la que se piden 147 de sus 150 lados en la casilla 160 en lugar
+de 119, no pasa nunca de la profundidad 35: 0 aperturas de 16 llegan a la
+profundidad 201 (12 con su propia cuota). Las indexaciones de un anillo, a las
+que se pide la misma proporción del 79 % de sus lados, tienen 14 aperturas
+positivas de 16 (terna publicada) y de 12 a 13 (indexación 1, 7, 9), frente a 2 y
+1 con su cuota anterior del 97.5 %. Los nodos legales más allá de la profundidad
+201 por segundo pasan de 0.19 a 10.0 para la terna publicada. **La holgura de la
+cuota, no el juego de colores, explicaba el experimento anterior.**
+
+No demostrado: con holgura igual, la de por defecto sigue por delante en la
+estimación puntual (las indexaciones de un anillo en 0.61 [0.30, 1.53] y 0.74
+[0.29, 2.18] de su ritmo por segundo), con intervalos que contienen el 1, así que
+no se muestra que la indexación importe con 16 aperturas. No se localiza qué
+tramo de la curva es el que aprieta. La corrección de orientación de la fila
+superior del port es gratuita (0.98 [0.95, 1.04]). Profundidad legal máxima de
+cualquier ejecución: 220. Reverificada de forma independiente: 8 filas repetidas,
+idénticas.
+
+## Qué implica para una resolución completa
+
+Ninguno de los cinco abarata una resolución completa. Estos son los logaritmos en
+base 2 de las razones anteriores (calculados), suponiendo, lo cual es falso, que
+todos los efectos se trasladan y se suman:
+
+| Efecto | Factor | Bits |
+|---|---|---|
+| clave de corte, tableros generados, solo nodos (el trabajo sube) | 1 / 0.486 | 1.0 |
+| ganancia de la indexación publicada, sin pista | 1.31 | 0.4 |
+| camino de ruptura legal, por nodo (pérdida en tiempo real) | 7.63 | 2.9 |
+| holgura de cuota, ritmo de llegada a la profundidad 201 | unos 53 | 5.7 |
+
+El barrido de filas con cinco pistas cuesta 2^134.4 nodos, unos 10^15 nodos son
+asequibles, y la brecha es de 56 a 73 bits. Los cuatro juntos suman unos 10 bits,
+y quedan al menos 46 de 56. El resultado conservado es un ritmo de llegada a una
+profundidad, no un árbol más pequeño, y una ejecución más profunda no es un
+tablero con mejor puntuación (véanse [los récords](/research/records)). Véanse
+también los [filtros tardíos](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
+
+## Lo que no se ejecutó
+
+Ninguna otra forma de curva de cuota, ningún presupuesto por encima de 1e9 nodos
+por ejecución, ningún reinicio, ningún entrelazado de bordes, ninguna clave de
+corte dentro de un solucionador por barrido de filas, ninguna otra proyección
+sobre bandas.
+
+## Reproducir
+
+El experimento conservado:
+
+```
+just experiments five-clue-quota test 4 local
+```
+
+Los otros cuatro:
+
+```
+just experiments difference-map-bands
+just experiments cut-keyed-replay test 7 12
+just experiments quota-keying main 12
+just experiments five-clue-keying screen 12
+```
+
+Las etapas previas y los scripts de análisis están en el README de cada carpeta.
