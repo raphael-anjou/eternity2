@@ -217,3 +217,146 @@ backdoor-branching stage="all":
 # stage: all (about 90 min on 8 vCPU) | build | check | calibrate | q1 | q2 | extended | ablations | analyze.
 mrv-baseline stage="all":
     mrv-baseline/run.sh {{stage}}
+
+# MRV-NODE-COST: bb-mrv-fast visits
+# the identical node sequence as bb-mrv (hashed per seed, 140 gate instances at
+# R6/R7/8x8 c=10) at a lower cost per node (A/B/B/A wall clock, 5 reps).
+# See mrv-node-cost/PREREG.md. stage: all (about 1 h on 1 core) | build | gate | supp | time | analyze.
+mrv-node-cost stage="all":
+    mrv-node-cost/run.sh {{stage}}
+
+# MRV-SCALING-PILOT: does the bb-mrv / scb paired
+# node ratio at 9x9 c=11 (seeds 101..108, cap 1e8) fall below the 8x8 c=10
+# value? A pilot, not the 30-seed scaling run. See mrv-scaling-pilot/PREREG.md.
+# stage: all (hours; 4 concurrent runs) | build | check | test | analyze.
+mrv-scaling-pilot stage="analyze":
+    mrv-scaling-pilot/run.sh {{stage}}
+
+# REAL-PUZZLE-PROFILE: on the official 16x16
+# piece set, the share of a Blackwood-style engine's nodes after the first
+# break unlock (M1), and an SMC estimate of the exact row-scan tree size (M2).
+# Measurements, not record attempts. See real-puzzle-profile/PREREG.md.
+# stage: build | equiv (needs BW_BIN) | gate-gen | gate-a | gate-b | m1 | m2 | frames | paint.
+# Then: python3 -I real-puzzle-profile/scripts/analyze.py
+real-puzzle-profile stage="m1":
+    real-puzzle-profile/run.sh {{stage}}
+
+# Difference map (divide and concur) with exact k-row band projections, k = 0..3,
+# on the hard ladder's primary rungs n = 6, 7, 8 against bb-mrv: does the
+# growth rate of iterations fall with k? See difference-map-bands/PREREG.md.
+# stage: all (about 2 h on 4 cores) | build | test | merge | analyze.
+difference-map-bands stage="all":
+    difference-map-bands/run.sh {{stage}}
+
+# Cut-keyed trace partitioning, the deciding replay:
+# persistent cut-keyed partitions replayed on bb-mrv's R6/R7 trees against a
+# partition-matched random key and budgeted POAC. See cut-keyed-replay/PREREG.md.
+# stage: build | check | test <n> [threads] | analyze.
+cut-keyed-replay stage="analyze" arg="" arg2="":
+    cut-keyed-replay/run.sh {{stage}} {{arg}} {{arg2}}
+
+# Dead-node refutation census: at
+# bb-mrv's dead nodes on R6, R7 and the 7x7 c=8 null, which bounded-region
+# checks prove death, at what work, how often refutations recur. See
+# dead-node-census/PREREG.md. stage: build | fuzz | gate | stage B|A|E|D|C | analyze.
+dead-node-census stage="analyze" arg="":
+    dead-node-census/run.sh {{stage}} {{arg}}
+
+# Quota keying, legal break path and colour staging on the real pieces
+#. Measurements, not record attempts.
+# See quota-keying/PREREG.md. stage: build | gate | main | m3scan | m3 (needs seeds).
+# Then: python3 -I quota-keying/scripts/analyze.py
+quota-keying stage="build" parallel="4" seeds="":
+    quota-keying/run.sh {{stage}} {{parallel}} {{seeds}}
+
+# Which colour keying suits the five-clue board.
+# Measurement on the real pieces, not a record attempt. See five-clue-keying/PREREG.md.
+# stage: build | gate | screen | confirm (needs results/screen-arms.json from
+# python3 -I five-clue-keying/scripts/analyze_screen.py). Then: python3 -I five-clue-keying/scripts/analyze.py
+five-clue-keying stage="build" parallel="4":
+    five-clue-keying/run.sh {{stage}} {{parallel}}
+
+# Five clues, orientation fix x quota curve x keying, plus deconfounding arms.
+# Measurement on the real pieces, not a record attempt. See five-clue-quota/PREREG.md.
+# stage: build | gate | calib | test; host picks that host's seeds (x86, m1, local).
+# Then: python3 -I five-clue-quota/scripts/analyze.py
+five-clue-quota stage="build" parallel="4" host="local":
+    five-clue-quota/run.sh {{stage}} {{parallel}} {{host}}
+
+# A20: blocker eviction (IMS rule) as the backjump rule inside bb-mrv, with a
+# random-eviction twin. See blocker-backjump/PREREG.md.
+# stage = build | calibrate | r6 | r7 | r8 | seeds23 | analyze.
+blocker-backjump stage="analyze":
+    blocker-backjump/run.sh {{stage}}
+
+# VALUE-IMPACT-ORDER (A21): inside bb-mrv, does trying a cell's options in
+# ascending order of the option values their propagation removes (failed last)
+# shrink the search against bb-mrv, a probe-then-random twin and mrv-rand
+# (PROTOCOL.md G1 + interleaved wall clock at 6x6 c=5, 7x7 c=6, 8x8 c=10)?
+# See value-impact-order/PREREG.md.
+# stage: all (about 1 h on 2 cores) | build | calibrate | test | check | analyze.
+value-impact-order stage="all":
+    value-impact-order/run.sh {{stage}}
+
+# HALL-ON-MRV: does A17's Hall matching check
+# (distinct unused piece for every empty cell) shrink bb-mrv's tree on R6, R7
+# and 8x8 c=10 (PROTOCOL.md G1 vs bb-mrv), and at what wall-clock cost?
+# stage: all (about 75 min on 2 threads) | build | check | test | trace | analyze. See hall-on-mrv/PREREG.md.
+hall-on-mrv stage="all":
+    hall-on-mrv/run.sh {{stage}}
+
+# Baseline tournament: every solver-like
+# component on R6, R7 and 8x8 c=10 through the hard-ladder NodeCounter, 1e6 cap.
+# See baseline-tournament/PREREG.md. stage: all | build | run | analyze.
+baseline-tournament stage="all":
+    baseline-tournament/run.sh {{stage}}
+
+# PARTIAL-MATCH LADDER: planted boards where score-maximising engines stall
+# below the optimum; best verified score at fixed work and work to optimum - k.
+# stage: check (build, tests, instance check) | analyze (tables from committed
+# raw rows) | rerun-test N C THREADS (re-run one test rung). See its README.md.
+partial-match-ladder stage="check" *args="":
+    partial-match-ladder/run.sh {{stage}} {{args}}
+
+# Score-bound gap (stage 0 of a relaxed-decision-diagram score bound): self-test
+# against brute force, then re-run the analysis of the committed test rows.
+# Full re-measurement: score-bound-gap/sample_all.sh then run_remote.sh (README).
+score-bound-gap:
+    cargo build --release --manifest-path score-bound-gap/compute/Cargo.toml
+    score-bound-gap/compute/target/release/sbg selftest 40
+    python3 -I score-bound-gap/analysis/analyze.py
+
+# bb-mrv-fast with progress records, checkpoint and resume. See resumable-runs/PREREG.md.
+# stage: all | build | gate-a | gate-b | gate-c | time | analyze, fix round: fix-bin | fix-gate-a | fix-gate-b | fix-gate-c | tamper | fix-analyze.
+resumable-runs stage="all":
+    resumable-runs/run.sh {{stage}}
+
+# Frame cores: refutation cost and nogood locality
+# of wrong frames on the real pieces. Needs nix (cargo, python-sat). Builds,
+# runs the stage 0 validity checks, the preregistered test stage (through
+# prereg_guard), and the analysis. About 3 hours on 10 threads.
+frame-cores threads="10":
+    sh frame-cores/run.sh build
+    J={{threads}} sh frame-cores/run.sh stage0
+    J={{threads}} sh frame-cores/run.sh test
+    python3 -I frame-cores/scripts/analyze.py frame-cores/results/test frame-cores/results/stage0/summary.json > frame-cores/results/summary.json
+
+# orders-and-pins: static fill orders and extra
+# known tiles, priced with the real-puzzle-profile estimator. Measurements, not record
+# attempts. See orders-and-pins/PREREG.md.
+# stage: build | plans | gate6 | gt | gb | g8 | b0 | bl | b1 | bs | b4 | b3 | b2 | a-official | a-null | all
+# Then: python3 -I orders-and-pins/scripts/analyze.py
+orders-and-pins stage="gate6":
+    orders-and-pins/run.sh {{stage}}
+
+# Prefix statistics: does any cheap statistic of a
+# partial row-scan board tilt toward the planted prefix? Stages: build,
+# gate-exact, gate-rep, test, real, analyze (see prefix-statistics/PREREG.md).
+prefix-statistics stage="analyze":
+    prefix-statistics/run.sh {{stage}}
+
+# pin-map: exact worth of known tiles by position on
+# small planted boards (row scan and bb-mrv). A measurement. See pin-map/PREREG.md.
+# stage: build | validate | boards | s8 | g8 | p8 | pairs8 | s8c | g8c | p8c | s10 | g10 | p10 | n8 | mrv8 | all | analyze
+pin-map stage="analyze":
+    sh pin-map/run.sh {{stage}}
