@@ -5,14 +5,13 @@ description: >-
   gain that matters for a full solution. Three were killed (difference-map
   bands, cut-keyed replay, keying with five clues) and two were kept as
   measurements (quota keying, and the quota curve with five clues). The kept
-  quota result is a rate effect of 53 times, about 5.7 bits, against a gap of 56
-  to 73 bits.
-metaDescription: "Five preregistered experiments on keying and replaying dead ends: three killed, two kept as measurements. With five clues the quota curve, not the colour keying, decides whether a run reaches depth 201 (about 5.7 bits of rate against a 56 to 73 bit gap)."
+  quota result is a rate effect of 53 times, about 5.7 bits of rate, which is
+  not a smaller tree.
+metaDescription: "Five preregistered experiments on keying and replaying dead ends: three killed, two kept as measurements. With five clues the quota curve, not the colour keying, decides whether a run reaches depth 201 (about 5.7 bits of rate, not a smaller tree)."
 kind: experiment
 contribution: measurement
 author: raphael-anjou
 rigor: measured
-outcome: refuted
 hardware:
   cores: 12
   threads: 12
@@ -161,9 +160,10 @@ run: 220. Independently re-checked: 8 rows rerun, identical.
 
 ## What this means for a full solution
 
-None of the five makes a full solve cheaper. Taking base-2 logarithms of the
-ratios above (derived), and pretending every effect transferred and added,
-which they do not:
+None of the five makes a full solve cheaper. Each ratio below keeps its own
+scope; base-2 logarithms are derived from them. The effects were measured in
+different experiments on different generated boards, so they are not additive,
+and none is a gain against the full tree:
 
 | Effect | Factor | Bits |
 |---|---|---|
@@ -172,9 +172,8 @@ which they do not:
 | legal break path, per node (a wall-clock loss) | 7.63 | 2.9 |
 | quota slack, rate of reaching depth 201 | about 53 | 5.7 |
 
-The row scan with five clues costs 2^134.4 nodes, about 10^15 nodes are
-affordable, and the gap is 56 to 73 bits. All four together are about 10 bits,
-leaving at least 46 of the 56. The kept result is a rate of reaching a depth,
+The row scan with five clues costs 2^134.4 nodes; the gap against the budgets
+is on the [series hub](/research/lab/experiments/raphael-anjou/full-solve). The kept result is a rate of reaching a depth,
 not a smaller tree, and a deeper run is not a higher-scoring board (see
 [the records](/research/records)). See also
 [late filters](/research/lab/experiments/raphael-anjou/full-solve/late-filters).
