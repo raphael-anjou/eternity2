@@ -43,6 +43,16 @@ DEFAULT_OUT = REPO / "web" / "src" / "data" / "single-core-benchmark.json"
 # reads the strict five-clue record from web/src/data/records-timeline.ts.
 MAX_SCORE = 480
 
+# Per-engine caveats shown under the engine name on the site, keyed by the
+# SITE name then by language code. Lives here so it survives regeneration.
+NOTES = {
+    "anjou-blackwood": {
+        "en": "earlier port, pre-fix defaults; not re-run with the fixed defaults",
+        "fr": "portage antérieur, réglages d'avant correction ; non relancé avec les réglages corrigés",
+        "es": "port anterior, valores previos a la corrección; no se ha vuelto a ejecutar con los valores corregidos",
+    },
+}
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -94,6 +104,7 @@ def main():
             # "contender" = competes on score, earns a headline-leaderboard row;
             # rows without a role are the CSP-preset study (their own page).
             **({"role": s["role"]} if s.get("role") else {}),
+            **({"note": NOTES[manifest.site_name(s)]} if manifest.site_name(s) in NOTES else {}),
         })
 
     # leaderboard order: best mean first (matches make_report.py ranking)

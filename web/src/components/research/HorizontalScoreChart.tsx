@@ -42,6 +42,20 @@ export type RefLine = {
 // (React keys come from the category value, which is unique per bar.)
 export type ScoreChartRow = Record<string, unknown>;
 
+// Greedy word wrap to at most `max` characters per line (axis captions only).
+function wrapNote(text: string, max: number): string[] {
+  const lines: string[] = [];
+  let cur = "";
+  for (const w of text.split(" ")) {
+    if (cur && (cur + " " + w).length > max) {
+      lines.push(cur);
+      cur = w;
+    } else cur = cur ? cur + " " + w : w;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
 export function HorizontalScoreChart<Row extends ScoreChartRow>({
   rows,
   valueKey,
@@ -59,6 +73,7 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
   busyLabel = "Drawing…",
   tooltip,
   barLabel,
+  categoryNote,
 }: {
   rows: Row[];
   // Data keys are plain strings: recharts' dataKey type does not accept a
@@ -79,6 +94,9 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
   tooltip?: (row: Row) => ReactNode;
   // A custom right-side label per bar; falls back to the raw value.
   barLabel?: (row: Row) => string;
+  // An optional muted caption drawn under the category name (wrapped to the
+  // axis width). Rows for which it returns nothing render as a plain label.
+  categoryNote?: (row: Row) => string | undefined;
 }) {
   const isClient = useIsClient();
 
@@ -109,7 +127,38 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
               type="category"
               dataKey={categoryKey}
               width={categoryWidth}
-              tick={{ fontSize: 11, fill: "currentColor" }}
+              tick={
+                categoryNote
+                  ? (props: { x?: number | string; y?: number | string; payload?: { value?: unknown } }) => {
+                      const row = rows.find((r) => r[categoryKey] === props.payload?.value);
+                      const note = row ? categoryNote(row) : undefined;
+                      const lines = note ? wrapNote(note, Math.floor(categoryWidth / 4.4)) : [];
+                      // Centre the name + caption block on the bar.
+                      const top = -(lines.length * 5.5);
+                      return (
+                        <g transform={`translate(${props.x},${props.y})`} className="text-muted-foreground">
+                          <text x={-3} y={top} fontSize={11} fill="currentColor" textAnchor="end" dominantBaseline="central">
+                            {String(props.payload?.value ?? "")}
+                          </text>
+                          {lines.map((l, i) => (
+                            <text
+                              key={i}
+                              x={-3}
+                              y={top + 13 + i * 10}
+                              fontSize={9}
+                              fill="currentColor"
+                              fillOpacity={0.7}
+                              textAnchor="end"
+                              dominantBaseline="central"
+                            >
+                              {l}
+                            </text>
+                          ))}
+                        </g>
+                      );
+                    }
+                  : { fontSize: 11, fill: "currentColor" }
+              }
               className="text-muted-foreground"
             />
             {tooltip && (

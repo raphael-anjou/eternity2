@@ -41,6 +41,8 @@ type Algo = {
   // rows without a role are the CSP-preset study (their own page). Set from the
   // manifest (solvers.toml `role`), never string-matched by name here.
   role?: string;
+  // Optional per-engine caveat, keyed by language code (set in make_site_json.py).
+  note?: Record<string, string>;
 };
 
 const D = data as {
@@ -194,6 +196,7 @@ export function BenchmarkLeaderboard({
   const t = useT(T);
   const { lang } = useLang();
   const isContenders = view === "contenders";
+  const noteOf = (a: Algo) => a.note?.[lang] ?? a.note?.["en"];
   const algos = D.algos.filter((a) =>
     isContenders ? a.role === "contender" : a.role !== "contender",
   );
@@ -278,6 +281,7 @@ export function BenchmarkLeaderboard({
             barCategoryGap={6}
             height={height}
             colorOf={(a) => familyFill(a.family)}
+            categoryNote={(a) => noteOf(a)}
             busyLabel={t.busy}
             tooltip={(a) => (
               <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
@@ -326,6 +330,11 @@ export function BenchmarkLeaderboard({
                 <tr key={a.algo}>
                   <td className="whitespace-nowrap px-2 py-0.5 text-left text-foreground">
                     {a.algo}
+                    {noteOf(a) && (
+                      <div className="max-w-[28ch] whitespace-normal text-[10px] leading-tight text-muted-foreground">
+                        {noteOf(a)}
+                      </div>
+                    )}
                   </td>
                   {a.variants.map((s, i) => (
                     <td
