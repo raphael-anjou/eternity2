@@ -1,0 +1,23 @@
+[package]
+name = "prefix-statistics"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# puzzle.rs and tree.rs are imported from Track 10 (real-puzzle-profile,
+# commit dc71ad56) with the additions marked in tree.rs. The planted boards
+# come from the repo engine's framed generator.
+[dependencies]
+eternity2-engine = { path = "../../../../engine" }
+
+[[bin]]
+name = "psx"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+
+[workspace]
