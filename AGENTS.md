@@ -219,4 +219,7 @@ user-facing tour and
   underlying cargo/pnpm/node commands (no logic of their own). Keep it in sync
   when commands change; the raw commands still work without `just`.
 
-- **Verify after web changes:** `cd web && pnpm build && pnpm typecheck`.
+- **Verify after web changes:** `cd web && pnpm build && pnpm typecheck && pnpm lint && pnpm test`
+  (CI also runs `check:i18n` and `check:research:ci`; a push that skips `pnpm lint`
+  fails the deploy). `metaDescription` is capped at 300 characters by the schema:
+  `check:research:ci` does not catch an over-long one, `pnpm typecheck` does.
