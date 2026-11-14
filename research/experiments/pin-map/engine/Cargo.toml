@@ -1,0 +1,22 @@
+[package]
+name = "pin-map"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "pin-map: exact search-tree size of small planted boards under fixed (pinned) cells, row scan and bb-mrv."
+
+[[bin]]
+name = "pinmap"
+path = "src/main.rs"
+
+[dependencies]
+eternity2-engine = { path = "../../../../engine" }
+sat-backdoors = { path = "../../sat-backdoors" }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+
+[workspace]
