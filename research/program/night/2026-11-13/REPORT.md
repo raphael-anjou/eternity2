@@ -2,7 +2,7 @@
 
 Lead branch: `night/2026-11-13-lead`. None of the research was pushed. The only push of the arc was the documentation corrections (10:21, with the owner's yes), now on `origin/main` at 40ad5fb0.
 
-Status of this file: draft written at 02:40 on 14 November for reading at 08:00, before the lead's review. Items marked PENDING were not available when this was written; nothing has been guessed in their place.
+Status of this file: draft written at 02:40 on 14 November, fact-checked at about 05:00, completed on the morning of 14 November with the two measurements that were pending. The owner stopped the research that morning.
 
 Grades used throughout:
 - **measured**: committed data.
@@ -21,11 +21,11 @@ Generated and painted boards are toys. No result on them is Eternity II progress
 
 By the decision rule stated to the owner at 01:21, this points to publishing the negatives and parking.
 
-**The one-sentence reason.** Every check that works, works too late: the tests that refute wrong boards refute nearly all of them only from depth 144 to 192 (arc consistency already refutes 57 to 90 percent at 96 to 128, where the levels hold few nodes), while the widest level of the measured tree is at depth 158 and a perfect cut at depth 144 saves at most 2.4 bits, so the largest gain priced in two days is about 5.5 bits of nodes against a gap of 56 to 73 bits (about 84 against the owner's one-month budget).
+**The one-sentence reason.** Every check that works, works too late: the tests that refute wrong boards refute nearly all of them only from depth 144 to 192 (arc consistency already refutes 57 to 90 percent at 96 to 128, where the levels hold few nodes), while the widest level of the measured tree is at depth 158 and a perfect cut at depth 144 saves at most 2.4 bits, so the largest gain priced in two days is about 5.5 bits of nodes against a gap of 56 to 73 bits (about 84 against a modest run).
 
 **The decision.** Publish the negative results on the site, merge the tools, and park with the tripwires in section 5. The outline is in `PUBLIC_OUTLINE.md`, and every page in it depends on merging its branch first.
 
-The alternative is to pay for one of the audit's three reopenings (section 4). None has odds above 1 percent for a solve. Two are running: the convex lift at 6x6 (reading due 07:30, PENDING), worth 0 bits on its own even if it passes, and audit item 3, learning against propagation only on 5x5 to 7x7 toys (started 02:44, memo due 07:15, PENDING, lead's odds 1 percent).
+The alternative is to pay for one of the audit's three reopenings (section 4). None has odds above 1 percent for a solve. Two were run overnight. The convex lift at 6x6 did not converge before a system restart ended the runs at 04:30, so its kill line decides nothing (unconverged reading: 0.73 to 0.87 of the weight per cell off solutions). Audit item 3, learning against propagation only on 5x5 to 7x7 toys, was run for its toy part only; the referee rules its kill line undecidable on this data (the real-piece clause was never run; the size clause leans fired: rise of the median lead at most +2.09 bits against a threshold of 2, no lower bound) and prices clause learning at 0 to 2 bits in time at 16x16, 2 percent odds of 10 bits.
 
 ## 2. What was established
 
@@ -36,7 +36,7 @@ The alternative is to pay for one of the audit's three reopenings (section 4). N
 | Row-scan tree, real pieces, five clues | 2^134.4 nodes, 10^40.457 [40.440, 40.473]; D3 reproduced it at 10^40.453 [40.422, 40.481] | measured, judged | branch `night/2026-11-12-t10-real-puzzle-profile`; D3 `JUDGE.md` |
 | First-moment model of that tree | within 0.03 digits for the official set. The anomaly hunt adds that this holds for the official set, not for the mean of the painted boards (about 0.05 digits unexplained) | measured | Track 10; `memos/anomaly-hunt.md` (unrefereed) |
 | Affordable search | 2^61.5 for 1,000 core-years at 1e8 nodes per second; 2^78 for a very large distributed effort; gap 56 to 73 bits | derived | `THESIS_PLAN.md` section 2 |
-| Owner's one-month budget | about 1.4 core-years on machine-b and machine-c, about 10^15 nodes at the measured 1.6e7 nodes per second, about 2^50; gap about 84 bits | derived (the 84 is this report's subtraction) | `STATUS.md` 10:32 and 14:51 |
+| A modest run | about 1.4 core-years on machine-b and machine-c, about 10^15 nodes at the measured 1.6e7 nodes per second, about 2^50; gap about 84 bits | derived (the 84 is this report's subtraction) | `STATUS.md` 10:32 and 14:51 |
 | Cheap information about the frame | about 17.4 bits, all at the four clue corners | refereed, recomputed twice | `memos/nogood-frame-search-price.REVIEW.md` |
 | Interior cost under a frame that passes the corners | about 10^13.6 nodes on average by spiral search (replaces 10^8.3) | refereed. D1 stage 0 gives only a lower bound: on generated 16x16 boards, confirming the true frame hit the 600 s cap (about 10^9 plain nodes) | same review; D1 README |
 | Trace of the construction in numbering or orientation | none: the numbering is a sort of the piece set (0 inversions in 20,656 pairs); at most 42.7 bits untested, with no mechanism | refereed; route closed | `memos/how-the-puzzle-was-made.REVIEW.md` |
@@ -111,7 +111,7 @@ The same referee ruled on test T1:
 - Seed 3 (403 solutions) keeps 0.0047 of the mass per cell on 10 placements that are in no solution, at violation 5e-9, and 0.045 on an unconverged largest-leak iterate (violation 1.5e-6), 0.042 once polished to violation 1.5e-9. This is numerical evidence from one solver family (refereed).
 - Final count (refereed, `memos/relaxation-convex.REVIEW.md`): of five boards, three are certified clean by a converged largest-leak solve (seeds 1, 2 and 4, with 2 to 8 solutions), seed 0 is undecided, and seed 3 is not exact. The seed 3 leak is not an enumeration artefact (an independent enumeration gives the same 403 solutions) and not a convergence artefact (a point feasible to 1.5e-9 keeps 0.042 per cell on ten placements, and the lift's minimum norm sits below the hull's). One solver family only; a run with a second solver is still needed.
 
-Cost: 400 to 1,100 s per 5x5 solve, on boards a depth-first search clears in under a second. At 16x16, one dense copy is 183 GiB, the factor plus nonnegativity multipliers about 119 GiB, and the convex splitting 916 GiB (refereed). The odds of 60, 20 and 2 percent for exactness at 6x6, 8x8 and 16x16 are a judgment, formed before a 5x5 board was found inexact (refereed). No 6x6 reading exists. Three leak runs resumed on machine-b at 02:08; reading due 07:30, PENDING.
+Cost: 400 to 1,100 s per 5x5 solve, on boards a depth-first search clears in under a second. At 16x16, one dense copy is 183 GiB, the factor plus nonnegativity multipliers about 119 GiB, and the convex splitting 916 GiB (refereed). The odds of 60, 20 and 2 percent for exactness at 6x6, 8x8 and 16x16 are a judgment, formed before a 5x5 board was found inexact (refereed). No 6x6 reading exists. Three leak runs resumed on machine-b at 02:08 and were ended unconverged by a system restart at 04:30 (primal residual about 3e-4 against a target of 1e-7; mass off solutions 0.843, 0.865, 0.730 per cell, flat over the last 1,000 iterations). An unconverged run decides nothing; the 6x6 question stays open. See `memos/convex-6x6.md`, section of 14 November.
 
 **Low-rank form.** The referee (`memos/relaxation-lowrank.REVIEW.md`) ruled it a penalty-guided randomised search with an exact acceptance test, not a relaxation solver. Boards are accepted at violation 0.03 and full rank, and runs that converge lose the rounding.
 - At 5x5: 200 of 200 runs on 15 boards solved. The configuration was chosen on 50 runs and held on 150 unselected ones. About 5,200 evaluations per solution.
@@ -176,7 +176,7 @@ Note 1: the gap 4 referee's +2.85 bits and the anomaly hunt's rerun disagree. Th
 | 13 | Count for a freed border arc; sequential Monte Carlo "3.7 bits worse"; the extreme-pruning gain; "restarts lose about one bit"; "cutting planes buys under a bit" | survey | Off by about 10 bits; wrong (it tends to the tree itself); the last three not established |
 | 14 | The repo's "SAT tested exhaustively" | site claim | "Not attempted at scale": it rests on one unsourced trial |
 | 15 | Each extra pinned tile is worth about 6 bits, so 9 to 11 close the gap; later, 9.6 bits for the best tile, 6 to 7 tiles cover 56 to 66 | survey; refereed model | The model fails under clustered pins and pins are sub-additive (0.88 at k = 8). A 10^15 run needs more than 10, probably 16 to 24, spread pins |
-| 16 | Lead's working figure for the owner: 20 to 35 spread tiles for one month | lead (labelled a guess) | The judged D3 bracket above |
+| 16 | Lead's working figure for the owner: 20 to 35 spread tiles for a modest run of about 10^15 nodes | lead (labelled a guess) | The judged D3 bracket above |
 | 17 | The committed search-tree profile is "with no clue" | lead (documentation brief) | It is the tree with the starter clue (it ends at 14,702) |
 | 18 | `git add` of the whole arc folder | lead (twice) | It swept a referee's in-progress scripts into two commits; only named paths are added since |
 | 19 | Arc consistency "refutes close to nothing" at depths 96 to 128 | lead (to the owner, 12:21) | It refutes 57 to 90 percent there; the conclusion is unchanged |
@@ -228,7 +228,7 @@ Note 1: the gap 4 referee's +2.85 bits and the anomaly hunt's rerun disagree. Th
 |---|---|---|---|
 | Convex lift exactness at 6x6, largest-leak objective, three boards | audit item 1 | 6 to 170 core-hours | 40% pass at 6x6, 1% that it matters at 16x16 (the audit's guesses). Running now (below) |
 | Growth of non-tree solvers against the tree on the same boards (annealing, difference map, low-rank, message passing) | audit item 2 | about 120 core-hours | one arm survives 5%; 10 bits 0.5 to 1%. T1 covers part of it |
-| Learning solvers at 7x7 and on real-piece prefixes, with a propagation-only control (replaces the 7x7 to 9x9 item in 9.4) | audit item 3 | about 80 core-hours | 1%. Toy part running since 02:44 (PENDING, 07:15) |
+| Learning solvers at 7x7 and on real-piece prefixes, with a propagation-only control (replaces the 7x7 to 9x9 item in 9.4) | audit item 3 | about 80 core-hours | Toy part done, refereed: kill line undecidable, size clause leans fired, 0 to 2 bits in time at 16x16, 2% for 10 bits. The referee would run the real-piece part (about 10 core-hours); not run, research stopped |
 | D1 far stratum | STATUS 19:38 | not costed | undecided; a necessary condition only |
 | Injective-only hole | THESIS_PLAN 9.4 | half a day of desk work | cannot be priced |
 | Second reader for the 2-bit sketch bound | THESIS_PLAN 9.4 | one session | a proof, not a gain |
@@ -240,7 +240,7 @@ Note 1: the gap 4 referee's +2.85 bits and the anomaly hunt's rerun disagree. Th
 | Census tilt at 1.5 to 1.8 times size bias; the painted excess | anomaly hunt U1, U2 | 0.5 core-hour each | under 0.1% for U1; not recommended |
 
 Still running or missing when this was written:
-- The three convex largest-leak runs at 6x6 on machine-b. They resumed from checkpoints at 02:08 with the kill line unchanged (above 0.05 per cell on 2 of 3 boards). Reading due 07:30: **PENDING**. Read note 2 before trusting the result.
+- The three convex largest-leak runs at 6x6 on machine-b. They resumed from checkpoints at 02:08 with the kill line unchanged (above 0.05 per cell on 2 of 3 boards). Ended unconverged by a system restart at 04:30; no reading under the kill line. Not relaunched (13 to 24 hours per board as a lower bound). A projection fault specific to machine-b at 6x6 was found and fixed in the resume copy; see `memos/convex-6x6.md`.
 - The growth run was reported at 04:56 on 14 November; its figures are in section 2.7. Its memo is unrefereed.
 - The convex referee's report: final at 02:43 on 14 November; its counts are in section 2.7.
 
@@ -255,7 +255,7 @@ STATUS 02:43 records that the penalty stayed at 300 throughout in all three resu
 Events that would justify reopening, and what each would change:
 
 1. **A published method with a class-level gain.** This is the one real path in the owner's four-source map. It would be checked against `ROUTES.md` and reopened only under the existing rule: a price of 10 bits or more with a falsifying experiment under a day. The ceiling table in 2.2 is the first filter: a check that only bites after depth 128 cannot pass it.
-2. **Someone shares the approach behind the 466, or any tiles of the solution.** The approach as far as it is visible (distributed compute, a tuned engine, years on the problem) bears on the record, not on a solve. Tiles would bear on a solve. D3 prices them on painted boards: the best extra pin is worth about 10 bits, a median one about 6, and a one-month run needs more than 10 spread pins, probably 16 to 24. [passage withheld]
+2. **Someone shares the approach behind the 466, or any tiles of the solution.** The approach as far as it is visible (distributed compute, a tuned engine, years on the problem) bears on the record, not on a solve. Tiles would bear on a solve. D3 prices them on painted boards: the best extra pin is worth about 10 bits, a median one about 6, and a modest run needs more than 10 spread pins, probably 16 to 24. [passage withheld]
 3. **Hardware gains of many orders of magnitude.** The gap is 17 to 22 orders (56 to 73 bits, section 2.1), and every credible multiplier together is worth about 2.5 orders (ROUTES, hardware row). Quantum backtracking halves the exponent, but its constants sit 21 to 22 orders above a 2029 roadmap machine (survey, unrefereed). A change of 15 orders or more would reopen plain search, not any method here.
 4. **A referee or a run overturns a closure.** The live candidates:
    - The convex lift is exact at 6x6. On its own that is worth 0 bits; it would justify a 7x7 and 8x8 test, and the 54 to 71 bits its unrefereed pricing gives if exactness held to 16x16.

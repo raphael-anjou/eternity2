@@ -536,7 +536,7 @@ committed `hp-dfs` rows node for node.
 
 ## Review of the partial-match memo (21:45, `memos/partial-match-regime.REVIEW.md`)
 
-A separate Fable session recomputed every number with its own scripts
+A separate session recomputed every number with its own scripts
 (`memos/partial-match-regime-review/`, about 5.5 minutes of one core, no 16x16
 solver run). Grades are the referee's.
 
@@ -608,7 +608,7 @@ solver run). Grades are the referee's.
 
 ## Review of the price and the cost ledger (21:51, `memos/price-and-ledger.REVIEW.md`)
 
-A separate Fable session reran all sixteen memo scripts (all reproduce) and
+A separate session reran all sixteen memo scripts (all reproduce) and
 wrote its own implementation (`memos/price-and-ledger-review/`, about 7 minutes
 of one core, nothing run on the 16x16). Grades are the referee's.
 
@@ -677,7 +677,7 @@ of one core, nothing run on the 16x16). Grades are the referee's.
 
 ## Review of the literature memo and of solve path 6 (22:54, `memos/literature-and-path-6.REVIEW.md`)
 
-A separate Fable session opened the sources and reran path 6's scripts
+A separate session opened the sources and reran path 6's scripts
 (`memos/literature-and-path-6-review/`, 7.7 core-minutes). Grades are the
 referee's. With this, every memo of the night except the theory referee and
 the frame-information memo has had a second reader.
@@ -992,7 +992,7 @@ Track 13 re-measures them. Two openings, at most 3e8 nodes per run, no clue.
 
 ## Review of the memo on where a record is paid (01:36, `memos/where-a-record-is-paid.REVIEW.md`)
 
-A separate Fable session read Blackwood's public source (five versions), reran
+A separate session read Blackwood's public source (five versions), reran
 all eight scripts (they reproduce) and ran 15 engine runs of its own
 (`memos/where-a-record-is-paid-review/`, 9 core-minutes). Grades are the
 referee's.
@@ -1065,7 +1065,7 @@ referee's.
 
 ## Review of the theory referee and of the frame-information memo (02:13, `memos/theory-and-frame.REVIEW.md`)
 
-A separate Fable session recomputed the disputed quantities by other routes
+A separate session recomputed the disputed quantities by other routes
 (`memos/theory-and-frame-review/`, 7 core-minutes). Grades are the referee's.
 With this, every memo of the night has had a second reader.
 

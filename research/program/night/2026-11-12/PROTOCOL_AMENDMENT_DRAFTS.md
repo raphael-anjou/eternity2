@@ -173,12 +173,12 @@ seeds 2k and 2k+1 are the same run and "three run seeds" were two.
 
 ## Kit changes already made on the lead branch (reviewable in the diff)
 
-- `.claude/agents/runner.md`: correct path to PROTOCOL.md; PREREG as a commit
+- the runner agent definition: correct path to PROTOCOL.md; PREREG as a commit
   of its own; the run-seed control of P1; `target/` excluded from em-dash greps.
-- `.claude/agents/judge.md`: check result timestamps when PREREG and results
+- the judge agent definition: check result timestamps when PREREG and results
   are committed minutes apart; look for the missing run-seed control; grade any
   explored or dead-end claim the verdict leans on.
-- `.claude/agents/scout.md`: open the cited page before calling an idea
+- the scout agent definition: open the cited page before calling an idea
   explored; grade "does not work" claims.
 - `scripts/night-eta.py`: local tracker (stage, progress, ETA per track, other
   machines over SSH).

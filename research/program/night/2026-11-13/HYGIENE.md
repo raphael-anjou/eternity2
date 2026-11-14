@@ -98,7 +98,7 @@ Other facts: wt-d1's head commit subject is "README method matches A1 and A2" wh
 
 ## 4. Lead folder `research/program/night/2026-11-13/`
 
-Commands: `du -ak`, `ls -l`, `git ls-files | wc -l`, `git status --short --ignored .`, `grep -o` for the U+2014 character per `.md`, a stdlib script that extracts `memos/`, `surveys/`, `research/`, `web/`, `engine/`, `.claude/` path tokens from the four files and tests each (as given, and relative to the folder).
+Commands: `du -ak`, `ls -l`, `git ls-files | wc -l`, `git status --short --ignored .`, `grep -o` for the U+2014 character per `.md`, a stdlib script that extracts `memos/`, `surveys/`, `research/`, `web/`, `engine/` path tokens from the four files and tests each (as given, and relative to the folder).
 
 Top level (bytes): STATUS.md 82228; ROUTES.md 41507; THESIS_PLAN.md 19594; DRAFTS.md 7227; SURVEY_BRIEF.md 4644; DOCS_BRIEF.md 4276; GAPS_BRIEF.md 4089; memos/ (about 6984 KB on disk); surveys/ (about 484 KB on disk, 12 entries: 9 survey `.md` files, CITATIONS.REVIEW.md, DERIVATIONS.REVIEW.md, DERIVATIONS.REVIEW.scripts/).
 

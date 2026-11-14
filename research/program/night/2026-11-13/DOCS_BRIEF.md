@@ -17,7 +17,7 @@ The owner gave the lead ownership of the notes, the experiments and the publishe
 - Attribution-neutral: state findings and methods plainly; do not describe sessions, agents, nights, judges or the process that produced them. On site pages, cite evidence by committed files and public sources only. Branch names of unmerged work are not evidence a reader can open: when a correction rests on unmerged work, state the correction that the committed data and public sources support and leave the rest out.
 - `sources[].url` must be an absolute URL; internal pages go in `related[]`.
 - Update the `updated:` frontmatter date (2026-11-13) on every page whose claims change.
-- Scientific rigor checklist: `.claude/commands/rigor-check.md`. Apply it to every page you change: null model, title and description no stronger than the body, numbers recomputed, site-wide grep for the same claim (report other pages that repeat a claim you corrected, even if you do not own them).
+- Scientific rigor checklist (the rigor-check command). Apply it to every page you change: null model, title and description no stronger than the body, numbers recomputed, site-wide grep for the same claim (report other pages that repeat a claim you corrected, even if you do not own them).
 
 ## Material from the night of 2026-11-12 (all in this worktree under research/program/night/2026-11-12/)
 `REPORT.md`, `OBSERVATIONS.md`, `EVIDENCE_AUDIT.md`, `DRAFTS.md`, `PROTOCOL_AMENDMENT_DRAFTS.md`, `memos/` (each memo has a `.REVIEW.md`; the review wins over the memo), `checks/verify-466/`. Under `research/program/night/2026-11-13/`: `ROUTES.md` (draft index of every route examined, with flagged disagreements), `STATUS.md`, `memos/`.

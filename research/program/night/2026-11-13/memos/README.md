@@ -7,3 +7,5 @@ The memos, reviews and scripts of 13 November are not duplicated here. They are 
 - `research/experiments/learning-vs-propagation/`: `learning-vs-propagation` and its `.REVIEW`.
 
 Not published: the memo on how the puzzle was made, its review and its scripts. The grouping above follows the memo subjects; if a memo is missing from its folder, look in the other two.
+
+Machine labels in this record (machine-b the 14-core x86 laptop, machine-c the 8-core Apple M1) differ from those in `research/experiments/learning-vs-propagation/` (machine-a the M1, machine-b the x86 laptop, machine-c the 10-core Apple M4).

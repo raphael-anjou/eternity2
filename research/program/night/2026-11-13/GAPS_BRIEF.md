@@ -18,7 +18,7 @@ Useful code and data (read only): the measured level profile of the real tree at
 
 - 16x16, 256 tiles, 22 colours (5 on the frame, 17 inside), five clues at (2,2), (2,13), (13,2), (13,13), (8,7).
 - Row scan with five clues: 2^134.4 nodes, widest level at depth 158, first-moment model within 0.03 digits.
-- Feasible for the owner: about 10^15 nodes (one month). The gap is 56 to 73 bits.
+- Feasible for a modest run: about 10^15 nodes. The gap is 56 to 73 bits.
 - Expected number of solutions: about 14,702 with the starter clue, about 1 with all five. Never write "one solution".
 
 ## What to deliver
