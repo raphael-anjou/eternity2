@@ -1,6 +1,7 @@
 import path from "node:path";
-import { writeFileSync } from "node:fs";
-import { defineConfig, type Plugin } from "vite";
+import { fileURLToPath } from "node:url";
+import { realpathSync, writeFileSync } from "node:fs";
+import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import mdx from "@mdx-js/rollup";
@@ -187,6 +188,15 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  server: {
+    // node_modules links to an install outside the checkout (~/.cache).
+    fs: {
+      allow: [
+        searchForWorkspaceRoot(process.cwd()),
+        realpathSync(fileURLToPath(new URL("./node_modules", import.meta.url))),
+      ],
     },
   },
 });
