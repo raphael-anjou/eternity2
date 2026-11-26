@@ -72,7 +72,7 @@ function renderOverview() {
   note.replaceChildren();
   if (state.data.program.context) {
     const text = el('div');
-    text.append(el('strong', '', state.data.program.stopped ? 'Full-solve method hunt stopped' : 'Program context'), el('p', '', state.data.program.stopped ? 'The agenda records a stop on 14 Nov 2026. Open questions and reopening conditions remain; they are not active runs.' : state.data.program.context));
+    text.append(el('strong', '', state.data.program.stopped ? 'Full-solve method hunt stopped' : 'Program context'), el('p', '', state.data.program.stopped ? `The agenda records a stop${state.data.program.stoppedAt ? ` on ${date(state.data.program.stoppedAt)}` : ''}. Open questions and reopening conditions remain; they are not active runs.` : state.data.program.context));
     note.append(el('span', 'note-symbol', 'Ⅱ'), text, link('Read the decision ↗', state.data.program.url));
   }
 }
@@ -90,7 +90,10 @@ function openThread(thread, button) {
   body.append(link('Open original agenda entry ↗', thread.url, 'source-link'));
   const disclaimer = el('p', 'detail-disclaimer', 'Recorded agenda status, not live execution. Later research log entries may narrow or supersede this result.'); body.append(disclaimer);
   for (const field of thread.fields) {
-    const section = el('section', 'detail-section'); section.append(el('h3', '', field.label), rich(field.text)); body.append(section);
+    const section = el('section', 'detail-section');
+    const heading = el('h3'); const formatted = rich(field.label);
+    heading.append(...formatted.firstElementChild.childNodes);
+    section.append(heading, rich(field.text)); body.append(section);
   }
   if (thread.experiments.length) {
     const section = el('section', 'detail-section'); section.append(el('h3', '', 'Evidence folders'));
@@ -136,8 +139,8 @@ function renderLog() {
   const list = el('div', 'log-list');
   for (const entry of entries) {
     const details = el('details', 'log-entry'); const summary = el('summary');
-    details.dataset.entry = entry.url;
-    details.open = expanded.has(entry.url);
+    details.dataset.entry = entry.title;
+    details.open = expanded.has(entry.title);
     summary.append(el('span', 'log-date mono', date(entry.date)), el('strong', '', entry.title.replace(/^\d{4}-\d{2}-\d{2}\s*[·:—-]?\s*/, '')), el('span', 'log-expand', '+'));
     details.append(summary, rich(entry.body), link('View source entry ↗', entry.url, 'source-link')); list.append(details);
   }
@@ -160,14 +163,14 @@ function render() {
   const meta = state.data.meta;
   const footer = $('#source-footer'); footer.replaceChildren();
   const status = el('span', `sync-state ${meta.warning ? 'warning' : ''}`, meta.source === 'github' ? 'GitHub source' : 'Local snapshot');
-  footer.append(status, el('span', '', `Checked ${new Date(meta.checkedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} · refreshes every 5 min`), link(meta.revision.slice(0, 7), `${meta.repository}/commit/${meta.revision}`, 'mono'), el('span', '', `Source commit ${date(meta.sourceDate)}`));
+  footer.append(status, el('span', '', `${meta.source === 'github' ? 'Source verified' : 'Snapshot loaded'} ${new Date(meta.checkedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} · checks every 5 min`), link(meta.revision.slice(0, 7), `${meta.repository}/commit/${meta.revision}`, 'mono'), el('span', '', `Source commit ${date(meta.sourceDate)}`));
   if (meta.warning) footer.append(el('p', 'source-warning', meta.warning));
   $('#content').setAttribute('aria-busy', 'false');
 }
-async function load() {
+async function load(refresh = false) {
   const button = $('#refresh'); button.disabled = true;
   try {
-    const response = await fetch('/api/research');
+    const response = await fetch(`/api/research${refresh ? '?refresh=1' : ''}`);
     if (!response.ok) throw new Error(`Source request failed (${response.status})`);
     state.data = await response.json(); $('#load-error').hidden = true; render();
     const id = location.hash.slice(1); const thread = state.data.threads.find((t) => t.id === id);
@@ -183,7 +186,7 @@ $('#search').addEventListener('input', (event) => { state.query = event.target.v
 $('#group').addEventListener('change', (event) => { state.group = event.target.value; render(); });
 $('#sort').addEventListener('change', (event) => { state.sort = event.target.value; render(); });
 $('#clear').addEventListener('click', () => { state.query = ''; state.scope = 'all'; state.status = null; state.group = 'all'; $('#search').value = ''; $('#group').value = 'all'; render(); });
-$('#refresh').addEventListener('click', load);
+$('#refresh').addEventListener('click', () => load(true));
 $('#close-detail').addEventListener('click', () => $('#detail').close());
 $('#detail').addEventListener('click', (event) => { if (event.target === $('#detail')) $('#detail').close(); });
 $('#detail').addEventListener('close', () => { history.replaceState(null, '', location.pathname); opener?.focus(); });

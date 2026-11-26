@@ -51,7 +51,7 @@ export function parseResearch({ agenda, ledger, experiments, revision, source, s
   const context = arc?.body.split(/\n\s*\n/)[0] ?? '';
   return {
     threads, log, experiments: experiments.map((name) => ({ name, url: `${repository}/tree/${revision}/research/experiments/${name}` })),
-    program: { context: clean(context), stopped: /hunt for a method stopped/.test(context), url: `${blob}/${agendaPath}` },
+    program: { context: clean(context), stopped: /hunt for a method stopped/.test(context), stoppedAt: /hunt for a method stopped on (\d{4}-\d{2}-\d{2})/.exec(context)?.[1] ?? null, url: `${blob}/${agendaPath}` },
     meta: { revision, source, sourceDate, checkedAt, warning, repository, agendaUrl: `${blob}/${agendaPath}`, ledgerUrl: `${blob}/${ledgerPath}` },
   };
 }

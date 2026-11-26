@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { parseResearch, agendaPath, ledgerPath } from './data.mjs';
@@ -10,8 +11,11 @@ const repoRoot = resolve(root, '../..');
 const branch = process.env.SOURCE_BRANCH ?? 'main';
 const localOnly = process.env.SOURCE_MODE === 'local';
 const refreshInterval = 5 * 60 * 1000;
+const run = promisify(execFile);
+const git = async (args) => (await run('git', args, { cwd: repoRoot, encoding: 'utf8', timeout: 30000, maxBuffer: 8 * 1024 * 1024 })).stdout.trim();
 let snapshot;
 let refreshing;
+let lastAttempt = 0;
 
 async function localSnapshot() {
   const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' }).trim();
@@ -25,33 +29,28 @@ async function localSnapshot() {
     checkedAt: new Date().toISOString(), source: 'local', warning: localOnly ? null : 'Local checkout snapshot. Checking the published source…' });
 }
 
-async function getJson(url) {
-  const response = await fetch(url, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'eternity-research-status' }, signal: AbortSignal.timeout(15000) });
-  if (!response.ok) throw new Error(`GitHub returned ${response.status}`);
-  return response.json();
-}
-
-async function getText(path, revision) {
-  const response = await fetch(`https://raw.githubusercontent.com/raphael-anjou/eternity2/${revision}/${path}`, { signal: AbortSignal.timeout(15000) });
-  if (!response.ok) throw new Error(`Source returned ${response.status}`);
-  return response.text();
-}
-
 export async function refresh() {
   if (refreshing) return refreshing;
+  if (Date.now() - lastAttempt < 60000) return;
+  lastAttempt = Date.now();
   refreshing = (async () => {
     try {
       if (localOnly) { snapshot = await localSnapshot(); return; }
-      const commit = await getJson(`https://api.github.com/repos/raphael-anjou/eternity2/commits/${encodeURIComponent(branch)}`);
-      if (snapshot?.meta.source === 'github' && snapshot.meta.revision === commit.sha) {
+      // Use Git's public transport, not the unauthenticated GitHub API rate limit.
+      const ref = await git(['ls-remote', 'origin', `refs/heads/${branch}`]);
+      const revision = ref.split(/\s/)[0];
+      if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error('Source branch was not found');
+      if (snapshot?.meta.source === 'github' && snapshot.meta.revision === revision) {
         snapshot.meta.checkedAt = new Date().toISOString(); snapshot.meta.warning = null; return;
       }
-      const [agenda, ledger, directories] = await Promise.all([
-        getText(agendaPath, commit.sha), getText(ledgerPath, commit.sha),
-        getJson(`https://api.github.com/repos/raphael-anjou/eternity2/contents/research/experiments?ref=${commit.sha}`),
+      try { await git(['cat-file', '-e', `${revision}^{commit}`]); }
+      catch { await git(['fetch', '--no-tags', 'origin', revision]); }
+      const [agenda, ledger, directories, sourceDate] = await Promise.all([
+        git(['show', `${revision}:${agendaPath}`]), git(['show', `${revision}:${ledgerPath}`]),
+        git(['ls-tree', '-d', '--name-only', `${revision}:research/experiments`]), git(['show', '-s', '--format=%cI', revision]),
       ]);
-      snapshot = parseResearch({ agenda, ledger, experiments: directories.filter((entry) => entry.type === 'dir').map((entry) => entry.name),
-        revision: commit.sha, sourceDate: commit.commit.committer.date, source: 'github', checkedAt: new Date().toISOString() });
+      snapshot = parseResearch({ agenda, ledger, experiments: directories.split('\n').filter(Boolean),
+        revision, sourceDate, source: 'github', checkedAt: new Date().toISOString() });
     } catch (error) {
       if (!snapshot) throw error;
       snapshot.meta.warning = `Could not check GitHub (${error.message}). Showing the last available snapshot, not live activity.`;
@@ -77,6 +76,7 @@ export async function start(port = Number(process.env.PORT ?? 4317)) {
     catch { res.writeHead(400); res.end('Bad request'); return; }
     if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405); res.end(); return; }
     if (path === '/api/research') {
+      if (new URL(req.url, 'http://localhost').searchParams.has('refresh')) await refresh();
       res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store');
       res.end(req.method === 'HEAD' ? '' : JSON.stringify(snapshot)); return;
     }
