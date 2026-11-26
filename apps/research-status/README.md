@@ -15,7 +15,8 @@ The server binds to `127.0.0.1` by default. Set `HOST=0.0.0.0` only behind an au
 ## Source and freshness
 
 - Reads the committed local `origin/main` snapshot immediately, explicitly labelled **Local snapshot**. Uncommitted working-tree notes are never served.
-- Checks GitHub `main` through the repository's Git `origin` every five minutes, avoiding unauthenticated API limits. `SOURCE_BRANCH` selects another fetched branch. Git and an accessible origin are required.
+- Checks the canonical upstream GitHub repository every five minutes, avoiding unauthenticated API limits and fork-specific data. `SOURCE_BRANCH` selects another upstream branch. Git and network access are required for updates.
+- A cached verified upstream commit is preferred at startup. If a tracking ref is missing or the checkout is a fork, the server fetches upstream before serving data. If no source is available it serves the app with an explicit unavailable state, rather than exiting.
 - Fetches the agenda, ledger, and experiment list at one immutable commit, so the source links match the displayed data.
 - If GitHub is unavailable, retains the last good snapshot and displays a warning. A restart falls back to the committed local snapshot.
 - The browser polls the server snapshot each minute; **Refresh source** also checks GitHub. Network checks are limited to once per minute across all viewers.

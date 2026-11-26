@@ -9,6 +9,8 @@ import { parseResearch, agendaPath, ledgerPath } from './data.mjs';
 const root = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(root, '../..');
 const branch = process.env.SOURCE_BRANCH ?? 'main';
+const upstream = 'https://github.com/raphael-anjou/eternity2.git';
+const cacheRef = `refs/research-status/${branch}`;
 const localOnly = process.env.SOURCE_MODE === 'local';
 const refreshInterval = 5 * 60 * 1000;
 const run = promisify(execFile);
@@ -20,7 +22,16 @@ let lastAttempt = 0;
 async function localSnapshot() {
   const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' }).trim();
   // Never serve uncommitted notes. Online mode starts from the known public branch.
-  const revision = git(['rev-parse', localOnly ? 'HEAD' : `refs/remotes/origin/${branch}`]);
+  let revision;
+  if (localOnly) revision = git(['rev-parse', 'HEAD']);
+  else {
+    try { revision = git(['rev-parse', '--verify', cacheRef]); }
+    catch {
+      const origin = git(['remote', 'get-url', 'origin']);
+      if (!/[:/]raphael-anjou\/eternity2(?:\.git)?$/.test(origin)) throw new Error('No verified upstream snapshot cached');
+      revision = git(['rev-parse', '--verify', `refs/remotes/origin/${branch}`]);
+    }
+  }
   const agenda = git(['show', `${revision}:${agendaPath}`]);
   const ledger = git(['show', `${revision}:${ledgerPath}`]);
   const experiments = git(['ls-tree', '-d', '--name-only', `${revision}:research/experiments`]).split('\n').filter(Boolean);
@@ -37,23 +48,24 @@ export async function refresh() {
     try {
       if (localOnly) { snapshot = await localSnapshot(); return; }
       // Use Git's public transport, not the unauthenticated GitHub API rate limit.
-      const ref = await git(['ls-remote', 'origin', `refs/heads/${branch}`]);
+      const ref = await git(['ls-remote', upstream, `refs/heads/${branch}`]);
       const revision = ref.split(/\s/)[0];
       if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error('Source branch was not found');
       if (snapshot?.meta.source === 'github' && snapshot.meta.revision === revision) {
         snapshot.meta.checkedAt = new Date().toISOString(); snapshot.meta.warning = null; return;
       }
       try { await git(['cat-file', '-e', `${revision}^{commit}`]); }
-      catch { await git(['fetch', '--no-tags', 'origin', revision]); }
+      catch { await git(['fetch', '--no-tags', upstream, revision]); }
       const [agenda, ledger, directories, sourceDate] = await Promise.all([
         git(['show', `${revision}:${agendaPath}`]), git(['show', `${revision}:${ledgerPath}`]),
         git(['ls-tree', '-d', '--name-only', `${revision}:research/experiments`]), git(['show', '-s', '--format=%cI', revision]),
       ]);
-      snapshot = parseResearch({ agenda, ledger, experiments: directories.split('\n').filter(Boolean),
+      const next = parseResearch({ agenda, ledger, experiments: directories.split('\n').filter(Boolean),
         revision, sourceDate, source: 'github', checkedAt: new Date().toISOString() });
+      await git(['update-ref', cacheRef, revision]);
+      snapshot = next;
     } catch (error) {
-      if (!snapshot) throw error;
-      snapshot.meta.warning = `Could not check GitHub (${error.message}). Showing the last available snapshot, not live activity.`;
+      if (snapshot) snapshot.meta.warning = 'Could not check GitHub. Showing the last available snapshot, not live activity.';
     }
   })().finally(() => { refreshing = null; });
   return refreshing;
@@ -67,7 +79,8 @@ const assets = new Map([
 ]);
 
 export async function start(port = Number(process.env.PORT ?? 4317)) {
-  snapshot = await localSnapshot();
+  snapshot = await localSnapshot().catch(() => null);
+  if (!snapshot) await refresh();
   const server = createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
@@ -78,6 +91,7 @@ export async function start(port = Number(process.env.PORT ?? 4317)) {
     if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405); res.end(); return; }
     if (path === '/api/research') {
       if (new URL(req.url, 'http://localhost').searchParams.has('refresh')) await refresh();
+      if (!snapshot) { res.writeHead(503, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'No source snapshot available; retry shortly.' })); return; }
       res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store');
       res.end(req.method === 'HEAD' ? '' : JSON.stringify(snapshot)); return;
     }
