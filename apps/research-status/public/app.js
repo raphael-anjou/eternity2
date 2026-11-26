@@ -4,6 +4,7 @@ const labels = { running: 'Running', open: 'Open', proposed: 'Proposed', promote
 const state = { data: null, view: 'threads', scope: 'all', status: null, query: '', group: 'all', sort: 'number' };
 let opener;
 let skipCloseHistory = false;
+let dialogDepth = 0;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -127,11 +128,8 @@ function openThread(thread, button, push = true) {
     body.append(section);
   }
   if (!$('#detail').open) $('#detail').showModal(); $('#detail').scrollTop = 0;
-  if (push && location.hash !== `#${thread.id}`) {
-    // One dialog is one history step; internal thread links replace its content.
-    if (wasOpen) history.replaceState(history.state, '', `#${thread.id}`);
-    else history.pushState({ researchThread: true }, '', `#${thread.id}`);
-  }
+  if (push && location.hash !== `#${thread.id}`) history.pushState({ researchThread: true, depth: wasOpen ? dialogDepth + 1 : 1 }, '', `#${thread.id}`);
+  dialogDepth = history.state?.depth ?? 1;
 }
 function renderThreads() {
   const threads = filteredThreads();
@@ -217,7 +215,15 @@ async function load(refresh = false) {
     if (!response.ok) throw new Error(`Source request failed (${response.status})`);
     state.data = await response.json(); $('#load-error').hidden = true; render();
     const id = location.hash.slice(1); const thread = state.data.threads.find((t) => t.id === id);
-    if (thread && !$('#detail').open) openThread(thread, null, false);
+    if (thread && !$('#detail').open) {
+      // A fresh shared thread URL needs a list entry beneath its dialog, too.
+      if (!history.state?.researchThread) {
+        const hash = location.hash;
+        history.replaceState(null, '', location.pathname + location.search);
+        history.pushState({ researchThread: true, depth: 1 }, '', hash);
+      }
+      openThread(thread, null, false);
+    }
   } catch (error) {
     $('#load-error').hidden = false; $('#load-error').textContent = `${error.message}. ${state.data ? 'Showing the last loaded snapshot.' : 'Use Refresh source to try again.'}`;
     if (!state.data) { $('#content').setAttribute('aria-busy', 'false'); empty('The source is unavailable.', 'Refresh to try again.'); }
@@ -235,15 +241,20 @@ $('#close-detail').addEventListener('click', () => $('#detail').close());
 $('#detail').addEventListener('click', (event) => { if (event.target === $('#detail')) $('#detail').close(); });
 $('#detail').addEventListener('close', () => {
   if (skipCloseHistory) skipCloseHistory = false;
-  else if (history.state?.researchThread && /^#A\d+$/.test(location.hash)) history.back();
+  else if (history.state?.researchThread && /^#A\d+$/.test(location.hash)) history.go(-(history.state.depth ?? 1));
   else history.replaceState(null, '', location.pathname + location.search);
   opener?.focus();
 });
 function syncLocation() {
   if (!state.data) return;
   const thread = state.data.threads.find((t) => `#${t.id}` === location.hash);
-  if (thread) openThread(thread, null, false);
-  else if ($('#detail').open) { skipCloseHistory = true; $('#detail').close(); }
+  if (thread) {
+    if (!history.state?.researchThread) history.replaceState({ researchThread: true, depth: $('#detail').open ? dialogDepth + 1 : 1 }, '', location.href);
+    openThread(thread, null, false);
+  } else {
+    dialogDepth = 0;
+    if ($('#detail').open) { skipCloseHistory = true; $('#detail').close(); }
+  }
 }
 window.addEventListener('popstate', syncLocation);
 window.addEventListener('hashchange', syncLocation);
