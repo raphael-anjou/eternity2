@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile, readdir } from 'node:fs/promises';
+import { parseResearch } from './data.mjs';
+
+const input = {
+  agenda: '# Agenda\n\n## A1. First idea · killed for the narrow family priced\n\n- **Hypothesis.** A claim.\n  A continuation.\n- **Kill.** Fails cheaply.\n- **Result (round 1).** Negative. `research/experiments/example/`.\n\n## A2. Reopening condition: new evidence · open\n\n- **Hypothesis.** More data.\n\n## Unnumbered notes\nNot a thread.\n',
+  ledger: '# Log\n\n## Plan and conventions\nIgnore.\n\n## 2026-01-01 · First result\nFirst evidence.\n\n## 2026-01-02 · Second result\nSecond evidence.\n',
+  experiments: ['example'], revision: 'abc123', source: 'local', sourceDate: '2026-01-02', checkedAt: '2026-01-03',
+};
+test('keeps scoped statuses and multiline fields without inventing activity', () => {
+  const data = parseResearch(input);
+  assert.equal(data.threads.length, 2);
+  assert.equal(data.threads[0].status, 'killed');
+  assert.equal(data.threads[0].statusText, 'killed for the narrow family priced');
+  assert.equal(data.threads[0].hypothesis, 'A claim. A continuation.');
+  assert.deepEqual(data.threads[0].experiments, ['example']);
+  assert.equal(data.threads[0].results.length, 1);
+  assert.equal(data.threads[1].kind, 'Reopening condition');
+  assert.ok(data.threads[0].url.includes('/blob/abc123/'));
+});
+test('ledger is newest first and excludes undated conventions', () => {
+  const data = parseResearch(input);
+  assert.equal(data.log.length, 2);
+  assert.equal(data.log[0].date, '2026-01-02');
+});
+test('malformed agenda cannot silently replace good data', () => {
+  assert.throws(() => parseResearch({ ...input, agenda: 'No headings' }), /No agenda threads/);
+});
+test('parses every numbered heading in the real agenda and retains every dated ledger entry', async () => {
+  const [agenda, ledger, entries] = await Promise.all([
+    readFile(new URL('../../research/program/AGENDA.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../research/LEDGER.md', import.meta.url), 'utf8'),
+    readdir(new URL('../../research/experiments/', import.meta.url), { withFileTypes: true }),
+  ]);
+  const data = parseResearch({ ...input, agenda, ledger, experiments: entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name) });
+  assert.equal(data.threads.length, [...agenda.matchAll(/^## A\d+\./gm)].length);
+  assert.equal(new Set(data.threads.map((thread) => thread.id)).size, data.threads.length);
+  assert.equal(data.log.length, [...ledger.matchAll(/^## \d{4}-\d{2}-\d{2}/gm)].length);
+  assert.ok(data.threads.every((thread) => thread.status !== 'unknown' && thread.hypothesis));
+});
