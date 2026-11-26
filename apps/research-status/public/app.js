@@ -129,12 +129,15 @@ function empty(title, subtitle) {
   const box = el('div', 'empty'); box.append(el('strong', '', title), el('p', '', subtitle)); $('#content').replaceChildren(box);
 }
 function renderLog() {
+  const expanded = new Set([...document.querySelectorAll('.log-entry[open]')].map((node) => node.dataset.entry));
   const entries = state.data.log.filter((entry) => `${entry.title} ${entry.body}`.toLowerCase().includes(state.query));
   $('#result-count').textContent = `${entries.length} research log entries · newest first`;
   if (!entries.length) return empty('No log entries match.', 'Try a method name or an experiment folder.');
   const list = el('div', 'log-list');
   for (const entry of entries) {
     const details = el('details', 'log-entry'); const summary = el('summary');
+    details.dataset.entry = entry.url;
+    details.open = expanded.has(entry.url);
     summary.append(el('span', 'log-date mono', date(entry.date)), el('strong', '', entry.title.replace(/^\d{4}-\d{2}-\d{2}\s*[·:—-]?\s*/, '')), el('span', 'log-expand', '+'));
     details.append(summary, rich(entry.body), link('View source entry ↗', entry.url, 'source-link')); list.append(details);
   }
