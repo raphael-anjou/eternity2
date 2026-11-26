@@ -48,7 +48,7 @@ export function parseResearch({ agenda, ledger, experiments, revision, source, s
   const log = sections(ledger).filter((section) => /^\d{4}-\d{2}-\d{2}/.test(section.title)).map((section, index) => ({
     id: `log-${index}`, title: clean(section.title), body: section.body,
     date: section.title.slice(0, 10), url: `${blob}/${ledgerPath}#${slug(section.title)}`,
-    threadIds: threads.filter((thread) => new RegExp(`\\b${thread.id}\\b`).test(section.body)
+    threadIds: threads.filter((thread) => new RegExp(`\\b${thread.id}\\b`).test(`${section.title} ${section.body}`)
       || thread.experiments.some((name) => section.body.includes(`research/experiments/${name}`))).map((thread) => thread.id),
   })).reverse();
   const arc = sections(agenda).find((section) => section.title.startsWith('Arc of '));

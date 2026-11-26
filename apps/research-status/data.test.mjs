@@ -26,6 +26,10 @@ test('ledger is newest first and excludes undated conventions', () => {
   assert.equal(data.log[0].date, '2026-01-02');
   assert.ok(data.log[0].url.endsWith('#2026-01-02--second-result'));
 });
+test('related log entries include a thread mentioned only in the heading', () => {
+  const data = parseResearch({ ...input, ledger: '# Log\n\n## 2026-01-02 · A2 proposal\nMore data needed.\n' });
+  assert.deepEqual(data.log[0].threadIds, ['A2']);
+});
 test('malformed agenda cannot silently replace good data', () => {
   assert.throws(() => parseResearch({ ...input, agenda: 'No headings' }), /No agenda threads/);
 });
