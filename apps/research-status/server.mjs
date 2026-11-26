@@ -66,8 +66,9 @@ export async function refresh() {
       ]);
       const next = parseResearch({ agenda, ledger, experiments: directories.split('\n').filter(Boolean),
         revision, sourceDate, source: 'github', checkedAt: new Date().toISOString() });
-      await git(['update-ref', cacheRef, revision]);
       snapshot = next;
+      // Persistence is optional: a read-only clone can still serve verified data.
+      await git(['update-ref', cacheRef, revision]).catch(() => {});
     } catch (error) {
       if (snapshot) snapshot.meta.warning = 'Could not check GitHub. Showing the last available snapshot, not live activity.';
     }
