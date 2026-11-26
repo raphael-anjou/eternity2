@@ -79,7 +79,7 @@ function renderOverview() {
 function filteredThreads() {
   return state.data.threads.filter((thread) => {
     const scope = state.scope === 'all' || (state.scope === 'unresolved' && ['open', 'proposed'].includes(thread.status)) || (state.scope === 'advanced' && ['promoted', 'published'].includes(thread.status)) || (state.scope === 'closed' && thread.status === 'killed');
-    return scope && (!state.status || thread.status === state.status) && (state.group === 'all' || state.group === thread.group) && JSON.stringify(thread).toLowerCase().includes(state.query);
+    return scope && (!state.status || thread.status === state.status) && (state.group === 'all' || state.group === thread.group) && plain([thread.id, thread.title, thread.statusText, thread.group, ...thread.fields.map((field) => `${field.label} ${field.text}`), ...thread.experiments].join(' ')).toLowerCase().includes(state.query);
   }).sort((a, b) => state.sort === 'recent' ? Number(b.id.slice(1)) - Number(a.id.slice(1)) : state.sort === 'status' ? statuses.indexOf(a.status) - statuses.indexOf(b.status) || Number(a.id.slice(1)) - Number(b.id.slice(1)) : Number(a.id.slice(1)) - Number(b.id.slice(1)));
 }
 function openThread(thread, button) {
@@ -130,7 +130,7 @@ function empty(title, subtitle) {
 }
 function renderLog() {
   const expanded = new Set([...document.querySelectorAll('.log-entry[open]')].map((node) => node.dataset.entry));
-  const entries = state.data.log.filter((entry) => `${entry.title} ${entry.body}`.toLowerCase().includes(state.query));
+  const entries = state.data.log.filter((entry) => plain(`${entry.title} ${entry.body}`).toLowerCase().includes(state.query));
   $('#result-count').textContent = `${entries.length} research log entries · newest first`;
   if (!entries.length) return empty('No log entries match.', 'Try a method name or an experiment folder.');
   const list = el('div', 'log-list');
@@ -179,7 +179,7 @@ async function load() {
 }
 $('#navigation').addEventListener('click', (event) => { const button = event.target.closest('[data-view]'); if (button) setView(button.dataset.view); });
 $('#tabs').addEventListener('click', (event) => { const button = event.target.closest('[data-scope]'); if (button) { state.scope = button.dataset.scope; state.status = null; render(); } });
-$('#search').addEventListener('input', (event) => { state.query = event.target.value.trim().toLowerCase(); render(); });
+$('#search').addEventListener('input', (event) => { state.query = event.target.value.replace(/\s+/g, ' ').trim().toLowerCase(); render(); });
 $('#group').addEventListener('change', (event) => { state.group = event.target.value; render(); });
 $('#sort').addEventListener('change', (event) => { state.sort = event.target.value; render(); });
 $('#clear').addEventListener('click', () => { state.query = ''; state.scope = 'all'; state.status = null; state.group = 'all'; $('#search').value = ''; $('#group').value = 'all'; render(); });
