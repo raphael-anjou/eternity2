@@ -22,6 +22,9 @@ test('malformed URL returns 400 without terminating the server', async () => {
     const identity = await fetch(`http://127.0.0.1:${port}/api/research`, { headers: { 'Accept-Encoding': 'gzip; q=0, identity' } });
     assert.equal(identity.headers.get('content-encoding'), null);
     assert.ok((await identity.json()).threads.length);
+    const unchanged = await fetch(`http://127.0.0.1:${port}/api/research`, { headers: { 'If-None-Match': identity.headers.get('etag') } });
+    assert.equal(unchanged.status, 304);
+    assert.equal(await unchanged.text(), '');
     assert.equal((await fetch(`http://127.0.0.1:${port}/server.mjs`)).status, 404);
   } finally { await new Promise((done) => server.close(done)); }
 });

@@ -25,11 +25,15 @@ function rich(text) {
   for (const rawParagraph of text.split(/\n\s*\n/)) {
     const paragraph = rawParagraph.replace(/\r?\n(?![-*] )\s*/g, ' ');
     const p = el('p');
-    const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|`([^`]+)`|\*\*([^*]+)\*\*/g;
+    const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|\b(A\d+)\b/g;
     let cursor = 0;
     for (const match of paragraph.matchAll(pattern)) {
       p.append(document.createTextNode(paragraph.slice(cursor, match.index)));
-      p.append(match[1] ? link(match[1], match[2]) : el(match[3] ? 'code' : 'strong', '', match[3] ?? match[4]));
+      const thread = match[5] && state.data.threads.find((entry) => entry.id === match[5]);
+      if (thread) {
+        const button = el('button', 'inline-thread', thread.id);
+        button.addEventListener('click', () => openThread(thread, button)); p.append(button);
+      } else p.append(match[1] ? link(match[1], match[2]) : el(match[3] ? 'code' : match[4] ? 'strong' : 'span', '', match[3] ?? match[4] ?? match[5]));
       cursor = match.index + match[0].length;
     }
     p.append(document.createTextNode(paragraph.slice(cursor))); container.append(p);
@@ -47,6 +51,7 @@ function setView(view) {
   $('#search').placeholder = view === 'threads' ? 'Search threads, ideas, evidence…' : view === 'log' ? 'Search the research log…' : 'Search experiment folders…';
   $('#tabs').hidden = view !== 'threads'; $('#status-nav').hidden = view !== 'threads';
   $('#group-label').hidden = view !== 'threads'; $('#sort-label').hidden = view !== 'threads';
+  $('#exact-status-label').hidden = view !== 'threads';
   document.querySelectorAll('[data-view]').forEach((node) => { node.classList.toggle('active', node.dataset.view === view); node.setAttribute('aria-current', node.dataset.view === view ? 'page' : 'false'); });
   render();
 }
@@ -70,11 +75,22 @@ function renderOverview() {
     button.append(badge(status), el('span', 'mono', count)); button.addEventListener('click', () => { state.status = state.status === status ? null : status; state.scope = 'all'; render(); });
     return button;
   }));
-  const note = $('#program-note'); note.hidden = !state.data.program.context;
+  const note = $('#program-note'); note.hidden = !state.data.program.context; note.setAttribute('aria-busy', 'false');
   note.replaceChildren();
   if (state.data.program.context) {
     const text = el('div');
-    text.append(el('strong', '', state.data.program.stopped ? 'Full-solve method hunt stopped' : 'Program context'), el('p', '', state.data.program.stopped ? `The agenda records a stop${state.data.program.stoppedAt ? ` on ${date(state.data.program.stoppedAt)}` : ''}. Open questions and reopening conditions remain; they are not active runs.` : state.data.program.context));
+    text.append(el('strong', '', state.data.program.stopped ? 'Full-solve method hunt stopped' : 'Program context'), el('p', '', state.data.program.stopped ? `The agenda records a stop${state.data.program.stoppedAt ? ` on ${date(state.data.program.stoppedAt)}` : ''}. ${state.data.program.reason ? `Reason: ${state.data.program.reason}. ` : ''}Open questions and reopening conditions remain; they are not active runs.` : state.data.program.context));
+    if (state.data.program.tripwires?.length) {
+      const row = el('div', 'tripwire-links', 'Reopening tripwires: ');
+      for (const id of state.data.program.tripwires) {
+        const thread = threads.find((entry) => entry.id === id); const button = el('button', 'text-button', id);
+        button.title = thread.title; button.addEventListener('click', () => openThread(thread, button)); row.append(button);
+      }
+      const show = el('button', 'text-button', 'Show all'); show.addEventListener('click', () => {
+        state.status = null; state.scope = 'all'; state.group = 'all'; $('#group').value = 'all'; setView('threads');
+        state.query = 'tripwires'; $('#search').value = 'tripwires'; render();
+      }); row.append(show); text.append(row);
+    }
     note.append(el('span', 'note-symbol', 'Ⅱ'), text, link('Read the decision ↗', state.data.program.url));
   }
 }
@@ -82,7 +98,7 @@ function filteredThreads() {
   return state.data.threads.filter((thread) => {
     if (/^a\d+$/i.test(state.query) && thread.id.toLowerCase() !== state.query) return false;
     const scope = state.scope === 'all' || (state.scope === 'unresolved' && ['open', 'proposed'].includes(thread.status)) || (state.scope === 'advanced' && ['promoted', 'published'].includes(thread.status)) || (state.scope === 'closed' && thread.status === 'killed');
-    return scope && (!state.status || thread.status === state.status) && (state.group === 'all' || state.group === thread.group) && plain([thread.id, thread.title, thread.statusText, thread.group, ...thread.fields.map((field) => `${field.label} ${field.text}`), ...thread.experiments].join(' ')).toLowerCase().includes(state.query);
+    return scope && (!state.status || thread.status === state.status) && (state.group === 'all' || state.group === thread.group) && plain([thread.id, thread.title, thread.statusText, thread.group, thread.kind === 'Reopening condition' ? 'tripwires' : '', ...thread.fields.map((field) => `${field.label} ${field.text}`), ...thread.experiments].join(' ')).toLowerCase().includes(state.query);
   }).sort((a, b) => state.sort === 'recent' ? Number(b.id.slice(1)) - Number(a.id.slice(1)) : state.sort === 'status' ? statuses.indexOf(a.status) - statuses.indexOf(b.status) || Number(a.id.slice(1)) - Number(b.id.slice(1)) : Number(a.id.slice(1)) - Number(b.id.slice(1)));
 }
 function openThread(thread, button, push = true) {
@@ -92,6 +108,12 @@ function openThread(thread, button, push = true) {
   body.append(badge(thread.status, thread.statusText), el('h2', '', thread.title), el('p', 'detail-kind', thread.kind));
   body.append(link('Open original agenda entry ↗', thread.url, 'source-link'));
   const disclaimer = el('p', 'detail-disclaimer', 'Recorded agenda status, not live execution. Later research log entries may narrow or supersede this result.'); body.append(disclaimer);
+  const related = state.data.log.filter((entry) => entry.threadIds?.includes(thread.id));
+  if (related.length) {
+    const section = el('section', 'detail-section related-log'); section.append(el('h3', '', 'Related research log entries'), el('p', '', 'Entries mentioning this thread or sharing an evidence folder; not automatic status changes.'));
+    for (const entry of related) section.append(link(entry.title, entry.url, 'related-log-link'));
+    body.append(section);
+  }
   for (const field of thread.fields) {
     const section = el('section', 'detail-section');
     const heading = el('h3'); const formatted = rich(field.label);
@@ -126,7 +148,9 @@ function renderThreads() {
     const status = el('td', 'status-cell'); status.append(badge(thread.status)); status.title = thread.statusText;
     if (thread.statusText !== thread.status) status.append(el('small', 'status-qualifier', thread.statusText.slice(thread.status.length).replace(/^,?\s*/, '')));
     const result = thread.results.at(-1);
-    const outcome = el('td', 'outcome-cell'); outcome.append(el('p', 'outcome', result ? plain(result.text) : `Hypothesis: ${thread.hypothesis}`));
+    const outcome = el('td', 'outcome-cell');
+    if (result) outcome.append(el('small', 'result-scope', plain(result.label)));
+    outcome.append(el('p', 'outcome', result ? plain(result.text) : `Hypothesis: ${thread.hypothesis}`));
     const detail = el('td', 'arrow-cell'); const open = el('button', 'icon-button', '↗'); open.setAttribute('aria-label', `Open ${thread.id} details`); open.addEventListener('click', () => openThread(thread, open)); detail.append(open);
     row.append(main, status, outcome, detail); tbody.append(row);
   }
@@ -152,13 +176,15 @@ function renderLog() {
 }
 function renderEvidence() {
   const references = (entry) => state.data.threads.filter((t) => t.experiments.includes(entry.name));
-  const entries = state.data.experiments.filter((entry) => entry.name.includes(state.query) || references(entry).some((t) => /^a\d+$/i.test(state.query) ? t.id.toLowerCase() === state.query : `${t.id} ${t.title}`.toLowerCase().includes(state.query)));
-  $('#result-count').textContent = `${entries.length} experiment folders · source repository`;
+  const normalized = (text) => text.replace(/[-_]+/g, ' ');
+  const entries = state.data.experiments.filter((entry) => normalized(entry.name).includes(normalized(state.query)) || references(entry).some((t) => /^a\d+$/i.test(state.query) ? t.id.toLowerCase() === state.query : normalized(`${t.id} ${t.title}`.toLowerCase()).includes(normalized(state.query))));
+  $('#result-count').textContent = `${entries.length} experiment folder${entries.length === 1 ? '' : 's'} · source repository`;
   if (!entries.length) return empty('No folders match.', 'Try a shorter experiment name.');
   const grid = el('div', 'evidence-grid');
   for (const entry of entries) {
     const node = el('article', 'evidence-card'); const related = references(entry);
-    node.append(el('span', 'folder-icon', '▱'), link(entry.name, entry.url, 'folder-title'), el('span', 'folder-arrow', '↗'));
+    const arrow = link('↗', entry.url, 'folder-arrow'); arrow.setAttribute('aria-label', `Open ${entry.name} folder`);
+    node.append(el('span', 'folder-icon', '▱'), link(entry.name, entry.url, 'folder-title'), arrow);
     const refs = el('div', 'folder-references', related.length ? 'Referenced by ' : 'Browse source files and results');
     for (const thread of related) { const button = el('button', 'text-button', thread.id); button.addEventListener('click', () => openThread(thread, button)); refs.append(button); }
     node.append(refs); grid.append(node);
@@ -168,8 +194,9 @@ function renderEvidence() {
 function render() {
   if (!state.data) return;
   renderOverview();
+  $('#exact-status').value = state.status ?? '';
   document.querySelectorAll('[data-scope]').forEach((node) => { const active = node.dataset.scope === state.scope && !state.status; node.classList.toggle('active', active); node.setAttribute('aria-pressed', String(active)); });
-  $('#clear').hidden = !(state.query || state.status || state.scope !== 'all' || state.group !== 'all');
+  $('#clear').hidden = !(state.query || (state.view === 'threads' && (state.status || state.scope !== 'all' || state.group !== 'all')));
   if (state.view === 'threads') renderThreads(); else if (state.view === 'log') renderLog(); else renderEvidence();
   const meta = state.data.meta;
   const footer = $('#source-footer'); footer.replaceChildren();
@@ -195,8 +222,9 @@ $('#navigation').addEventListener('click', (event) => { const button = event.tar
 $('#tabs').addEventListener('click', (event) => { const button = event.target.closest('[data-scope]'); if (button) { state.scope = button.dataset.scope; state.status = null; render(); } });
 $('#search').addEventListener('input', (event) => { state.query = plain(event.target.value).toLowerCase(); render(); });
 $('#group').addEventListener('change', (event) => { state.group = event.target.value; render(); });
+$('#exact-status').addEventListener('change', (event) => { state.status = event.target.value || null; state.scope = 'all'; render(); });
 $('#sort').addEventListener('change', (event) => { state.sort = event.target.value; render(); });
-$('#clear').addEventListener('click', () => { state.query = ''; state.scope = 'all'; state.status = null; state.group = 'all'; $('#search').value = ''; $('#group').value = 'all'; render(); });
+$('#clear').addEventListener('click', () => { state.query = ''; $('#search').value = ''; if (state.view === 'threads') { state.scope = 'all'; state.status = null; state.group = 'all'; $('#group').value = 'all'; } render(); });
 $('#refresh').addEventListener('click', () => load(true));
 $('#close-detail').addEventListener('click', () => $('#detail').close());
 $('#detail').addEventListener('click', (event) => { if (event.target === $('#detail')) $('#detail').close(); });

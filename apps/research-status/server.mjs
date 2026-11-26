@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
 import { gzipSync } from 'node:zlib';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { parseResearch, agendaPath, ledgerPath } from './data.mjs';
@@ -22,6 +23,7 @@ let lastAttempt = 0;
 let responseSnapshot;
 let responseBody;
 let responseGzip;
+let responseTag;
 
 async function localSnapshot() {
   const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' }).trim();
@@ -97,12 +99,17 @@ export async function start(port = Number(process.env.PORT ?? 4317)) {
     if (path === '/api/research') {
       if (new URL(req.url, 'http://localhost').searchParams.has('refresh')) await refresh();
       if (!snapshot) { res.writeHead(503, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'No source snapshot available; retry shortly.' })); return; }
-      res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'private, no-cache');
       const body = JSON.stringify(snapshot);
       if (snapshot !== responseSnapshot || body !== responseBody) {
         responseSnapshot = snapshot; responseBody = body; responseGzip = gzipSync(body);
+        responseTag = `"${createHash('sha256').update(body).digest('hex')}"`;
       }
       res.setHeader('Vary', 'Accept-Encoding');
+      res.setHeader('ETag', `W/${responseTag}`);
+      if (req.headers['if-none-match']?.split(',').some((tag) => tag.trim().replace(/^W\//, '') === responseTag)) {
+        res.writeHead(304); res.end(); return;
+      }
       const compressed = (req.headers['accept-encoding'] ?? '').split(',').some((entry) => {
         const [coding, ...parameters] = entry.trim().toLowerCase().split(';');
         const quality = parameters.map((value) => value.trim()).find((value) => value.startsWith('q='));

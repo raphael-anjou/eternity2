@@ -29,6 +29,10 @@ test('ledger is newest first and excludes undated conventions', () => {
 test('malformed agenda cannot silently replace good data', () => {
   assert.throws(() => parseResearch({ ...input, agenda: 'No headings' }), /No agenda threads/);
 });
+test('agenda group introductions cannot become the preceding thread result', () => {
+  const data = parseResearch({ ...input, agenda: input.agenda.replace('## A2.', '### Next agenda group\n\nIntroduction, not an A1 result.\n\n## A2.') });
+  assert.ok(data.threads[0].fields.every((field) => !field.text.includes('Next agenda group') && !field.text.includes('Introduction')));
+});
 test('parses every numbered heading in the real agenda and retains every dated ledger entry', async () => {
   const [agenda, ledger, entries] = await Promise.all([
     readFile(new URL('../../research/program/AGENDA.md', import.meta.url), 'utf8'),
@@ -40,4 +44,10 @@ test('parses every numbered heading in the real agenda and retains every dated l
   assert.equal(new Set(data.threads.map((thread) => thread.id)).size, data.threads.length);
   assert.equal(data.log.length, [...ledger.matchAll(/^## \d{4}-\d{2}-\d{2}/gm)].length);
   assert.ok(data.threads.every((thread) => thread.status !== 'unknown' && thread.hypothesis));
+  assert.deepEqual(data.program.tripwires, ['A40', 'A53', 'A54', 'A55']);
+  assert.ok(data.program.url.includes('/research/LEDGER.md#'));
+  assert.match(data.program.reason, /works too late/);
+  const latestLearning = data.log.find((entry) => entry.title.includes('Learning against propagation on real-piece prefixes'));
+  assert.ok(latestLearning.threadIds.includes('A43'));
+  assert.ok(!data.threads.find((thread) => thread.id === 'A39').fields.at(-1).text.includes('Open after the arc'));
 });
