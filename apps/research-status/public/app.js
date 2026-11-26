@@ -24,7 +24,7 @@ function plain(text) { return text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').repla
 function sourcePath(text, code = false) {
   const node = code ? el('code', '', text) : document.createTextNode(text);
   const path = /^research\/experiments\/([a-z0-9-]+)(.*)$/.exec(text);
-  if (!path || !state.data.experiments.some((entry) => entry.name === path[1])) return node;
+  if (!path || /[*{}?]/.test(text) || !state.data.experiments.some((entry) => entry.name === path[1])) return node;
   const kind = !path[2] || text.endsWith('/') ? 'tree' : 'blob';
   const anchor = link('', `${state.data.meta.repository}/${kind}/${state.data.meta.revision}/${text}`);
   anchor.append(node); return anchor;
@@ -34,7 +34,7 @@ function rich(text) {
   for (const rawParagraph of text.split(/\n\s*\n/)) {
     const paragraph = rawParagraph.replace(/\r?\n(?![-*] )\s*/g, ' ');
     const p = el('p');
-    const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|\b(A\d+)\b|\b(research\/experiments\/[a-z0-9-]+(?:\/[a-zA-Z0-9_./-]*)?)/g;
+    const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|\b(A\d+)\b|\b(research\/experiments\/[a-z0-9-]+(?:\/[a-zA-Z0-9_./*{}?,-]*)?)/g;
     let cursor = 0;
     for (const match of paragraph.matchAll(pattern)) {
       p.append(document.createTextNode(paragraph.slice(cursor, match.index)));
@@ -42,8 +42,8 @@ function rich(text) {
       if (thread) {
         const button = el('button', 'inline-thread', thread.id);
         button.addEventListener('click', () => openThread(thread, button)); p.append(button);
-      } else p.append(match[1] ? link(match[1], match[2]) : match[3] ? sourcePath(match[3], true) : match[6] ? sourcePath(match[6].replace(/\.$/, '')) : el(match[4] ? 'strong' : 'span', '', match[4] ?? match[5]));
-      if (match[6]?.endsWith('.')) p.append(document.createTextNode('.'));
+      } else p.append(match[1] ? link(match[1], match[2]) : match[3] ? sourcePath(match[3], true) : match[6] ? sourcePath(match[6].replace(/[.,]+$/, '')) : el(match[4] ? 'strong' : 'span', '', match[4] ?? match[5]));
+      if (match[6]?.match(/[.,]+$/)) p.append(document.createTextNode(match[6].match(/[.,]+$/)[0]));
       cursor = match.index + match[0].length;
     }
     p.append(document.createTextNode(paragraph.slice(cursor))); container.append(p);
