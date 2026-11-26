@@ -71,7 +71,9 @@ export async function start(port = Number(process.env.PORT ?? 4317)) {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'");
-    const path = new URL(req.url, 'http://localhost').pathname;
+    let path;
+    try { path = new URL(req.url, 'http://localhost').pathname; }
+    catch { res.writeHead(400); res.end('Bad request'); return; }
     if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405); res.end(); return; }
     if (path === '/api/research') {
       res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store');
