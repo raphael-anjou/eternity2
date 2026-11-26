@@ -3,6 +3,7 @@ const statuses = ['running', 'open', 'proposed', 'promoted', 'published', 'kille
 const labels = { running: 'Running', open: 'Open', proposed: 'Proposed', promoted: 'Promoted', published: 'Published', killed: 'Killed' };
 const state = { data: null, view: 'threads', scope: 'all', status: null, query: '', group: 'all', sort: 'number' };
 let opener;
+let skipCloseHistory = false;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -21,7 +22,8 @@ function badge(status, text) {
 function plain(text) { return text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[*`]/g, '').replace(/\s+/g, ' ').trim(); }
 function rich(text) {
   const container = el('div', 'prose');
-  for (const paragraph of text.split(/\n\s*\n/)) {
+  for (const rawParagraph of text.split(/\n\s*\n/)) {
+    const paragraph = rawParagraph.replace(/\r?\n(?![-*] )\s*/g, ' ');
     const p = el('p');
     const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|`([^`]+)`|\*\*([^*]+)\*\*/g;
     let cursor = 0;
@@ -78,11 +80,12 @@ function renderOverview() {
 }
 function filteredThreads() {
   return state.data.threads.filter((thread) => {
+    if (/^a\d+$/i.test(state.query) && thread.id.toLowerCase() !== state.query) return false;
     const scope = state.scope === 'all' || (state.scope === 'unresolved' && ['open', 'proposed'].includes(thread.status)) || (state.scope === 'advanced' && ['promoted', 'published'].includes(thread.status)) || (state.scope === 'closed' && thread.status === 'killed');
     return scope && (!state.status || thread.status === state.status) && (state.group === 'all' || state.group === thread.group) && plain([thread.id, thread.title, thread.statusText, thread.group, ...thread.fields.map((field) => `${field.label} ${field.text}`), ...thread.experiments].join(' ')).toLowerCase().includes(state.query);
   }).sort((a, b) => state.sort === 'recent' ? Number(b.id.slice(1)) - Number(a.id.slice(1)) : state.sort === 'status' ? statuses.indexOf(a.status) - statuses.indexOf(b.status) || Number(a.id.slice(1)) - Number(b.id.slice(1)) : Number(a.id.slice(1)) - Number(b.id.slice(1)));
 }
-function openThread(thread, button) {
+function openThread(thread, button, push = true) {
   opener = button;
   const body = $('#detail-body'); body.replaceChildren();
   $('#detail-id').textContent = `${thread.id} / ${thread.group}`;
@@ -100,8 +103,8 @@ function openThread(thread, button) {
     for (const name of thread.experiments) section.append(link(`${name} ↗`, state.data.experiments.find((e) => e.name === name).url, 'evidence-link'));
     body.append(section);
   }
-  $('#detail').showModal(); $('#detail').scrollTop = 0;
-  history.replaceState(null, '', `#${thread.id}`);
+  if (!$('#detail').open) $('#detail').showModal(); $('#detail').scrollTop = 0;
+  if (push && location.hash !== `#${thread.id}`) history.pushState({ researchThread: true }, '', `#${thread.id}`);
 }
 function renderThreads() {
   const threads = filteredThreads();
@@ -121,8 +124,9 @@ function renderThreads() {
     if (thread.kind === 'Reopening condition') meta.append(el('span', 'kind-label', 'Reopening condition'));
     main.append(button, meta);
     const status = el('td', 'status-cell'); status.append(badge(thread.status)); status.title = thread.statusText;
+    if (thread.statusText !== thread.status) status.append(el('small', 'status-qualifier', thread.statusText.slice(thread.status.length).replace(/^,?\s*/, '')));
     const result = thread.results.at(-1);
-    const outcome = el('td', 'outcome-cell'); outcome.append(el('p', 'outcome', result ? plain(result.text) : thread.hypothesis));
+    const outcome = el('td', 'outcome-cell'); outcome.append(el('p', 'outcome', result ? plain(result.text) : `Hypothesis: ${thread.hypothesis}`));
     const detail = el('td', 'arrow-cell'); const open = el('button', 'icon-button', '↗'); open.setAttribute('aria-label', `Open ${thread.id} details`); open.addEventListener('click', () => openThread(thread, open)); detail.append(open);
     row.append(main, status, outcome, detail); tbody.append(row);
   }
@@ -147,11 +151,18 @@ function renderLog() {
   $('#content').replaceChildren(list);
 }
 function renderEvidence() {
-  const entries = state.data.experiments.filter((entry) => entry.name.includes(state.query));
+  const references = (entry) => state.data.threads.filter((t) => t.experiments.includes(entry.name));
+  const entries = state.data.experiments.filter((entry) => entry.name.includes(state.query) || references(entry).some((t) => /^a\d+$/i.test(state.query) ? t.id.toLowerCase() === state.query : `${t.id} ${t.title}`.toLowerCase().includes(state.query)));
   $('#result-count').textContent = `${entries.length} experiment folders · source repository`;
   if (!entries.length) return empty('No folders match.', 'Try a shorter experiment name.');
   const grid = el('div', 'evidence-grid');
-  for (const entry of entries) { const node = link('', entry.url, 'evidence-card'); const related = state.data.threads.filter((t) => t.experiments.includes(entry.name)); node.append(el('span', 'folder-icon', '▱'), el('strong', '', entry.name), el('small', '', related.length ? `Referenced by ${related.map((t) => t.id).join(', ')}` : 'Browse source files and results'), el('span', 'folder-arrow', '↗')); grid.append(node); }
+  for (const entry of entries) {
+    const node = el('article', 'evidence-card'); const related = references(entry);
+    node.append(el('span', 'folder-icon', '▱'), link(entry.name, entry.url, 'folder-title'), el('span', 'folder-arrow', '↗'));
+    const refs = el('div', 'folder-references', related.length ? 'Referenced by ' : 'Browse source files and results');
+    for (const thread of related) { const button = el('button', 'text-button', thread.id); button.addEventListener('click', () => openThread(thread, button)); refs.append(button); }
+    node.append(refs); grid.append(node);
+  }
   $('#content').replaceChildren(grid);
 }
 function render() {
@@ -174,7 +185,7 @@ async function load(refresh = false) {
     if (!response.ok) throw new Error(`Source request failed (${response.status})`);
     state.data = await response.json(); $('#load-error').hidden = true; render();
     const id = location.hash.slice(1); const thread = state.data.threads.find((t) => t.id === id);
-    if (thread && !$('#detail').open) openThread(thread, null);
+    if (thread && !$('#detail').open) openThread(thread, null, false);
   } catch (error) {
     $('#load-error').hidden = false; $('#load-error').textContent = `${error.message}. ${state.data ? 'Showing the last loaded snapshot.' : 'Use Refresh source to try again.'}`;
     if (!state.data) { $('#content').setAttribute('aria-busy', 'false'); empty('The source is unavailable.', 'Refresh to try again.'); }
@@ -189,7 +200,20 @@ $('#clear').addEventListener('click', () => { state.query = ''; state.scope = 'a
 $('#refresh').addEventListener('click', () => load(true));
 $('#close-detail').addEventListener('click', () => $('#detail').close());
 $('#detail').addEventListener('click', (event) => { if (event.target === $('#detail')) $('#detail').close(); });
-$('#detail').addEventListener('close', () => { history.replaceState(null, '', location.pathname); opener?.focus(); });
+$('#detail').addEventListener('close', () => {
+  if (skipCloseHistory) skipCloseHistory = false;
+  else if (history.state?.researchThread && /^#A\d+$/.test(location.hash)) history.back();
+  else history.replaceState(null, '', location.pathname + location.search);
+  opener?.focus();
+});
+function syncLocation() {
+  if (!state.data) return;
+  const thread = state.data.threads.find((t) => `#${t.id}` === location.hash);
+  if (thread) openThread(thread, null, false);
+  else if ($('#detail').open) { skipCloseHistory = true; $('#detail').close(); }
+}
+window.addEventListener('popstate', syncLocation);
+window.addEventListener('hashchange', syncLocation);
 document.addEventListener('keydown', (event) => { if (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) && !$('#detail').open) { event.preventDefault(); $('#search').focus(); } });
 setInterval(load, 60000);
 void load();

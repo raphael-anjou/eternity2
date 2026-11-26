@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
+import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { parseResearch, agendaPath, ledgerPath } from './data.mjs';
@@ -18,6 +19,9 @@ const git = async (args) => (await run('git', args, { cwd: repoRoot, encoding: '
 let snapshot;
 let refreshing;
 let lastAttempt = 0;
+let responseSnapshot;
+let responseBody;
+let responseGzip;
 
 async function localSnapshot() {
   const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' }).trim();
@@ -93,7 +97,14 @@ export async function start(port = Number(process.env.PORT ?? 4317)) {
       if (new URL(req.url, 'http://localhost').searchParams.has('refresh')) await refresh();
       if (!snapshot) { res.writeHead(503, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'No source snapshot available; retry shortly.' })); return; }
       res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store');
-      res.end(req.method === 'HEAD' ? '' : JSON.stringify(snapshot)); return;
+      const body = JSON.stringify(snapshot);
+      if (snapshot !== responseSnapshot || body !== responseBody) {
+        responseSnapshot = snapshot; responseBody = body; responseGzip = gzipSync(body);
+      }
+      res.setHeader('Vary', 'Accept-Encoding');
+      const compressed = /\bgzip\b/.test(req.headers['accept-encoding'] ?? '');
+      if (compressed) res.setHeader('Content-Encoding', 'gzip');
+      res.end(req.method === 'HEAD' ? '' : compressed ? responseGzip : responseBody); return;
     }
     const asset = assets.get(path);
     if (!asset) { res.writeHead(404); res.end('Not found'); return; }

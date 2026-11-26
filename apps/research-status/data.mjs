@@ -30,8 +30,8 @@ export function parseResearch({ agenda, ledger, experiments, revision, source, s
     const [, id, title, statusText] = heading;
     const status = /^(proposed|running|killed|promoted|published|open)\b/.exec(statusText)?.[1] ?? 'unknown';
     const detail = fields(section.body);
-    const paths = [...new Set([...section.body.matchAll(/research\/experiments\/([a-z0-9-]+)/g)].map((match) => match[1]))]
-      .filter((name) => experiments.includes(name));
+    const paths = experiments.filter((name) => section.body.includes(`research/experiments/${name}`)
+      || (name.includes('-') && new RegExp(`\\b${name}\\b`, 'i').test(section.body)));
     return [{
       id, title: clean(title), status, statusText, fields: detail,
       hypothesis: clean(detail.find((field) => field.label === 'Hypothesis')?.text ?? ''),
@@ -51,7 +51,7 @@ export function parseResearch({ agenda, ledger, experiments, revision, source, s
   const context = arc?.body.split(/\n\s*\n/)[0] ?? '';
   return {
     threads, log, experiments: experiments.map((name) => ({ name, url: `${repository}/tree/${revision}/research/experiments/${name}` })),
-    program: { context: clean(context), stopped: /hunt for a method stopped/.test(context), stoppedAt: /hunt for a method stopped on (\d{4}-\d{2}-\d{2})/.exec(context)?.[1] ?? null, url: `${blob}/${agendaPath}` },
+    program: { context: clean(context), stopped: /hunt for a method stopped/.test(context), stoppedAt: /hunt for a method stopped on (\d{4}-\d{2}-\d{2})/.exec(context)?.[1] ?? null, url: `${blob}/${agendaPath}${arc ? `#${slug(arc.title)}` : ''}` },
     meta: { revision, source, sourceDate, checkedAt, warning, repository, agendaUrl: `${blob}/${agendaPath}`, ledgerUrl: `${blob}/${ledgerPath}` },
   };
 }
