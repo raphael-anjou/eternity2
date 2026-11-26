@@ -108,7 +108,7 @@ function filteredThreads() {
   return state.data.threads.filter((thread) => {
     if (/^a\d+$/i.test(state.query) && thread.id.toLowerCase() !== state.query) return false;
     const scope = state.scope === 'all' || (state.scope === 'unresolved' && ['open', 'proposed'].includes(thread.status)) || (state.scope === 'advanced' && ['promoted', 'published'].includes(thread.status)) || (state.scope === 'closed' && thread.status === 'killed');
-    return scope && (!state.status || thread.status === state.status) && (state.group === 'all' || state.group === thread.group) && plain([thread.id, thread.title, thread.statusText, thread.group, thread.kind === 'Reopening condition' ? 'tripwires' : '', ...thread.fields.map((field) => `${field.label} ${field.text}`), ...thread.experiments].join(' ')).toLowerCase().includes(state.query);
+    return scope && (!state.status || thread.status === state.status) && (state.group === 'all' || state.group === thread.group) && plain([thread.id, thread.title, thread.statusText, thread.group, thread.kind === 'Reopening condition' ? 'tripwires' : '', thread.laterResult?.title ?? '', ...thread.fields.map((field) => `${field.label} ${field.text}`), ...thread.experiments].join(' ')).toLowerCase().includes(state.query);
   }).sort((a, b) => state.sort === 'recent' ? Number(b.id.slice(1)) - Number(a.id.slice(1)) : state.sort === 'status' ? statuses.indexOf(a.status) - statuses.indexOf(b.status) || Number(a.id.slice(1)) - Number(b.id.slice(1)) : Number(a.id.slice(1)) - Number(b.id.slice(1)));
 }
 function openThread(thread, button, push = true) {
