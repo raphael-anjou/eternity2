@@ -16,6 +16,12 @@ test('malformed URL returns 400 without terminating the server', async () => {
     });
     assert.match(response, /400 Bad Request/);
     assert.equal((await fetch(`http://127.0.0.1:${port}/api/research`)).status, 200);
+    const encoded = await fetch(`http://127.0.0.1:${port}/api/research`, { headers: { 'Accept-Encoding': 'gzip' } });
+    assert.equal(encoded.headers.get('content-encoding'), 'gzip');
+    assert.ok((await encoded.json()).threads.length);
+    const identity = await fetch(`http://127.0.0.1:${port}/api/research`, { headers: { 'Accept-Encoding': 'gzip; q=0, identity' } });
+    assert.equal(identity.headers.get('content-encoding'), null);
+    assert.ok((await identity.json()).threads.length);
     assert.equal((await fetch(`http://127.0.0.1:${port}/server.mjs`)).status, 404);
   } finally { await new Promise((done) => server.close(done)); }
 });

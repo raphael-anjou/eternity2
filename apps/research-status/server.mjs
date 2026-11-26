@@ -103,7 +103,11 @@ export async function start(port = Number(process.env.PORT ?? 4317)) {
         responseSnapshot = snapshot; responseBody = body; responseGzip = gzipSync(body);
       }
       res.setHeader('Vary', 'Accept-Encoding');
-      const compressed = /\bgzip\b/.test(req.headers['accept-encoding'] ?? '');
+      const compressed = (req.headers['accept-encoding'] ?? '').split(',').some((entry) => {
+        const [coding, ...parameters] = entry.trim().toLowerCase().split(';');
+        const quality = parameters.map((value) => value.trim()).find((value) => value.startsWith('q='));
+        return coding.trim() === 'gzip' && (!quality || Number(quality.slice(2)) > 0);
+      });
       if (compressed) res.setHeader('Content-Encoding', 'gzip');
       res.end(req.method === 'HEAD' ? '' : compressed ? responseGzip : responseBody); return;
     }
