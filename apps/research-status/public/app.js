@@ -182,7 +182,7 @@ async function load(refresh = false) {
 }
 $('#navigation').addEventListener('click', (event) => { const button = event.target.closest('[data-view]'); if (button) setView(button.dataset.view); });
 $('#tabs').addEventListener('click', (event) => { const button = event.target.closest('[data-scope]'); if (button) { state.scope = button.dataset.scope; state.status = null; render(); } });
-$('#search').addEventListener('input', (event) => { state.query = event.target.value.replace(/\s+/g, ' ').trim().toLowerCase(); render(); });
+$('#search').addEventListener('input', (event) => { state.query = plain(event.target.value).toLowerCase(); render(); });
 $('#group').addEventListener('change', (event) => { state.group = event.target.value; render(); });
 $('#sort').addEventListener('change', (event) => { state.sort = event.target.value; render(); });
 $('#clear').addEventListener('click', () => { state.query = ''; state.scope = 'all'; state.status = null; state.group = 'all'; $('#search').value = ''; $('#group').value = 'all'; render(); });
