@@ -54,7 +54,13 @@ function date(text) {
   if (!text) return 'Unknown';
   return new Date(text).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
-function setView(view) {
+function locationView() { const view = new URLSearchParams(location.search).get('view'); return ['log', 'evidence'].includes(view) ? view : 'threads'; }
+function setView(view, push = true) {
+  if (push && view !== locationView()) {
+    const url = new URL(location.href);
+    if (view === 'threads') url.searchParams.delete('view'); else url.searchParams.set('view', view);
+    history.pushState(null, '', url);
+  }
   state.view = view; state.query = ''; $('#search').value = '';
   const titles = { threads: ['Research threads', 'The questions being explored. The decisions already made.'], log: ['Research log', 'Decisions and findings, newest first. Including the paths that did not work.'], evidence: ['Evidence folders', 'The experiments behind the notebook. Scripts, committed results, and reproduction notes.'] };
   $('#page-title').textContent = titles[view][0]; $('#breadcrumb').textContent = titles[view][0]; $('#page-description').textContent = titles[view][1];
@@ -220,12 +226,14 @@ function renderEvidence() {
 }
 function render() {
   if (!state.data) return;
+  $('#overview').hidden = false; $('#program-note').hidden = false;
   renderOverview();
   $('#exact-status').value = state.status ?? '';
   document.querySelectorAll('[data-scope]').forEach((node) => { const active = node.dataset.scope === state.scope && !state.status; node.classList.toggle('active', active); node.setAttribute('aria-pressed', String(active)); });
   $('#clear').hidden = !(state.query || (state.view === 'threads' && (state.status || state.scope !== 'all' || state.group !== 'all')));
   if (state.view === 'threads') renderThreads(); else if (state.view === 'log') renderLog(); else renderEvidence();
   const meta = state.data.meta;
+  const scope = $('#scope-links'); scope.replaceChildren(document.createTextNode('Search covers numbered agenda threads only. For unnumbered ideas and prior work: '), link('Parked ideas ↗', `${meta.agendaUrl}#parked-from-the-round-1-idea-pass`), document.createTextNode(' · '), link('Explored territory ↗', `${meta.repository}/blob/${meta.revision}/research/program/EXPLORED.md`), document.createTextNode(' · '), link('Final report ↗', `${meta.repository}/blob/${meta.revision}/research/program/night/2026-11-13/REPORT.md`));
   const footer = $('#source-footer'); footer.replaceChildren();
   const status = el('span', `sync-state ${meta.warning ? 'warning' : ''}`, meta.source === 'github' ? 'GitHub source' : 'Local snapshot');
   footer.append(status, el('span', '', `${meta.source === 'github' ? 'Source verified' : 'Snapshot loaded'} ${new Date(meta.checkedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} · checks every 5 min`), link(meta.revision.slice(0, 7), `${meta.repository}/commit/${meta.revision}`, 'mono'), el('span', '', `Source commit ${date(meta.sourceDate)}`));
@@ -237,7 +245,7 @@ async function load(refresh = false) {
   try {
     const response = await fetch(`/api/research${refresh ? '?refresh=1' : ''}`);
     if (!response.ok) throw new Error(`Source request failed (${response.status})`);
-    state.data = await response.json(); $('#load-error').hidden = true; render();
+    state.data = await response.json(); $('#load-error').hidden = true; render(); renderRouteNotice();
     const id = location.hash.slice(1); const thread = state.data.threads.find((t) => t.id === id);
     if (thread && !$('#detail').open) {
       // A fresh shared thread URL needs a list entry beneath its dialog, too.
@@ -250,7 +258,12 @@ async function load(refresh = false) {
     }
   } catch (error) {
     $('#load-error').hidden = false; $('#load-error').textContent = `${error.message}. ${state.data ? 'Showing the last loaded snapshot.' : 'Use Refresh source to try again.'}`;
-    if (!state.data) { $('#content').setAttribute('aria-busy', 'false'); empty('The source is unavailable.', 'Refresh to try again.'); }
+    if (!state.data) {
+      $('#content').setAttribute('aria-busy', 'false'); $('#program-note').setAttribute('aria-busy', 'false');
+      $('#overview').hidden = true; $('#program-note').hidden = true;
+      $('#thread-total').textContent = '—'; $('#result-count').textContent = 'Source unavailable'; $('#source-footer').textContent = 'No snapshot loaded. Use Refresh source to retry.';
+      empty('The source is unavailable.', 'Refresh to try again.');
+    }
   } finally { button.disabled = false; }
 }
 $('#navigation').addEventListener('click', (event) => { const button = event.target.closest('[data-view]'); if (button) setView(button.dataset.view); });
@@ -269,8 +282,19 @@ $('#detail').addEventListener('close', () => {
   else history.replaceState(null, '', location.pathname + location.search);
   opener?.focus();
 });
-function syncLocation() {
+function renderRouteNotice() {
   if (!state.data) return;
+  const invalid = /^#A\d+$/.test(location.hash) && !state.data.threads.some((thread) => `#${thread.id}` === location.hash);
+  const notice = $('#route-error'); notice.hidden = !invalid; notice.replaceChildren();
+  if (invalid) {
+    notice.append(document.createTextNode(`Thread ${location.hash.slice(1)} is not in this source snapshot. `));
+    const clear = el('button', 'text-button', 'Clear thread link'); clear.addEventListener('click', () => { history.replaceState(null, '', location.pathname + location.search); syncLocation(); }); notice.append(clear);
+  }
+}
+function syncLocation() {
+  if (state.view !== locationView()) setView(locationView(), false);
+  if (!state.data) return;
+  renderRouteNotice();
   const thread = state.data.threads.find((t) => `#${t.id}` === location.hash);
   if (thread) {
     if (!history.state?.researchThread) history.replaceState({ researchThread: true, depth: $('#detail').open ? dialogDepth + 1 : 1 }, '', location.href);
@@ -283,5 +307,6 @@ function syncLocation() {
 window.addEventListener('popstate', syncLocation);
 window.addEventListener('hashchange', syncLocation);
 document.addEventListener('keydown', (event) => { if (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) && !$('#detail').open) { event.preventDefault(); $('#search').focus(); } });
+setView(locationView(), false);
 setInterval(load, 60000);
 void load();

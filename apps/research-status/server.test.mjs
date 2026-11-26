@@ -26,5 +26,8 @@ test('malformed URL returns 400 without terminating the server', async () => {
     assert.equal(unchanged.status, 304);
     assert.equal(await unchanged.text(), '');
     assert.equal((await fetch(`http://127.0.0.1:${port}/server.mjs`)).status, 404);
+    const missing = await fetch(`http://127.0.0.1:${port}/not-a-page`);
+    assert.equal(missing.status, 404);
+    assert.match(await missing.text(), /href="\/">Return to research threads/);
   } finally { await new Promise((done) => server.close(done)); }
 });

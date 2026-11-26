@@ -119,7 +119,10 @@ export async function start(port = Number(process.env.PORT ?? 4317)) {
       res.end(req.method === 'HEAD' ? '' : compressed ? responseGzip : responseBody); return;
     }
     const asset = assets.get(path);
-    if (!asset) { res.writeHead(404); res.end('Not found'); return; }
+    if (!asset) {
+      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(req.method === 'HEAD' ? '' : '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Page not found · Eternity II</title><link rel="stylesheet" href="/style.css"></head><body><main><h1>Page not found</h1><p>This address is not part of the research workspace.</p><a href="/">Return to research threads</a></main></body></html>'); return;
+    }
     try {
       res.setHeader('Content-Type', asset[1]); res.setHeader('Cache-Control', 'no-cache');
       const bytes = await readFile(resolve(root, 'public', asset[0]));
