@@ -63,6 +63,7 @@ const assets = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']], ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
   ['/style.css', ['style.css', 'text/css; charset=utf-8']], ['/icon.svg', ['icon.svg', 'image/svg+xml']],
   ['/manifest.webmanifest', ['manifest.webmanifest', 'application/manifest+json']],
+  ['/icon-192.png', ['icon-192.png', 'image/png']], ['/icon-512.png', ['icon-512.png', 'image/png']],
 ]);
 
 export async function start(port = Number(process.env.PORT ?? 4317)) {
