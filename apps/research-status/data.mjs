@@ -65,10 +65,13 @@ export function parseResearch({ agenda, ledger, experiments, revision, source, s
     thread.experimentReferences = thread.experiments.map((name) => ({ name, roles: thread.fields.filter((field) => field.text.includes(name)).map((field) => clean(field.label)) }));
     for (const reference of thread.experimentReferences) if (!reference.roles.length) reference.roles = ['Result (same dated track in research log)'];
   }
+  const citedFiles = (text) => [...text.matchAll(/research\/experiments\/[a-z0-9-]+\/[a-zA-Z0-9_./-]+/g)].map((match) => match[0].replace(/[.,]+$/, '')).filter((path) => !path.endsWith('/'));
+  const directCitations = new Map(threads.map((thread) => [thread.id, citedFiles(thread.fields.filter((field) => !/^Baseline/i.test(field.label)).map((field) => field.text).join('\n'))]));
   const log = ledgerEntries.map((section, index) => ({
     id: `log-${index}`, title: clean(section.title), body: section.body,
     date: section.title.slice(0, 10), url: `${blob}/${ledgerPath}#${slug(section.title)}`,
     threadIds: threads.filter((thread) => new RegExp(`\\b${thread.id}\\b`).test(`${section.title} ${section.body}`)
+      || directCitations.get(thread.id).some((path) => citedFiles(section.body).includes(path))
       || thread.experimentReferences.some(({ name, roles }) => name !== 'approach-pricing' && !roles.every((role) => /^Baseline/i.test(role)) && section.body.includes(`research/experiments/${name}`))).map((thread) => thread.id),
   })).sort((a, b) => b.date.localeCompare(a.date) || Number(b.id.slice(4)) - Number(a.id.slice(4)));
   for (const thread of threads) {

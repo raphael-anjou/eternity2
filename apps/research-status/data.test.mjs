@@ -66,5 +66,8 @@ test('parses every numbered heading in the real agenda and retains every dated l
     assert.ok(data.threads.find((thread) => thread.id === id).experiments.includes('dead-node-census'));
     assert.ok(data.log.find((entry) => /Night track 6,/i.test(entry.title)).threadIds.includes(id));
   }
+  const linearisation = data.log.find((entry) => /Linearisation degree on toy boards/.test(entry.title));
+  assert.ok(linearisation.threadIds.includes('A37'));
+  assert.ok(!linearisation.threadIds.includes('A35'));
   assert.ok(!data.threads.find((thread) => thread.id === 'A39').fields.at(-1).text.includes('Open after the arc'));
 });
