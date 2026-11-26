@@ -102,7 +102,8 @@ function filteredThreads() {
   }).sort((a, b) => state.sort === 'recent' ? Number(b.id.slice(1)) - Number(a.id.slice(1)) : state.sort === 'status' ? statuses.indexOf(a.status) - statuses.indexOf(b.status) || Number(a.id.slice(1)) - Number(b.id.slice(1)) : Number(a.id.slice(1)) - Number(b.id.slice(1)));
 }
 function openThread(thread, button, push = true) {
-  opener = button;
+  const wasOpen = $('#detail').open;
+  if (!wasOpen) opener = button;
   const body = $('#detail-body'); body.replaceChildren();
   $('#detail-id').textContent = `${thread.id} / ${thread.group}`;
   body.append(badge(thread.status, thread.statusText), el('h2', '', thread.title), el('p', 'detail-kind', thread.kind));
@@ -126,7 +127,11 @@ function openThread(thread, button, push = true) {
     body.append(section);
   }
   if (!$('#detail').open) $('#detail').showModal(); $('#detail').scrollTop = 0;
-  if (push && location.hash !== `#${thread.id}`) history.pushState({ researchThread: true }, '', `#${thread.id}`);
+  if (push && location.hash !== `#${thread.id}`) {
+    // One dialog is one history step; internal thread links replace its content.
+    if (wasOpen) history.replaceState(history.state, '', `#${thread.id}`);
+    else history.pushState({ researchThread: true }, '', `#${thread.id}`);
+  }
 }
 function renderThreads() {
   const threads = filteredThreads();
