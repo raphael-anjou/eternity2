@@ -9,16 +9,17 @@ npm test
 npm start
 ```
 
-Open port 4317. Set `PORT` to change it. Requires Node 22 or newer.
+Open port 4317 on localhost. Set `PORT` to change it. Requires Node 22 or newer.
+The server binds to `127.0.0.1` by default. Set `HOST=0.0.0.0` only behind an authenticated reverse proxy or on a trusted network.
 
 ## Source and freshness
 
-- Reads the local checkout immediately, explicitly labelled **Local snapshot**.
+- Reads the committed local `origin/main` snapshot immediately, explicitly labelled **Local snapshot**. Uncommitted working-tree notes are never served.
 - Checks public GitHub `main` every five minutes. `SOURCE_BRANCH` selects another branch.
 - Fetches the agenda, ledger, and experiment list at one immutable commit, so the source links match the displayed data.
 - If GitHub is unavailable or rate-limited, retains the last good snapshot and displays a warning. A restart falls back to the local checkout.
 - The browser polls the server snapshot each minute; **Refresh source** reloads that snapshot. It does not bypass the five-minute GitHub interval.
-- `SOURCE_MODE=local npm start` disables GitHub and rereads local files every five minutes.
+- `SOURCE_MODE=local npm start` disables GitHub and rereads committed `HEAD` every five minutes. Use it only for local previews of unpublished branches.
 
 Statuses are read literally from numbered agenda headings, not inferred from ledger prose or running processes. Qualifiers (such as "killed for the narrow family priced") remain visible in thread details. **Unresolved** groups open and proposed; **Advanced** groups promoted and published; **Closed** groups killed. Reopening conditions remain labelled separately from hypotheses. Later ledger entries can supersede agenda text, so the details warn about that and the research log stays accessible.
 

@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -14,13 +14,14 @@ let snapshot;
 let refreshing;
 
 async function localSnapshot() {
-  const [agenda, ledger, entries] = await Promise.all([
-    readFile(resolve(repoRoot, agendaPath), 'utf8'), readFile(resolve(repoRoot, ledgerPath), 'utf8'),
-    readdir(resolve(repoRoot, 'research/experiments'), { withFileTypes: true }),
-  ]);
-  const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
-  const sourceDate = execFileSync('git', ['log', '-1', '--format=%cI', '--', agendaPath, ledgerPath, 'research/experiments'], { cwd: repoRoot, encoding: 'utf8' }).trim();
-  return parseResearch({ agenda, ledger, experiments: entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name), revision, sourceDate,
+  const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' }).trim();
+  // Never serve uncommitted notes. Online mode starts from the known public branch.
+  const revision = git(['rev-parse', localOnly ? 'HEAD' : `refs/remotes/origin/${branch}`]);
+  const agenda = git(['show', `${revision}:${agendaPath}`]);
+  const ledger = git(['show', `${revision}:${ledgerPath}`]);
+  const experiments = git(['ls-tree', '-d', '--name-only', `${revision}:research/experiments`]).split('\n').filter(Boolean);
+  const sourceDate = git(['log', '-1', '--format=%cI', revision, '--', agendaPath, ledgerPath, 'research/experiments']);
+  return parseResearch({ agenda, ledger, experiments, revision, sourceDate,
     checkedAt: new Date().toISOString(), source: 'local', warning: localOnly ? null : 'Local checkout snapshot. Checking the published source…' });
 }
 
@@ -87,7 +88,7 @@ export async function start(port = Number(process.env.PORT ?? 4317)) {
       res.end(req.method === 'HEAD' ? '' : bytes);
     } catch { res.writeHead(500); res.end('Unable to load app'); }
   });
-  await new Promise((done) => server.listen(port, '0.0.0.0', done));
+  await new Promise((done) => server.listen(port, process.env.HOST ?? '127.0.0.1', done));
   void refresh();
   const timer = setInterval(() => void refresh(), refreshInterval);
   timer.unref();
