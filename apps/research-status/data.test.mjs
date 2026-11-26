@@ -18,11 +18,13 @@ test('keeps scoped statuses and multiline fields without inventing activity', ()
   assert.equal(data.threads[0].results.length, 1);
   assert.equal(data.threads[1].kind, 'Reopening condition');
   assert.ok(data.threads[0].url.includes('/blob/abc123/'));
+  assert.ok(data.threads[0].url.endsWith('#a1-first-idea--killed-for-the-narrow-family-priced'));
 });
 test('ledger is newest first and excludes undated conventions', () => {
   const data = parseResearch(input);
   assert.equal(data.log.length, 2);
   assert.equal(data.log[0].date, '2026-01-02');
+  assert.ok(data.log[0].url.endsWith('#2026-01-02--second-result'));
 });
 test('malformed agenda cannot silently replace good data', () => {
   assert.throws(() => parseResearch({ ...input, agenda: 'No headings' }), /No agenda threads/);

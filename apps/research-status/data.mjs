@@ -17,8 +17,9 @@ export function fields(body) {
 }
 
 function slug(text) {
-  // GitHub heading anchors preserve dots and middle dots, but remove markup.
-  return text.toLowerCase().replace(/[^\p{L}\p{N}\s_.·-]/gu, '').replace(/ /g, '-');
+  // Render inline markup before removing heading punctuation, as GitHub does.
+  return text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').toLowerCase()
+    .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '').replace(/ /g, '-');
 }
 
 export function parseResearch({ agenda, ledger, experiments, revision, source, sourceDate, checkedAt, warning = null }) {
