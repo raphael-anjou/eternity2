@@ -21,12 +21,20 @@ function badge(status, text) {
   node.append(el('span', 'status-dot'), document.createTextNode(text ?? labels[status] ?? status)); return node;
 }
 function plain(text) { return text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[*`]/g, '').replace(/\s+/g, ' ').trim(); }
+function sourcePath(text, code = false) {
+  const node = code ? el('code', '', text) : document.createTextNode(text);
+  const path = /^research\/experiments\/([a-z0-9-]+)(.*)$/.exec(text);
+  if (!path || !state.data.experiments.some((entry) => entry.name === path[1])) return node;
+  const kind = !path[2] || text.endsWith('/') ? 'tree' : 'blob';
+  const anchor = link('', `${state.data.meta.repository}/${kind}/${state.data.meta.revision}/${text}`);
+  anchor.append(node); return anchor;
+}
 function rich(text) {
   const container = el('div', 'prose');
   for (const rawParagraph of text.split(/\n\s*\n/)) {
     const paragraph = rawParagraph.replace(/\r?\n(?![-*] )\s*/g, ' ');
     const p = el('p');
-    const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|\b(A\d+)\b/g;
+    const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|\b(A\d+)\b|\b(research\/experiments\/[a-z0-9-]+(?:\/[a-zA-Z0-9_./-]*)?)/g;
     let cursor = 0;
     for (const match of paragraph.matchAll(pattern)) {
       p.append(document.createTextNode(paragraph.slice(cursor, match.index)));
@@ -34,7 +42,8 @@ function rich(text) {
       if (thread) {
         const button = el('button', 'inline-thread', thread.id);
         button.addEventListener('click', () => openThread(thread, button)); p.append(button);
-      } else p.append(match[1] ? link(match[1], match[2]) : el(match[3] ? 'code' : match[4] ? 'strong' : 'span', '', match[3] ?? match[4] ?? match[5]));
+      } else p.append(match[1] ? link(match[1], match[2]) : match[3] ? sourcePath(match[3], true) : match[6] ? sourcePath(match[6].replace(/\.$/, '')) : el(match[4] ? 'strong' : 'span', '', match[4] ?? match[5]));
+      if (match[6]?.endsWith('.')) p.append(document.createTextNode('.'));
       cursor = match.index + match[0].length;
     }
     p.append(document.createTextNode(paragraph.slice(cursor))); container.append(p);
@@ -107,9 +116,14 @@ function openThread(thread, button, push = true) {
   if (!wasOpen) opener = button;
   const body = $('#detail-body'); body.replaceChildren();
   $('#detail-id').textContent = `${thread.id} / ${thread.group}`;
-  body.append(badge(thread.status, thread.statusText), el('h2', '', thread.title), el('p', 'detail-kind', thread.kind));
+  const title = el('h2', '', thread.title); title.id = 'detail-title';
+  body.append(badge(thread.status, thread.statusText), title, el('p', 'detail-kind', thread.kind));
   body.append(link('Open original agenda entry ↗', thread.url, 'source-link'));
   const disclaimer = el('p', 'detail-disclaimer', 'Recorded agenda status, not live execution. Later research log entries may narrow or supersede this result.'); body.append(disclaimer);
+  if (thread.laterResult) {
+    const latest = el('section', 'detail-section later-result');
+    latest.append(el('h3', '', 'Later ledger result · agenda status unchanged'), link(thread.laterResult.title, thread.laterResult.url)); body.append(latest);
+  }
   const related = state.data.log.filter((entry) => entry.threadIds?.includes(thread.id));
   if (related.length) {
     const section = el('section', 'detail-section related-log'); section.append(el('h3', '', 'Related research log entries'), el('p', '', 'Entries mentioning this thread or sharing an evidence folder; not automatic status changes.'));
@@ -120,11 +134,16 @@ function openThread(thread, button, push = true) {
     const section = el('section', 'detail-section');
     const heading = el('h3'); const formatted = rich(field.label);
     heading.append(...formatted.firstElementChild.childNodes);
+    if (field.label === 'Cheap test') heading.append(document.createTextNode(' (recorded agenda plan)'));
     section.append(heading, rich(field.text)); body.append(section);
   }
   if (thread.experiments.length) {
-    const section = el('section', 'detail-section'); section.append(el('h3', '', 'Evidence folders'));
-    for (const name of thread.experiments) section.append(link(`${name} ↗`, state.data.experiments.find((e) => e.name === name).url, 'evidence-link'));
+    const section = el('section', 'detail-section'); section.append(el('h3', '', 'Referenced experiment folders'));
+    for (const name of thread.experiments) {
+      section.append(link(`${name} ↗`, state.data.experiments.find((e) => e.name === name).url, 'evidence-link'));
+      const roles = thread.experimentReferences?.find((reference) => reference.name === name)?.roles ?? [];
+      if (roles.length) section.append(el('small', 'reference-role', roles.join(' · ')));
+    }
     body.append(section);
   }
   if (!$('#detail').open) $('#detail').showModal(); $('#detail').scrollTop = 0;
@@ -152,8 +171,13 @@ function renderThreads() {
     if (thread.statusText !== thread.status) status.append(el('small', 'status-qualifier', thread.statusText.slice(thread.status.length).replace(/^,?\s*/, '')));
     const result = thread.results.at(-1);
     const outcome = el('td', 'outcome-cell');
-    if (result) outcome.append(el('small', 'result-scope', plain(result.label)));
-    outcome.append(el('p', 'outcome', result ? plain(result.text) : `Hypothesis: ${thread.hypothesis}`));
+    if (thread.laterResult) {
+      outcome.append(el('small', 'result-scope', 'Later ledger result · agenda status unchanged'), link(thread.laterResult.title, thread.laterResult.url, 'outcome ledger-outcome'));
+    } else {
+      if (result) outcome.append(el('small', 'result-scope', plain(result.label)));
+      outcome.append(el('p', 'outcome', result ? plain(result.text) : `Hypothesis: ${thread.hypothesis}`));
+    }
+    if (thread.laterResult) main.append(el('small', 'row-ledger-note', 'Later ledger result available (agenda unchanged)'));
     const detail = el('td', 'arrow-cell'); const open = el('button', 'icon-button', '↗'); open.setAttribute('aria-label', `Open ${thread.id} details`); open.addEventListener('click', () => openThread(thread, open)); detail.append(open);
     row.append(main, status, outcome, detail); tbody.append(row);
   }

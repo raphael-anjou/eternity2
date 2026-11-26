@@ -7,6 +7,15 @@ export function sections(markdown) {
     .map((match) => ({ title: match[1], body: match[2].trim() }));
 }
 
+export function datedSections(markdown) {
+  const headings = [...markdown.matchAll(/^(#{2,3}) (.+)\r?\n/gm)];
+  return headings.flatMap((heading, index) => {
+    if (!/^\d{4}-\d{2}-\d{2}/.test(heading[2])) return [];
+    const next = headings.slice(index + 1).find((entry) => entry[1].length <= heading[1].length || /^\d{4}-\d{2}-\d{2}/.test(entry[2]));
+    return [{ title: heading[2], body: markdown.slice(heading.index + heading[0].length, next?.index ?? markdown.length).trim() }];
+  });
+}
+
 export function clean(text) {
   return text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[*`]/g, '').replace(/\s+/g, ' ').trim();
 }
@@ -45,12 +54,27 @@ export function parseResearch({ agenda, ledger, experiments, revision, source, s
     }];
   });
   if (!threads.length) throw new Error('No agenda threads found; keeping the previous source snapshot.');
-  const log = sections(ledger).filter((section) => /^\d{4}-\d{2}-\d{2}/.test(section.title)).map((section, index) => ({
+  const ledgerEntries = datedSections(ledger);
+  for (const thread of threads) {
+    // Join only explicit result-track citations, qualified by date, to the log.
+    const tracks = thread.fields.flatMap((field) => /result|follow-up/i.test(field.label)
+      ? [...field.label.matchAll(/night (\d{4}-\d{2}-\d{2}), Track (\d+)/gi)] : []);
+    const trackEvidence = ledgerEntries.filter((entry) => tracks.some((track) => entry.title.startsWith(track[1]) && new RegExp(`\\bNight track ${track[2]}\\b`, 'i').test(entry.title)))
+      .flatMap((entry) => [...entry.body.matchAll(/research\/experiments\/([a-z0-9-]+)/g)].map((match) => match[1])).filter((name) => experiments.includes(name));
+    thread.experiments = [...new Set([...thread.experiments, ...trackEvidence])];
+    thread.experimentReferences = thread.experiments.map((name) => ({ name, roles: thread.fields.filter((field) => field.text.includes(name)).map((field) => clean(field.label)) }));
+    for (const reference of thread.experimentReferences) if (!reference.roles.length) reference.roles = ['Result (same dated track in research log)'];
+  }
+  const log = ledgerEntries.map((section, index) => ({
     id: `log-${index}`, title: clean(section.title), body: section.body,
     date: section.title.slice(0, 10), url: `${blob}/${ledgerPath}#${slug(section.title)}`,
     threadIds: threads.filter((thread) => new RegExp(`\\b${thread.id}\\b`).test(`${section.title} ${section.body}`)
-      || thread.experiments.some((name) => section.body.includes(`research/experiments/${name}`))).map((thread) => thread.id),
-  })).reverse();
+      || thread.experimentReferences.some(({ name, roles }) => name !== 'approach-pricing' && !roles.every((role) => /^Baseline/i.test(role)) && section.body.includes(`research/experiments/${name}`))).map((thread) => thread.id),
+  })).sort((a, b) => b.date.localeCompare(a.date) || Number(b.id.slice(4)) - Number(a.id.slice(4)));
+  for (const thread of threads) {
+    const later = log.find((entry) => !thread.results.length && entry.threadIds.includes(thread.id) && /stop line fired|closed as a negative/i.test(entry.title));
+    thread.laterResult = later ? { title: later.title, url: later.url, date: later.date } : null;
+  }
   const arc = sections(agenda).find((section) => section.title.startsWith('Arc of '));
   const context = arc?.body.split(/\n\s*\n/)[0] ?? '';
   const decision = log.find((entry) => /Decision: stop the hunt/.test(entry.title));
